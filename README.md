@@ -1,50 +1,41 @@
 # Atlassian Jira MCP Server
 
-## About
+## What is MCP and Why Use It?
 
-This project is a customizable Model Context Protocol (MCP) server written in TypeScript, designed to extend AI assistants like Claude or Cursor with access to Atlassian Jira data. MCP is an open-source protocol by Anthropic for connecting AI systems to external capabilities securely and efficiently. For more details on MCP, see [https://modelcontextprotocol.io/docs/](https://modelcontextprotocol.io/docs/). This server allows AI assistants to access projects and issues directly from your organization's Jira instance.
+Model Context Protocol (MCP) is a technology that allows AI assistants like Claude to access external tools and information. Think of it as giving AI the ability to "see" and interact with your organization's systems - in this case, your Jira projects and issues.
 
-## Project Features
+**Benefits:**
 
-- **MCP Server**: Exposes Jira tools and resources to AI clients (e.g., Claude Desktop, Cursor AI) via STDIO or HTTP.
-- **Jira Integration**: Access projects and issues from your Jira instance.
-- **CLI Support**: Run Jira queries directly from the command line without an AI client.
-- **Flexible Configuration**: Supports direct environment variables for quick use or a global config file at `$HOME/.mcp/configs.json` for managing multiple servers.
-- **Development Tools**: Built-in MCP Inspector for debugging, plus testing and linting utilities.
+- Your AI assistant can directly access real-time Jira data
+- No need to copy/paste information between tools
+- AI can help analyze, summarize, and work with your Jira tickets
+- Keeps sensitive information secure (the AI only sees what you share)
 
-### Available Tools
+This MCP server connects Claude, Cursor, or other compatible AI assistants with your Jira instance, allowing them to list projects, search issues, and access detailed ticket information.
 
-- **`list-projects`**: Get a list of all available Jira projects with optional filtering.
-- **`get-project`**: Retrieve detailed information about a specific project by ID or key.
-- **`list-issues`**: List issues with optional JQL filtering.
-- **`get-issue`**: Retrieve detailed information about a specific issue by ID or key.
+## Quick Start Guide
 
-## User Guide
+### Step 1: Get Your Atlassian API Token
 
-### Configuration Options
+1. **Create an API token** in your Atlassian account:
+    - Go to [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+    - Click "Create API token"
+    - Give it a name (e.g., "MCP Connection")
+    - Copy the generated token to a secure location
 
-- **DEBUG**: Set to `true` for detailed logging (default: `false`).
-- **ATLASSIAN_SITE_NAME**: Your Atlassian site name (e.g., `your-instance` for `your-instance.atlassian.net`) – required.
-- **ATLASSIAN_USER_EMAIL**: Your Atlassian account email address – required.
-- **ATLASSIAN_API_TOKEN**: API token for Atlassian API access – required.
+### Step 2: Set Up Configuration
 
-#### Method 1: Environment Variables
+Choose one of these methods:
 
-Pass configs directly when running:
+#### Easy Setup: Create a Config File (Recommended)
 
-```bash
-DEBUG=true ATLASSIAN_SITE_NAME=your-instance ATLASSIAN_USER_EMAIL=your-email@example.com ATLASSIAN_API_TOKEN=your_token npx -y @aashari/mcp-server-atlassian-jira
-```
-
-#### Method 2: Global Config File (Recommended)
-
-Create `$HOME/.mcp/configs.json`:
+1. Create a folder called `.mcp` in your home directory
+2. Create a file called `configs.json` inside it with this content:
 
 ```json
 {
 	"@aashari/mcp-server-atlassian-jira": {
 		"environments": {
-			"DEBUG": "true",
 			"ATLASSIAN_SITE_NAME": "your-instance",
 			"ATLASSIAN_USER_EMAIL": "your-email@example.com",
 			"ATLASSIAN_API_TOKEN": "your_api_token"
@@ -53,27 +44,92 @@ Create `$HOME/.mcp/configs.json`:
 }
 ```
 
-You can also configure multiple MCP servers in the same file:
+Replace the values with your actual information:
+
+- `your-instance`: Your Atlassian site name (e.g., for `example.atlassian.net`, enter `example`)
+- `your-email@example.com`: Your Atlassian account email address
+- `your_api_token`: The API token you created in Step 1
+
+#### Alternative: Use Environment Variables
+
+If you prefer, you can provide the configuration directly when running commands:
+
+```bash
+ATLASSIAN_SITE_NAME=your-instance ATLASSIAN_USER_EMAIL=your-email@example.com ATLASSIAN_API_TOKEN=your_token npx -y @aashari/mcp-server-atlassian-jira
+```
+
+### Step 3: Connect Your AI Assistant
+
+#### For Claude Desktop
+
+1. Open Claude Desktop and click the **gear icon** (Settings) in the top-right
+2. Click **Edit Config**
+3. Add the following to your configuration file:
 
 ```json
 {
-	"@aashari/boilerplate-mcp-server": {
+	"mcpServers": {
+		"aashari/mcp-server-atlassian-jira": {
+			"command": "npx",
+			"args": ["-y", "@aashari/mcp-server-atlassian-jira"]
+		}
+	}
+}
+```
+
+4. Save and close the file
+5. Restart Claude Desktop
+6. Click the **hammer icon** to verify Jira tools are listed
+
+#### For Cursor AI
+
+1. Open Cursor and press `CMD + SHIFT + P` (macOS) or `CTRL + SHIFT + P` (Windows/Linux)
+2. Select **Cursor Settings > MCP**
+3. Click **+ Add new MCP server**
+4. Fill in the details:
+    - **Name**: `aashari/mcp-server-atlassian-jira`
+    - **Type**: `command`
+    - **Command**: `npx -y @aashari/mcp-server-atlassian-jira`
+5. Click **Add**
+6. Look for a green indicator showing the server is active
+
+### Step 4: Start Using It!
+
+In your AI assistant, try asking:
+
+- "Show me my Jira projects"
+- "List open issues in the DEV project"
+- "Get details about PROJ-123"
+- "Show me all bugs assigned to me"
+
+## Available Tools
+
+This MCP server provides the following tools:
+
+| Tool              | Purpose                            | Example Usage                       |
+| ----------------- | ---------------------------------- | ----------------------------------- |
+| **list-projects** | Get a list of all Jira projects    | "Show me all projects"              |
+| **get-project**   | View details of a specific project | "Tell me about the DEV project"     |
+| **list-issues**   | Search for issues with filters     | "Show open bugs in DEV project"     |
+| **get-issue**     | Get complete details of a ticket   | "Show me everything about PROJ-123" |
+
+## Advanced Configuration
+
+### Using Multiple MCP Servers
+
+You can configure multiple MCP servers in your global config file (`$HOME/.mcp/configs.json`):
+
+```json
+{
+	"@aashari/mcp-server-atlassian-jira": {
 		"environments": {
-			"DEBUG": "true",
-			"IPAPI_API_TOKEN": "your_token"
+			"ATLASSIAN_SITE_NAME": "your-instance",
+			"ATLASSIAN_USER_EMAIL": "your-email@example.com",
+			"ATLASSIAN_API_TOKEN": "your_api_token"
 		}
 	},
 	"@aashari/mcp-server-atlassian-confluence": {
 		"environments": {
-			"DEBUG": "true",
-			"ATLASSIAN_SITE_NAME": "your-instance",
-			"ATLASSIAN_USER_EMAIL": "your-email@example.com",
-			"ATLASSIAN_API_TOKEN": "your_api_token"
-		}
-	},
-	"@aashari/mcp-server-atlassian-jira": {
-		"environments": {
-			"DEBUG": "true",
 			"ATLASSIAN_SITE_NAME": "your-instance",
 			"ATLASSIAN_USER_EMAIL": "your-email@example.com",
 			"ATLASSIAN_API_TOKEN": "your_api_token"
@@ -82,162 +138,96 @@ You can also configure multiple MCP servers in the same file:
 }
 ```
 
-### Using with Claude Desktop
+Then add both to your AI assistant's configuration.
 
-1. **Open Settings**:
-    - Launch Claude Desktop, click the gear icon (top-right).
-2. **Edit Config**:
-    - Click "Edit Config" to open `claude_desktop_config.json` (e.g., `~/Library/Application Support/Claude` on macOS or `%APPDATA%\Claude` on Windows).
-    - Click "Edit Config" to open `claude_desktop_config.json` (e.g., `~/Library/Application Support/Claude` on macOS or `%APPDATA%\Claude` on Windows).
-3. **Add Server**:
-    - Use the global config file (recommended):
-        ```json
-        {
-        	"mcpServers": {
-        		"aashari/mcp-server-atlassian-jira": {
-        			"command": "npx",
-        			"args": ["-y", "@aashari/mcp-server-atlassian-jira"]
-        		}
-        	}
-        }
-        ```
-    - Or configure directly:
-        ```json
-        {
-        	"mcpServers": {
-        		"aashari/mcp-server-atlassian-jira": {
-        			"command": "npx",
-        			"args": [
-        				"-y",
-        				"DEBUG=true",
-        				"ATLASSIAN_SITE_NAME=your-instance",
-        				"ATLASSIAN_USER_EMAIL=your-email@example.com",
-        				"ATLASSIAN_API_TOKEN=your_token",
-        				"@aashari/mcp-server-atlassian-jira"
-        			]
-        		}
-        	}
-        }
-        ```
-4. **Restart**: Close and reopen Claude Desktop.
-5. **Test**: Click the hammer icon, verify Jira tools are listed, then ask: "List my Jira projects" or "Show me details for issue PROJ-123."
+### Debugging
 
-### Using with Cursor AI
+To enable debug logging:
 
-1. **Open Settings**:
-    - Launch Cursor, press `CMD + SHIFT + P` (or `CTRL + SHIFT + P`), select "Cursor Settings" > "MCP".
-2. **Add Server**:
-    - Click "+ Add new MCP server".
-    - **Name**: `aashari/mcp-server-atlassian-jira`.
-    - **Type**: `command`.
-    - **Command**:
-        - Global config: `npx -y @aashari/mcp-server-atlassian-jira`.
-        - Direct: `DEBUG=true ATLASSIAN_SITE_NAME=your-instance ATLASSIAN_USER_EMAIL=your-email@example.com ATLASSIAN_API_TOKEN=your_token npx -y @aashari/mcp-server-atlassian-jira`.
-    - Click "Add".
-3. **Verify**: Check for a green indicator and Jira tools listed.
-4. **Test**: In Agent mode, ask: "Show me open issues in project X" or "Get details for ticket PROJ-456."
+- Add `"DEBUG": "true"` to your environment configuration
+- Or prefix commands with `DEBUG=true`
 
-### Using as a CLI Tool
+### Using as a Command-Line Tool
 
-Run without installation:
+You can also use this as a standalone command-line tool:
 
 ```bash
-# Help
-npx -y @aashari/mcp-server-atlassian-jira -- --help
-# List projects
-npx -y @aashari/mcp-server-atlassian-jira -- list-projects
-# Get project details
-npx -y @aashari/mcp-server-atlassian-jira -- get-project PROJ
-# List issues with JQL
-npx -y @aashari/mcp-server-atlassian-jira -- list-issues --jql "project = PROJ AND status = Open"
-# Get issue details
-npx -y @aashari/mcp-server-atlassian-jira -- get-issue PROJ-123
-```
-
-Or install globally:
-
-```bash
+# Install globally
 npm install -g @aashari/mcp-server-atlassian-jira
-```
 
-Then run:
-
-```bash
-# Help
-mcp-jira --help
-# List projects with optional filtering
-mcp-jira list-projects --limit 10
-# Get a project by ID or key
-mcp-jira get-project PROJ
-# List issues with optional JQL filtering
-mcp-jira list-issues --jql "project = PROJ AND status = Open" --limit 10
-# Get an issue by ID or key
+# Then run commands
+mcp-jira list-projects
 mcp-jira get-issue PROJ-123
+mcp-jira list-issues --jql "project = DEV AND status = Open"
 ```
 
-Use the global config file or prefix with environment variables:
+## For Developers: Contributing to This Project
 
-```bash
-DEBUG=true ATLASSIAN_SITE_NAME=your-instance ATLASSIAN_USER_EMAIL=your-email@example.com ATLASSIAN_API_TOKEN=your_token mcp-jira list-projects
-```
+### Project Architecture
 
-## Developer Guide
+This MCP server follows a layered architecture:
+
+1. **CLI/Tool Layer**: End-user interfaces with minimal logic
+2. **Controller Layer**: Business logic, validation, and formatting
+3. **Service Layer**: API communication and data retrieval
+4. **Utilities**: Shared functionality (error handling, pagination, etc.)
+
+The flow of data is: User → CLI/Tool → Controller → Service → Atlassian API → back up the chain with responses.
+
+### Setting Up Development Environment
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Run in development mode: `npm run dev:server`
 
 ### Development Scripts
 
-The project includes several scripts for development and production use:
+- `npm run dev:server`: Run with hot reloading and debug logging
+- `npm test`: Run test suite
+- `npm run lint`: Check for code issues
+- `npm run format`: Format code with Prettier
 
-- **`npm run dev:server`**: Run the server in development mode with MCP Inspector and debug logging.
-- **`npm run dev:cli`**: Run CLI commands in development mode with debug logging.
-- **`npm run start:server`**: Run the server in production mode with MCP Inspector.
-- **`npm run start:cli`**: Run CLI commands in production mode.
+### Adding a New Feature
 
-Example usage:
+1. Implement API access in the Service layer
+2. Add business logic to the Controller layer
+3. Expose functionality via Tool and CLI interfaces
+4. Update tests and documentation
+5. Submit a pull request with a clear description
 
-```bash
-# Start the server with Inspector and debug logging
-npm run dev:server
+### Documentation Standards
 
-# Run a CLI command with debug logging
-npm run dev:cli -- list-issues --jql "project = PROJ"
+- Use JSDoc comments for all public functions
+- Follow the AI-friendly documentation format for tools
+- Include examples of using your new functionality
+- Update the README if adding major features
 
-# Start the server with Inspector (no debug)
-npm run start:server
+### Standard Formatting Template for Tools
 
-# Run a CLI command (no debug)
-npm run start:cli -- list-projects
+When documenting new tools, follow our standard template:
+
 ```
+PURPOSE: What the tool does and its main functionality
 
-### Extending the Project
+WHEN TO USE:
+- Primary use case
+- Secondary use cases
+- When this tool is the best choice
 
-To add custom tools or resources:
+WHEN NOT TO USE:
+- When another tool would be better
+- Inefficient use cases
+- Performance considerations
 
-1. **Services**: Add API/data logic in `src/services`.
-2. **Controllers**: Implement business logic in `src/controllers`.
-3. **Tools**: Define new tools in `src/tools`.
-4. **Resources**: Add data sources in `src/resources`.
-5. **Register**: Update `src/index.ts` with your tools/resources.
+RETURNS: Description of the output format
 
-### Additional Development Tools
+EXAMPLES:
+- Simple example
+- More complex example
 
-```bash
-# Run tests
-npm test
-# Test coverage
-npm run test:coverage
-# Lint
-npm run lint
-# Format
-npm run format
+ERRORS:
+- Common error scenarios and how to resolve them
 ```
-
-### MCP Inspector
-
-The MCP Inspector provides a visual interface for debugging and testing your MCP server:
-
-1. The Inspector starts your MCP server.
-2. It launches a web UI (typically at `http://localhost:5173`).
-3. Use the UI to test Jira tools, view requests/responses, and check errors.
 
 ## Versioning Note
 
