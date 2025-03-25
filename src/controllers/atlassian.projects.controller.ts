@@ -1,5 +1,5 @@
 import atlassianProjectsService from '../services/vendor.atlassian.projects.service.js';
-import { logger } from '../utils/logger.util.js';
+import { Logger } from '../utils/logger.util.js';
 import { handleControllerError } from '../utils/errorHandler.util.js';
 import {
 	extractPaginationInfo,
@@ -21,6 +21,14 @@ import {
  * Provides functionality for listing projects and retrieving project details.
  */
 
+// Create a contextualized logger for this file
+const controllerLogger = Logger.forContext(
+	'controllers/atlassian.projects.controller.ts',
+);
+
+// Log controller initialization
+controllerLogger.debug('Jira projects controller initialized');
+
 /**
  * List Jira projects with optional filtering
  * @param options - Optional filter options for the projects list
@@ -32,8 +40,11 @@ import {
 async function list(
 	options: ListProjectsOptions = {},
 ): Promise<ControllerResponse> {
-	const source = `[src/controllers/atlassian.projects.controller.ts@list]`;
-	logger.debug(`${source} Listing Jira projects...`, options);
+	const methodLogger = Logger.forContext(
+		'controllers/atlassian.projects.controller.ts',
+		'list',
+	);
+	methodLogger.debug('Listing Jira projects...', options);
 
 	try {
 		// Set default filters and hardcoded values
@@ -47,19 +58,19 @@ async function list(
 			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
 		};
 
-		logger.debug(`${source} Using filters:`, filters);
+		methodLogger.debug('Using filters:', filters);
 
 		const projectsData = await atlassianProjectsService.list(filters);
 		// Log only the count of projects returned instead of the entire response
-		logger.debug(
-			`${source} Retrieved ${projectsData.values?.length || 0} projects`,
+		methodLogger.debug(
+			`Retrieved ${projectsData.values?.length || 0} projects`,
 		);
 
 		// Extract pagination information using the utility
 		const pagination = extractPaginationInfo(
 			projectsData,
 			PaginationType.OFFSET,
-			source,
+			'controllers/atlassian.projects.controller.ts@list',
 		);
 
 		// Format the projects data for display using the formatter
@@ -77,7 +88,7 @@ async function list(
 		handleControllerError(error, {
 			entityType: 'Projects',
 			operation: 'listing',
-			source: 'src/controllers/atlassian.projects.controller.ts@list',
+			source: 'controllers/atlassian.projects.controller.ts@list',
 			additionalInfo: { options },
 		});
 	}
@@ -99,24 +110,23 @@ async function get(
 	},
 ): Promise<ControllerResponse> {
 	const { idOrKey } = identifier;
-
-	logger.debug(
-		`[src/controllers/atlassian.projects.controller.ts@get] Getting Jira project with ID/key: ${idOrKey}...`,
+	const methodLogger = Logger.forContext(
+		'controllers/atlassian.projects.controller.ts',
+		'get',
 	);
 
+	methodLogger.debug(`Getting Jira project with ID/key: ${idOrKey}...`);
+
 	try {
-		logger.debug(
-			`[src/controllers/atlassian.projects.controller.ts@get] Using options:`,
-			options,
-		);
+		methodLogger.debug('Using options:', options);
 
 		const projectData = await atlassianProjectsService.get(
 			idOrKey,
 			options,
 		);
 		// Log only key information instead of the entire response
-		logger.debug(
-			`[src/controllers/atlassian.projects.controller.ts@get] Retrieved project: ${projectData.name} (${projectData.id})`,
+		methodLogger.debug(
+			`Retrieved project: ${projectData.name} (${projectData.id})`,
 		);
 
 		// Format the project data for display using the formatter
@@ -131,7 +141,7 @@ async function get(
 			entityType: 'Project',
 			entityId: identifier,
 			operation: 'retrieving',
-			source: 'src/controllers/atlassian.projects.controller.ts@get',
+			source: 'controllers/atlassian.projects.controller.ts@get',
 			additionalInfo: { options },
 		});
 	}
