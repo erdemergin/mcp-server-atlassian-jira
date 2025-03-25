@@ -15,16 +15,16 @@ import {
 	formatProjectsList,
 	formatProjectDetails,
 } from './atlassian.projects.formatter.js';
+import {
+	DEFAULT_PAGE_SIZE,
+	PROJECT_DEFAULTS,
+	applyDefaults,
+} from '../utils/defaults.util.js';
 
 /**
  * Controller for managing Jira projects.
  * Provides functionality for listing projects and retrieving project details.
  */
-
-// Default values for options
-const DEFAULT_MAX_RESULTS = 10;
-const DEFAULT_INCLUDE_COMPONENTS = true;
-const DEFAULT_INCLUDE_VERSIONS = true;
 
 // Create a contextualized logger for this file
 const controllerLogger = Logger.forContext(
@@ -41,7 +41,7 @@ controllerLogger.debug('Jira projects controller initialized');
  */
 async function list(
 	options: ListProjectsOptions = {
-		limit: DEFAULT_MAX_RESULTS,
+		limit: DEFAULT_PAGE_SIZE,
 	},
 ): Promise<ControllerResponse> {
 	const methodLogger = Logger.forContext(
@@ -58,7 +58,7 @@ async function list(
 			// Always include expanded fields
 			expand: ['description', 'lead'],
 			// Pagination with defaults
-			maxResults: options.limit || DEFAULT_MAX_RESULTS,
+			maxResults: options.limit || DEFAULT_PAGE_SIZE,
 			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
 		};
 
@@ -101,10 +101,7 @@ async function list(
  */
 async function get(
 	identifier: ProjectIdentifier,
-	options: GetProjectOptions = {
-		includeComponents: DEFAULT_INCLUDE_COMPONENTS,
-		includeVersions: DEFAULT_INCLUDE_VERSIONS,
-	},
+	options: GetProjectOptions = {},
 ): Promise<ControllerResponse> {
 	const { idOrKey } = identifier;
 	const methodLogger = Logger.forContext(
@@ -115,10 +112,16 @@ async function get(
 	methodLogger.debug(`Getting Jira project with ID/key: ${idOrKey}...`);
 
 	try {
+		// Apply default values to options
+		const optionsWithDefaults = applyDefaults(options, {
+			includeComponents: PROJECT_DEFAULTS.INCLUDE_COMPONENTS,
+			includeVersions: PROJECT_DEFAULTS.INCLUDE_VERSIONS,
+		});
+
 		// Map controller options to service parameters
 		const serviceParams = {
-			includeComponents: options.includeComponents,
-			includeVersions: options.includeVersions,
+			includeComponents: optionsWithDefaults.includeComponents,
+			includeVersions: optionsWithDefaults.includeVersions,
 		};
 
 		const projectData = await atlassianProjectsService.get(
