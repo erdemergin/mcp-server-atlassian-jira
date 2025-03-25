@@ -32,7 +32,9 @@ function register(program: Command): void {
 function registerListProjectsCommand(program: Command): void {
 	program
 		.command('list-projects')
-		.description('List Jira projects with optional filtering')
+		.description(
+			'List Jira projects with optional filtering\n\n  Retrieves projects from your Jira instance with filtering and pagination options.',
+		)
 		.option('-q, --query <query>', 'Filter by project name or key')
 		.option(
 			'-l, --limit <number>',
@@ -82,7 +84,9 @@ function registerListProjectsCommand(program: Command): void {
 function registerGetProjectCommand(program: Command): void {
 	program
 		.command('get-project')
-		.description('Get detailed information about a specific Jira project')
+		.description(
+			'Get detailed information about a specific Jira project\n\n  Retrieves comprehensive details for a project including components, versions, and metadata.',
+		)
 		.argument('<idOrKey>', 'ID or key of the project to retrieve')
 		.action(async (idOrKey: string) => {
 			const logPrefix = '[src/cli/atlassian.projects.cli.ts@get-project]';

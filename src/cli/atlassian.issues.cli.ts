@@ -32,7 +32,9 @@ function register(program: Command): void {
 function registerListIssuesCommand(program: Command): void {
 	program
 		.command('list-issues')
-		.description('List Jira issues with optional filtering')
+		.description(
+			'List Jira issues with optional filtering\n\n  Retrieves issues from your Jira instance with JQL filtering and pagination options.',
+		)
 		.option('-j, --jql <query>', 'JQL query string to filter issues')
 		.option(
 			'-l, --limit <number>',
@@ -81,7 +83,9 @@ function registerListIssuesCommand(program: Command): void {
 function registerGetIssueCommand(program: Command): void {
 	program
 		.command('get-issue')
-		.description('Get detailed information about a specific Jira issue')
+		.description(
+			'Get detailed information about a specific Jira issue\n\n  Retrieves comprehensive details for an issue including status, comments, attachments, and metadata.',
+		)
 		.argument('<idOrKey>', 'ID or key of the issue to retrieve')
 		.action(async (idOrKey: string) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@get-issue]';
