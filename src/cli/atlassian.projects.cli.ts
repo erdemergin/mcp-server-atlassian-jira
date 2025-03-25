@@ -70,6 +70,17 @@ function registerListProjectsCommand(program: Command): void {
 				logger.debug(`${logPrefix} Successfully retrieved projects`);
 
 				console.log(result.content);
+
+				// Display pagination information if available
+				if (result.pagination?.hasMore) {
+					console.log('\n## Pagination');
+					console.log(
+						`*Showing ${result.pagination.count || ''} items. More results are available.*`,
+					);
+					console.log(
+						`\nTo see more results, use --cursor "${result.pagination.nextCursor}"`,
+					);
+				}
 			} catch (error) {
 				logger.error(`${logPrefix} Operation failed:`, error);
 				handleCliError(error);
