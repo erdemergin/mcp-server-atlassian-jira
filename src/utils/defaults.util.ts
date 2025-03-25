@@ -56,7 +56,7 @@ export const ISSUE_DEFAULTS = {
  * const options = applyDefaults({ limit: 10 }, { limit: DEFAULT_PAGE_SIZE, includeDetails: true });
  * // Result: { limit: 10, includeDetails: true }
  */
-export function applyDefaults<T extends Record<string, any>>(
+export function applyDefaults<T extends Record<string, unknown>>(
 	options: Partial<T>,
 	defaults: T,
 ): T {
