@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.4.0...v1.5.0) (2025-03-25)
+
+
+### Features
+
+* **pagination:** standardize pagination display across all CLI commands ([9446c96](https://github.com/aashari/mcp-server-atlassian-jira/commit/9446c960e413d188b0193dfc9d45f2285038dfc5))
+
 # [1.4.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.3.0...v1.4.0) (2025-03-25)
 
 
