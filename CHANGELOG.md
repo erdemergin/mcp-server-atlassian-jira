@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.2.0...v1.2.1) (2025-03-25)
+
+
+### Bug Fixes
+
+* trigger new release for parameter and pagination standardization ([8bef885](https://github.com/aashari/mcp-server-atlassian-jira/commit/8bef8856602ae92a37b37477f93f03a61f282581))
+
 # [1.2.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.1.4...v1.2.0) (2025-03-25)
 
 
