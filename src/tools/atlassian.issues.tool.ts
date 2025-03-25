@@ -60,9 +60,9 @@ async function listIssues(
  * MCP Tool: Get Jira Issue Details
  *
  * Retrieves detailed information about a specific Jira issue.
- * Returns a formatted markdown response with issue metadata, comments, attachments, and worklog.
+ * Returns a formatted markdown response with issue metadata, description, comments, etc.
  *
- * @param {GetIssueToolArgsType} args - Tool arguments containing the issue ID or key and optional fields
+ * @param {GetIssueToolArgsType} args - Tool arguments containing the issue ID or key
  * @param {RequestHandlerExtra} _extra - Extra request handler information (unused)
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted issue details
  * @throws Will return error message if issue retrieval fails
@@ -77,7 +77,9 @@ async function getIssue(
 	);
 
 	try {
-		const message = await atlassianIssuesController.get(args.idOrKey);
+		const message = await atlassianIssuesController.get({
+			idOrKey: args.idOrKey,
+		});
 		logger.debug(
 			`${logPrefix} Successfully retrieved issue details from controller`,
 			message,

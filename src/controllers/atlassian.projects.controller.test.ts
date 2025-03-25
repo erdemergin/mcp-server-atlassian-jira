@@ -231,7 +231,9 @@ describe('Atlassian Projects Controller', () => {
 			});
 
 			// Call the controller
-			const result = await atlassianProjectsController.get('TEST');
+			const result = await atlassianProjectsController.get({
+				idOrKey: 'TEST',
+			});
 
 			// Verify the service was called correctly
 			expect(mockedProjectsService.get).toHaveBeenCalledWith('TEST', {
@@ -270,7 +272,9 @@ describe('Atlassian Projects Controller', () => {
 			});
 
 			// Call the controller
-			const result = await atlassianProjectsController.get('MINI');
+			const result = await atlassianProjectsController.get({
+				idOrKey: 'MINI',
+			});
 
 			// Verify content handles missing components and versions
 			expect(result.content).toContain(
@@ -291,7 +295,7 @@ describe('Atlassian Projects Controller', () => {
 
 			// Expect the controller to pass through the error
 			await expect(
-				atlassianProjectsController.get('INVALID'),
+				atlassianProjectsController.get({ idOrKey: 'INVALID' }),
 			).rejects.toThrow(error);
 		});
 	});

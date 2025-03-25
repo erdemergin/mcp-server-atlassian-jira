@@ -77,7 +77,9 @@ async function getProject(
 	);
 
 	try {
-		const message = await atlassianProjectsController.get(args.idOrKey);
+		const message = await atlassianProjectsController.get({
+			idOrKey: args.idOrKey,
+		});
 		logger.debug(
 			`${logPrefix} Successfully retrieved project details from controller`,
 			message,

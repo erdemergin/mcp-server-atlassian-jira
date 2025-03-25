@@ -1,10 +1,15 @@
 import atlassianProjectsService from '../services/vendor.atlassian.projects.service.js';
 import { logger } from '../utils/logger.util.js';
-import { McpError, createApiError } from '../utils/error.util.js';
+import { handleControllerError } from '../utils/errorHandler.util.js';
+import {
+	extractPaginationInfo,
+	PaginationType,
+} from '../utils/pagination.util.js';
 import {
 	ListProjectsOptions,
 	GetProjectOptions,
 	ControllerResponse,
+	ProjectIdentifier,
 } from './atlassian.projects.type.js';
 import {
 	formatProjectsList,
@@ -27,10 +32,8 @@ import {
 async function list(
 	options: ListProjectsOptions = {},
 ): Promise<ControllerResponse> {
-	logger.debug(
-		`[src/controllers/atlassian.projects.controller.ts@list] Listing Jira projects...`,
-		options,
-	);
+	const source = `[src/controllers/atlassian.projects.controller.ts@list]`;
+	logger.debug(`${source} Listing Jira projects...`, options);
 
 	try {
 		// Set default filters and hardcoded values
@@ -44,105 +47,59 @@ async function list(
 			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
 		};
 
-		logger.debug(
-			`[src/controllers/atlassian.projects.controller.ts@list] Using filters:`,
-			filters,
-		);
+		logger.debug(`${source} Using filters:`, filters);
 
 		const projectsData = await atlassianProjectsService.list(filters);
 		// Log only the count of projects returned instead of the entire response
 		logger.debug(
-			`[src/controllers/atlassian.projects.controller.ts@list] Retrieved ${projectsData.values?.length || 0} projects`,
+			`${source} Retrieved ${projectsData.values?.length || 0} projects`,
 		);
 
-		// Extract pagination information
-		let nextCursor: string | undefined;
-		if (
-			projectsData.startAt !== undefined &&
-			projectsData.maxResults !== undefined &&
-			projectsData.total !== undefined &&
-			projectsData.startAt + projectsData.maxResults < projectsData.total
-		) {
-			nextCursor = String(projectsData.startAt + projectsData.maxResults);
-			logger.debug(
-				`[src/controllers/atlassian.projects.controller.ts@list] Next cursor: ${nextCursor}`,
-			);
-		} else if (projectsData.nextPage) {
-			nextCursor = projectsData.nextPage;
-			logger.debug(
-				`[src/controllers/atlassian.projects.controller.ts@list] Next page: ${nextCursor}`,
-			);
-		}
+		// Extract pagination information using the utility
+		const pagination = extractPaginationInfo(
+			projectsData,
+			PaginationType.OFFSET,
+			source,
+		);
 
 		// Format the projects data for display using the formatter
-		const formattedProjects = formatProjectsList(projectsData, nextCursor);
+		const formattedProjects = formatProjectsList(
+			projectsData,
+			pagination.nextCursor,
+		);
 
 		return {
 			content: formattedProjects,
-			pagination: {
-				nextCursor,
-				hasMore: !!nextCursor,
-			},
+			pagination,
 		};
 	} catch (error) {
-		logger.error(
-			`[src/controllers/atlassian.projects.controller.ts@list] Error listing projects`,
-			error,
-		);
-
-		// Get the error message
-		const errorMessage =
-			error instanceof Error ? error.message : String(error);
-
-		// Pass through McpErrors
-		if (error instanceof McpError) {
-			throw error;
-		}
-
-		// Handle specific error patterns
-
-		// 1. Invalid cursor format
-		if (
-			errorMessage.includes('startAt') &&
-			(errorMessage.includes('invalid') ||
-				errorMessage.includes('not valid'))
-		) {
-			logger.warn(
-				`[src/controllers/atlassian.projects.controller.ts@list] Invalid cursor detected`,
-			);
-
-			throw createApiError(
-				`${errorMessage}. Use the exact cursor string returned from previous results.`,
-				400,
-				error,
-			);
-		}
-
-		// Default: preserve original message with status code if available
-		throw createApiError(
-			errorMessage,
-			error instanceof Error && 'statusCode' in error
-				? (error as { statusCode: number }).statusCode
-				: undefined,
-			error,
-		);
+		// Use the standardized error handler
+		handleControllerError(error, {
+			entityType: 'Projects',
+			operation: 'listing',
+			source: 'src/controllers/atlassian.projects.controller.ts@list',
+			additionalInfo: { options },
+		});
 	}
 }
 
 /**
  * Get details of a specific Jira project
- * @param idOrKey - The ID or key of the project to retrieve
+ * @param identifier - Object containing the ID or key of the project to retrieve
+ * @param identifier.idOrKey - The ID or key of the project
  * @param options - Options for retrieving the project
  * @returns Promise with formatted project details content
  * @throws Error if project retrieval fails
  */
 async function get(
-	idOrKey: string,
+	identifier: ProjectIdentifier,
 	options: GetProjectOptions = {
 		includeComponents: true,
 		includeVersions: true,
 	},
 ): Promise<ControllerResponse> {
+	const { idOrKey } = identifier;
+
 	logger.debug(
 		`[src/controllers/atlassian.projects.controller.ts@get] Getting Jira project with ID/key: ${idOrKey}...`,
 	);
@@ -169,48 +126,14 @@ async function get(
 			content: formattedProject,
 		};
 	} catch (error) {
-		logger.error(
-			`[src/controllers/atlassian.projects.controller.ts@get] Error getting project`,
-			error,
-		);
-
-		// Get the error message
-		const errorMessage =
-			error instanceof Error ? error.message : String(error);
-
-		// Pass through McpErrors
-		if (error instanceof McpError) {
-			throw error;
-		}
-
-		// Handle specific error patterns
-
-		// 1. Project not found
-		if (
-			errorMessage.includes('not found') ||
-			(error instanceof Error &&
-				'statusCode' in error &&
-				(error as { statusCode: number }).statusCode === 404)
-		) {
-			logger.warn(
-				`[src/controllers/atlassian.projects.controller.ts@get] Project not found: ${idOrKey}`,
-			);
-
-			throw createApiError(
-				`Project not found: ${idOrKey}. Verify the project ID or key is correct and that you have access to this project.`,
-				404,
-				error,
-			);
-		}
-
-		// Default: preserve original message with status code if available
-		throw createApiError(
-			errorMessage,
-			error instanceof Error && 'statusCode' in error
-				? (error as { statusCode: number }).statusCode
-				: undefined,
-			error,
-		);
+		// Use the standardized error handler
+		handleControllerError(error, {
+			entityType: 'Project',
+			entityId: identifier,
+			operation: 'retrieving',
+			source: 'src/controllers/atlassian.projects.controller.ts@get',
+			additionalInfo: { options },
+		});
 	}
 }
 

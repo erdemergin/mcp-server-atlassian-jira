@@ -87,7 +87,9 @@ function registerGetProjectCommand(program: Command): void {
 				logger.debug(
 					`${logPrefix} Fetching details for project ID/key: ${idOrKey}`,
 				);
-				const result = await atlassianProjectsController.get(idOrKey);
+				const result = await atlassianProjectsController.get({
+					idOrKey,
+				});
 				logger.debug(
 					`${logPrefix} Successfully retrieved project details`,
 				);

@@ -80,18 +80,13 @@ function registerGetIssueCommand(program: Command): void {
 		.command('get-issue')
 		.description('Get detailed information about a specific Jira issue')
 		.argument('<idOrKey>', 'ID or key of the issue to retrieve')
-		.action(async (idOrKey: string, options) => {
+		.action(async (idOrKey: string) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@get-issue]';
 			try {
-				logger.debug(`${logPrefix} Processing command options:`, {
-					idOrKey,
-					...options,
-				});
-
 				logger.debug(
 					`${logPrefix} Fetching details for issue ID/key: ${idOrKey}`,
 				);
-				const result = await atlassianIssuesController.get(idOrKey);
+				const result = await atlassianIssuesController.get({ idOrKey });
 				logger.debug(
 					`${logPrefix} Successfully retrieved issue details`,
 				);

@@ -1,4 +1,18 @@
-import { PaginationOptions, ControllerResponse } from './atlassian.type.js';
+import {
+	PaginationOptions,
+	ControllerResponse,
+	EntityIdentifier,
+} from './atlassian.type.js';
+
+/**
+ * Issue identifier for retrieving specific issues
+ */
+export interface IssueIdentifier extends EntityIdentifier {
+	/**
+	 * The ID or key of the issue to retrieve
+	 */
+	idOrKey: string;
+}
 
 /**
  * Options for listing Jira issues
@@ -17,10 +31,7 @@ export interface ListIssuesOptions extends PaginationOptions {
  * are now hardcoded in the controller for consistent results across all requests.
  * The empty interface is maintained for backward compatibility and future extensibility.
  */
-export interface GetIssueOptions {
-	// This interface is intentionally empty but maintained for backward compatibility
-	// and to allow for future extensibility without breaking changes.
-}
+export type GetIssueOptions = Record<string, unknown>;
 
 // Re-export ControllerResponse for backward compatibility
 export { ControllerResponse };

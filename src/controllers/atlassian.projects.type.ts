@@ -1,4 +1,18 @@
-import { ControllerResponse, PaginationOptions } from './atlassian.type.js';
+import {
+	ControllerResponse,
+	PaginationOptions,
+	EntityIdentifier,
+} from './atlassian.type.js';
+
+/**
+ * Project identifier for retrieving specific projects
+ */
+export interface ProjectIdentifier extends EntityIdentifier {
+	/**
+	 * The ID or key of the project to retrieve
+	 */
+	idOrKey: string;
+}
 
 /**
  * Options for listing Jira projects

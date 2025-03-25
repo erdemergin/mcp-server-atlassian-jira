@@ -119,7 +119,9 @@ describe('Atlassian Issues Controller', () => {
 			expect(issueKey).toBeTruthy();
 
 			// Call the controller with the issue key
-			const result = await atlassianIssuesController.get(issueKey);
+			const result = await atlassianIssuesController.get({
+				idOrKey: issueKey,
+			});
 
 			// Verify the response structure
 			expect(result).toBeDefined();
@@ -151,11 +153,14 @@ describe('Atlassian Issues Controller', () => {
 			expect(issueKey).toBeTruthy();
 
 			// Call the controller with the issue key and optional fields
-			const result = await atlassianIssuesController.get(issueKey, {
-				includeComments: true,
-				includeAttachments: true,
-				includeWorklog: true,
-			});
+			const result = await atlassianIssuesController.get(
+				{ idOrKey: issueKey },
+				{
+					includeComments: true,
+					includeAttachments: true,
+					includeWorklog: true,
+				},
+			);
 
 			// Verify the response structure
 			expect(result).toBeDefined();
@@ -174,7 +179,9 @@ describe('Atlassian Issues Controller', () => {
 
 			// Call the controller with a non-existent issue key
 			try {
-				await atlassianIssuesController.get('NONEXISTENT-99999');
+				await atlassianIssuesController.get({
+					idOrKey: 'NONEXISTENT-99999',
+				});
 				// If we get here, the test should fail
 				expect(true).toBe(false);
 			} catch (error) {
