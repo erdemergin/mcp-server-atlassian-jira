@@ -21,6 +21,11 @@ import {
  * Provides functionality for listing projects and retrieving project details.
  */
 
+// Default values for options
+const DEFAULT_MAX_RESULTS = 10;
+const DEFAULT_INCLUDE_COMPONENTS = true;
+const DEFAULT_INCLUDE_VERSIONS = true;
+
 // Create a contextualized logger for this file
 const controllerLogger = Logger.forContext(
 	'controllers/atlassian.projects.controller.ts',
@@ -30,15 +35,14 @@ const controllerLogger = Logger.forContext(
 controllerLogger.debug('Jira projects controller initialized');
 
 /**
- * List Jira projects with optional filtering
- * @param options - Optional filter options for the projects list
- * @param options.query - Text query to filter projects by name or key
- * @param options.limit - Maximum number of projects to return
- * @param options.cursor - Pagination cursor for retrieving the next set of results
- * @returns Promise with formatted project list content and pagination information
+ * Lists Jira projects with pagination and filtering options
+ * @param options - Options for listing projects
+ * @returns Formatted list of projects with pagination information
  */
 async function list(
-	options: ListProjectsOptions = {},
+	options: ListProjectsOptions = {
+		limit: DEFAULT_MAX_RESULTS,
+	},
 ): Promise<ControllerResponse> {
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.projects.controller.ts',
@@ -47,20 +51,18 @@ async function list(
 	methodLogger.debug('Listing Jira projects...', options);
 
 	try {
-		// Set default filters and hardcoded values
-		const filters = {
-			// Optional filters with defaults
+		// Map controller options to service parameters
+		const serviceParams = {
+			// Optional filters
 			query: options.query,
-			// Hardcoded choices
-			expand: ['description', 'lead'], // Always include expanded fields
-			// Pagination
-			maxResults: options.limit || 50,
+			// Always include expanded fields
+			expand: ['description', 'lead'],
+			// Pagination with defaults
+			maxResults: options.limit || DEFAULT_MAX_RESULTS,
 			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
 		};
 
-		methodLogger.debug('Using filters:', filters);
-
-		const projectsData = await atlassianProjectsService.list(filters);
+		const projectsData = await atlassianProjectsService.list(serviceParams);
 		// Log only the count of projects returned instead of the entire response
 		methodLogger.debug(
 			`Retrieved ${projectsData.values?.length || 0} projects`,
@@ -74,10 +76,7 @@ async function list(
 		);
 
 		// Format the projects data for display using the formatter
-		const formattedProjects = formatProjectsList(
-			projectsData,
-			pagination.nextCursor,
-		);
+		const formattedProjects = formatProjectsList(projectsData);
 
 		return {
 			content: formattedProjects,
@@ -95,18 +94,16 @@ async function list(
 }
 
 /**
- * Get details of a specific Jira project
- * @param identifier - Object containing the ID or key of the project to retrieve
- * @param identifier.idOrKey - The ID or key of the project
- * @param options - Options for retrieving the project
- * @returns Promise with formatted project details content
- * @throws Error if project retrieval fails
+ * Gets details of a specific Jira project
+ * @param identifier - The project identifier
+ * @param options - Options for retrieving project details
+ * @returns Formatted project details
  */
 async function get(
 	identifier: ProjectIdentifier,
 	options: GetProjectOptions = {
-		includeComponents: true,
-		includeVersions: true,
+		includeComponents: DEFAULT_INCLUDE_COMPONENTS,
+		includeVersions: DEFAULT_INCLUDE_VERSIONS,
 	},
 ): Promise<ControllerResponse> {
 	const { idOrKey } = identifier;
@@ -118,11 +115,15 @@ async function get(
 	methodLogger.debug(`Getting Jira project with ID/key: ${idOrKey}...`);
 
 	try {
-		methodLogger.debug('Using options:', options);
+		// Map controller options to service parameters
+		const serviceParams = {
+			includeComponents: options.includeComponents,
+			includeVersions: options.includeVersions,
+		};
 
 		const projectData = await atlassianProjectsService.get(
 			idOrKey,
-			options,
+			serviceParams,
 		);
 		// Log only key information instead of the entire response
 		methodLogger.debug(
