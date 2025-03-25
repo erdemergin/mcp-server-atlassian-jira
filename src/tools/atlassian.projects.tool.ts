@@ -114,7 +114,31 @@ function register(server: McpServer) {
 	// Register the list projects tool
 	server.tool(
 		'list-projects',
-		'List Jira projects with optional filtering. Returns projects with their IDs, keys, styles, and URLs. Use this tool to discover available Jira projects before accessing specific content. You can filter by name or key and limit the number of results.',
+		`List Jira projects with optional filtering capabilities.
+
+PURPOSE: Provides key information such as project IDs, keys, names, and URLs to help you understand available projects.
+
+WHEN TO USE:
+- Discover what projects exist in a Jira instance
+- Find a specific project by name or key
+- Browse available projects before diving into specific issues
+- Get project IDs or keys for use with other Jira tools
+
+WHEN NOT TO USE:
+- When you already know the specific project ID/key (use get-project instead)
+- When you need detailed project information (use get-project instead)
+- When you need to browse issues rather than projects (use list-issues instead)
+
+RETURNS: Formatted list of projects with IDs, keys, names, types, and URLs, plus pagination info.
+
+EXAMPLES:
+- Basic usage: {query: "Marketing"}
+- With pagination: {limit: 10, cursor: "10"}
+
+ERRORS:
+- Authentication failures: Check credentials
+- No results: Try broadening your query
+- Rate limiting: Use more specific queries, reduce frequency`,
 		ListProjectsToolArgs.shape,
 		listProjects,
 	);
@@ -122,7 +146,30 @@ function register(server: McpServer) {
 	// Register the get project details tool
 	server.tool(
 		'get-project',
-		'Get detailed information about a specific Jira project by ID or key. Returns comprehensive metadata including components, versions, and access links. Use this tool when you need in-depth information about a particular project, such as its components, versions, or associated metadata.',
+		`Get detailed information about a specific Jira project by ID or key.
+
+PURPOSE: Retrieves comprehensive metadata including components, versions, categories, and access URLs.
+
+WHEN TO USE:
+- When you need detailed information about a specific project
+- When you need to list components or versions within a project
+- When you need to verify project configuration or metadata
+- After using list-projects to discover available projects
+
+WHEN NOT TO USE:
+- When you don't know which project to look for (use list-projects first)
+- When you need to browse multiple projects (use list-projects instead)
+- When you need to find issues within a project (use list-issues instead)
+
+RETURNS: Detailed project information including name, key, ID, type, components, versions, and description.
+
+EXAMPLES:
+- By key: {idOrKey: "DEV"}
+- By ID: {idOrKey: "10001"}
+
+ERRORS:
+- Project not found: Verify the project ID or key
+- Permission errors: Ensure you have access to the requested project`,
 		GetProjectToolArgs.shape,
 		getProject,
 	);

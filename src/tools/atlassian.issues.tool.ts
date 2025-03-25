@@ -114,7 +114,34 @@ function register(server: McpServer) {
 	// Register the list issues tool
 	server.tool(
 		'list-issues',
-		'List Jira issues with optional filtering. Returns issues with their IDs, keys, types, statuses, and URLs. Use this tool to discover available Jira issues before accessing specific content. You can filter using JQL queries and limit the number of results.',
+		`List Jira issues with optional filtering using JQL queries.
+
+PURPOSE: Finds issues across projects with their keys, summaries, statuses, and assignees to help you understand available tasks.
+
+WHEN TO USE:
+- Discover issues that match specific criteria (status, assignee, etc.)
+- Find issues within a specific project
+- Browse available issues before accessing specific details
+- Get issue keys for use with other tools
+- Track status of multiple issues at once
+
+WHEN NOT TO USE:
+- When you already know the specific issue key (use get-issue instead)
+- When you need detailed issue content or comments (use get-issue instead)
+- When you need to find projects rather than issues (use list-projects instead)
+
+RETURNS: Formatted list of issues with keys, types, summaries, statuses, assignees, and URLs, plus pagination info.
+
+EXAMPLES:
+- Basic project filter: {jql: "project = DEV"}
+- Status filter: {jql: "status = 'In Progress'"}
+- Combined filters: {jql: "project = DEV AND assignee = currentUser()"}
+- With pagination: {jql: "project = DEV", limit: 10, cursor: "10"}
+
+ERRORS:
+- Invalid JQL: Check JQL syntax
+- Authentication failures: Check credentials
+- No results: Try broadening your query`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);
@@ -122,7 +149,31 @@ function register(server: McpServer) {
 	// Register the get issue details tool
 	server.tool(
 		'get-issue',
-		'Get detailed information about a specific Jira issue by ID or key. Returns comprehensive metadata including description, comments, attachments, and worklog. Use this tool when you need in-depth information about a particular issue, such as its status, assignee, or comments.',
+		`Get detailed information about a specific Jira issue by ID or key.
+
+PURPOSE: Retrieves comprehensive issue data including description, comments, attachments, and history.
+
+WHEN TO USE:
+- When you need the full description and context of an issue
+- When you need to see comments, attachments, or custom fields
+- When you need detailed status, assignee, reporter information
+- After using list-issues to identify the relevant issue key
+
+WHEN NOT TO USE:
+- When you don't know which issue to look for (use list-issues first)
+- When you need to browse multiple issues (use list-issues instead)
+- When you only need basic issue information (use list-issues if querying multiple)
+
+RETURNS: Detailed issue information including key, summary, description, status, assignee, reporter, comments, and relevant dates.
+
+EXAMPLES:
+- By key: {idOrKey: "DEV-123"}
+- By ID: {idOrKey: "10001"}
+
+ERRORS:
+- Issue not found: Verify the issue key or ID
+- Permission errors: Ensure you have access to the requested issue
+- Rate limiting: Cache issue information when possible`,
 		GetIssueToolArgs.shape,
 		getIssue,
 	);
