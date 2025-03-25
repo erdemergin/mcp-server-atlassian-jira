@@ -5,6 +5,20 @@ import {
 	IssuesResponse,
 } from '../services/vendor.atlassian.issues.types.js';
 import { adfToMarkdown } from '../utils/adf.util.js';
+import {
+	formatUrl,
+	formatDate,
+	formatPagination,
+	formatHeading,
+	formatBulletList,
+	formatSeparator,
+	formatNumberedList,
+} from '../utils/formatters/common.formatter.js';
+
+// Add this interface definition at the top of the file, after the imports
+interface CommentContainer {
+	comments: IssueComment[];
+}
 
 /**
  * Format a list of issues for display
@@ -20,89 +34,63 @@ export function formatIssuesList(
 		return 'No Jira issues found.';
 	}
 
-	const lines: string[] = ['# Jira Issues', ''];
+	const lines: string[] = [formatHeading('Jira Issues', 1), ''];
 
-	issuesData.issues.forEach((issue, index) => {
-		// Basic information
+	// Use the numbered list formatter for consistent formatting
+	const formattedList = formatNumberedList(issuesData.issues, (issue) => {
+		const itemLines: string[] = [];
 		const summary = issue.fields.summary || 'No summary';
-		lines.push(`## ${index + 1}. ${summary}`);
-		lines.push(`- **ID**: ${issue.id}`);
-		lines.push(`- **Key**: ${issue.key}`);
 
-		// Project
-		if (issue.fields.project) {
-			lines.push(
-				`- **Project**: ${issue.fields.project.name} (${issue.fields.project.key})`,
-			);
-		}
+		// Basic information
+		itemLines.push(formatHeading(summary, 2));
 
-		// Issue type
-		if (issue.fields.issuetype) {
-			lines.push(`- **Type**: ${issue.fields.issuetype.name}`);
-		}
-
-		// Status
-		if (issue.fields.status) {
-			lines.push(`- **Status**: ${issue.fields.status.name}`);
-		}
-
-		// Assignee
-		if (issue.fields.assignee) {
-			lines.push(`- **Assignee**: ${issue.fields.assignee.displayName}`);
-		} else {
-			lines.push(`- **Assignee**: Unassigned`);
-		}
-
-		// Reporter
-		if (issue.fields.reporter) {
-			lines.push(`- **Reporter**: ${issue.fields.reporter.displayName}`);
-		}
-
-		// Created date
-		if (issue.fields.created) {
-			lines.push(
-				`- **Created**: ${new Date(issue.fields.created).toLocaleString()}`,
-			);
-		}
-
-		// URL
+		// Prepare URL
 		const issueUrl = issue.self.replace('/rest/api/3/issue/', '/browse/');
-		lines.push(`- **URL**: [${issue.key}](${issueUrl})`);
 
-		// Add a separator between issues
-		if (index < issuesData.issues.length - 1) {
-			lines.push('');
-			lines.push('---');
-			lines.push('');
-		}
+		// Create an object with all the properties to display
+		const properties: Record<string, unknown> = {
+			ID: issue.id,
+			Key: issue.key,
+			Project: issue.fields.project
+				? `${issue.fields.project.name} (${issue.fields.project.key})`
+				: undefined,
+			Type: issue.fields.issuetype?.name,
+			Status: issue.fields.status?.name,
+			Assignee: issue.fields.assignee?.displayName || 'Unassigned',
+			Reporter: issue.fields.reporter?.displayName,
+			Created: issue.fields.created,
+			URL: {
+				url: issueUrl,
+				title: issue.key,
+			},
+		};
+
+		// Format as a bullet list with proper formatting for each value type
+		itemLines.push(formatBulletList(properties, (key) => key));
+
+		return itemLines.join('\n');
 	});
 
-	// Add pagination information if available
+	lines.push(formattedList);
+
+	// Add pagination information
 	if (nextCursor) {
 		lines.push('');
-		lines.push('---');
-		lines.push('');
-		lines.push('## Pagination');
-		lines.push(
-			`*Showing ${issuesData.issues.length} of ${issuesData.total} issues. More issues available. Use the following cursor to retrieve the next page:*`,
-		);
-		lines.push('');
-		lines.push(`\`${nextCursor}\``);
+		lines.push(formatSeparator());
 		lines.push('');
 		lines.push(
-			`*For CLI: Use \`--cursor "${nextCursor}"\` to get the next page*`,
+			formatPagination(issuesData.issues.length, true, nextCursor),
 		);
-		lines.push('');
-		lines.push(
-			'*For MCP tools: Set the `cursor` parameter to retrieve the next page*',
-		);
+
+		// Add total count information
+		if (issuesData.total) {
+			lines.push(`*Total issues: ${issuesData.total}*`);
+		}
 	}
 
 	// Add timestamp for when this information was retrieved
 	lines.push('');
-	lines.push(
-		`*Issue information retrieved at ${new Date().toLocaleString()}*`,
-	);
+	lines.push(`*Issue information retrieved at ${formatDate(new Date())}*`);
 
 	return lines.join('\n');
 }
@@ -113,7 +101,13 @@ export function formatIssuesList(
  * @returns Formatted string with issue details in markdown format
  */
 export function formatIssueDetails(issueData: Issue): string {
-	const lines: string[] = [`# Jira Issue: ${issueData.fields.summary}`, ''];
+	// Prepare URL
+	const issueUrl = issueData.self.replace('/rest/api/3/issue/', '/browse/');
+
+	const lines: string[] = [
+		formatHeading(`Jira Issue: ${issueData.fields.summary}`, 1),
+		'',
+	];
 
 	// Add a brief summary line
 	if (issueData.fields.status) {
@@ -123,39 +117,30 @@ export function formatIssueDetails(issueData: Issue): string {
 	}
 
 	// Basic Information section
-	lines.push('## Basic Information');
-	lines.push(`- **ID**: ${issueData.id}`);
-	lines.push(`- **Key**: ${issueData.key}`);
+	lines.push(formatHeading('Basic Information', 2));
 
-	// Project
-	if (issueData.fields.project) {
-		lines.push(
-			`- **Project**: ${issueData.fields.project.name} (${issueData.fields.project.key})`,
-		);
-	}
+	const basicProperties: Record<string, unknown> = {
+		ID: issueData.id,
+		Key: issueData.key,
+		Project: issueData.fields.project
+			? `${issueData.fields.project.name} (${issueData.fields.project.key})`
+			: undefined,
+		Type: issueData.fields.issuetype?.name,
+		Status: issueData.fields.status?.name,
+		Priority: issueData.fields.priority?.name,
+	};
 
-	// Issue type
-	if (issueData.fields.issuetype) {
-		lines.push(`- **Type**: ${issueData.fields.issuetype.name}`);
-		if (issueData.fields.issuetype.description) {
-			lines.push(`  *${issueData.fields.issuetype.description}*`);
-		}
-	}
+	lines.push(formatBulletList(basicProperties, (key) => key));
 
-	// Status
-	if (issueData.fields.status) {
-		lines.push(`- **Status**: ${issueData.fields.status.name}`);
-	}
-
-	// Priority
-	if (issueData.fields.priority) {
-		lines.push(`- **Priority**: ${issueData.fields.priority.name}`);
+	// Add issue type description if available
+	if (issueData.fields.issuetype?.description) {
+		lines.push(`  *${issueData.fields.issuetype.description}*`);
 	}
 
 	// Description
 	if (issueData.fields.description) {
 		lines.push('');
-		lines.push('## Description');
+		lines.push(formatHeading('Description', 2));
 
 		// Handle different description formats
 		if (typeof issueData.fields.description === 'string') {
@@ -169,34 +154,49 @@ export function formatIssueDetails(issueData: Issue): string {
 
 	// People
 	lines.push('');
-	lines.push('## People');
+	lines.push(formatHeading('People', 2));
 
-	// Assignee
-	if (issueData.fields.assignee) {
-		lines.push(`- **Assignee**: ${issueData.fields.assignee.displayName}`);
-		lines.push(
-			`  - **Active**: ${issueData.fields.assignee.active ? 'Yes' : 'No'}`,
-		);
-	} else {
-		lines.push(`- **Assignee**: Unassigned`);
-	}
+	const peopleProperties: Record<string, unknown> = {
+		Assignee: issueData.fields.assignee?.displayName || 'Unassigned',
+		Reporter: issueData.fields.reporter?.displayName,
+	};
 
-	// Reporter
-	if (issueData.fields.reporter) {
-		lines.push(`- **Reporter**: ${issueData.fields.reporter.displayName}`);
-		lines.push(
-			`  - **Active**: ${issueData.fields.reporter.active ? 'Yes' : 'No'}`,
-		);
-	}
-
-	// Creator (if different from reporter)
+	// Add creator only if different from reporter
 	if (
 		issueData.fields.creator &&
 		(!issueData.fields.reporter ||
 			issueData.fields.creator.displayName !==
 				issueData.fields.reporter?.displayName)
 	) {
-		lines.push(`- **Creator**: ${issueData.fields.creator.displayName}`);
+		peopleProperties['Creator'] = issueData.fields.creator.displayName;
+	}
+
+	lines.push(formatBulletList(peopleProperties, (key) => key));
+
+	// Additional people details
+	if (
+		issueData.fields.assignee &&
+		issueData.fields.assignee.active !== undefined
+	) {
+		lines.push(
+			`  - **Active**: ${issueData.fields.assignee.active ? 'Yes' : 'No'}`,
+		);
+	}
+	if (
+		issueData.fields.reporter &&
+		issueData.fields.reporter.active !== undefined
+	) {
+		lines.push(
+			`  - **Active**: ${issueData.fields.reporter.active ? 'Yes' : 'No'}`,
+		);
+	}
+	if (
+		issueData.fields.creator &&
+		(!issueData.fields.reporter ||
+			issueData.fields.creator.displayName !==
+				issueData.fields.reporter?.displayName) &&
+		issueData.fields.creator.active !== undefined
+	) {
 		lines.push(
 			`  - **Active**: ${issueData.fields.creator.active ? 'Yes' : 'No'}`,
 		);
@@ -204,17 +204,14 @@ export function formatIssueDetails(issueData: Issue): string {
 
 	// Dates
 	lines.push('');
-	lines.push('## Dates');
-	if (issueData.fields.created) {
-		lines.push(
-			`- **Created**: ${new Date(issueData.fields.created).toLocaleString()}`,
-		);
-	}
-	if (issueData.fields.updated) {
-		lines.push(
-			`- **Updated**: ${new Date(issueData.fields.updated).toLocaleString()}`,
-		);
-	}
+	lines.push(formatHeading('Dates', 2));
+
+	const dateProperties: Record<string, unknown> = {
+		Created: issueData.fields.created,
+		Updated: issueData.fields.updated,
+	};
+
+	lines.push(formatBulletList(dateProperties, (key) => key));
 
 	// Time tracking
 	if (
@@ -224,73 +221,75 @@ export function formatIssueDetails(issueData: Issue): string {
 			issueData.fields.timetracking.timeSpent)
 	) {
 		lines.push('');
-		lines.push('## Time Tracking');
-		if (issueData.fields.timetracking.originalEstimate) {
-			lines.push(
-				`- **Original Estimate**: ${issueData.fields.timetracking.originalEstimate}`,
-			);
-		}
-		if (issueData.fields.timetracking.remainingEstimate) {
-			lines.push(
-				`- **Remaining Estimate**: ${issueData.fields.timetracking.remainingEstimate}`,
-			);
-		}
-		if (issueData.fields.timetracking.timeSpent) {
-			lines.push(
-				`- **Time Spent**: ${issueData.fields.timetracking.timeSpent}`,
-			);
-		}
+		lines.push(formatHeading('Time Tracking', 2));
+
+		const timeTrackingProperties: Record<string, unknown> = {
+			'Original Estimate': issueData.fields.timetracking.originalEstimate,
+			'Remaining Estimate':
+				issueData.fields.timetracking.remainingEstimate,
+			'Time Spent': issueData.fields.timetracking.timeSpent,
+		};
+
+		lines.push(formatBulletList(timeTrackingProperties, (key) => key));
 	}
 
 	// Attachments
 	if (issueData.fields.attachment && issueData.fields.attachment.length > 0) {
 		lines.push('');
-		lines.push('## Attachments');
+		lines.push(formatHeading('Attachments', 2));
+
 		issueData.fields.attachment.forEach((attachment, index) => {
-			lines.push(`### ${index + 1}. ${attachment.filename}`);
-			lines.push(`- **Size**: ${formatFileSize(attachment.size)}`);
-			lines.push(
-				`- **Created**: ${new Date(attachment.created).toLocaleString()}`,
-			);
-			lines.push(`- **Author**: ${attachment.author.displayName}`);
-			lines.push(`- **Content Type**: ${attachment.mimeType}`);
-			lines.push(`- **URL**: [Download](${attachment.content})`);
+			lines.push(formatHeading(attachment.filename, 3));
+
+			const attachmentProperties: Record<string, unknown> = {
+				'Content Type': attachment.mimeType,
+				Size: formatFileSize(attachment.size),
+				'Created At': attachment.created,
+				Author: attachment.author?.displayName,
+			};
+
+			lines.push(formatBulletList(attachmentProperties, (key) => key));
+
+			if (attachment.content) {
+				lines.push(`[Download](${attachment.content})`);
+			}
+
+			// Add separator between attachments
+			if (index < issueData.fields.attachment!.length - 1) {
+				lines.push('');
+			}
 		});
 	}
 
 	// Comments
 	if (issueData.fields.comment) {
-		let comments: IssueComment[] = [];
-
-		// Handle different comment structures
-		if (Array.isArray(issueData.fields.comment)) {
-			comments = issueData.fields.comment;
-		} else {
-			// Use type assertion to handle potential different structures
-			const commentObj = issueData.fields.comment as {
-				comments?: IssueComment[];
-			};
-			if (commentObj.comments && commentObj.comments.length > 0) {
-				comments = commentObj.comments;
-			}
-		}
+		const comments = Array.isArray(issueData.fields.comment)
+			? issueData.fields.comment
+			: (issueData.fields.comment as CommentContainer).comments || [];
 
 		if (comments.length > 0) {
 			lines.push('');
-			lines.push('## Comments');
-			comments.forEach((comment, index) => {
+			lines.push(formatHeading('Comments', 2));
+
+			comments.forEach((comment: IssueComment, index: number) => {
 				lines.push(
-					`### ${index + 1}. Comment by ${comment.author.displayName} - ${new Date(comment.created).toLocaleString()}`,
+					formatHeading(
+						`${comment.author?.displayName || 'Anonymous'} - ${formatDate(comment.created)}`,
+						3,
+					),
 				);
-				if (comment.body) {
-					if (typeof comment.body === 'string') {
-						lines.push(comment.body);
-					} else {
-						lines.push(adfToMarkdown(comment.body));
-					}
+
+				// Format comment body
+				if (typeof comment.body === 'string') {
+					lines.push(comment.body);
+				} else if (typeof comment.body === 'object') {
+					lines.push(adfToMarkdown(comment.body));
 				}
 
+				// Add separator between comments
 				if (index < comments.length - 1) {
+					lines.push('');
+					lines.push(formatSeparator());
 					lines.push('');
 				}
 			});
@@ -300,46 +299,36 @@ export function formatIssueDetails(issueData: Issue): string {
 	// Issue Links
 	if (issueData.fields.issuelinks && issueData.fields.issuelinks.length > 0) {
 		lines.push('');
-		lines.push('## Linked Issues');
+		lines.push(formatHeading('Issue Links', 2));
 
-		const formattedLinks: string[] = [];
+		const issueLinks = issueData.fields.issuelinks;
+		issueLinks.forEach((link: IssueLink) => {
+			const relatedIssue = link.outwardIssue || link.inwardIssue;
+			if (relatedIssue) {
+				const linkType = link.outwardIssue
+					? link.type.outward
+					: link.type.inward;
+				const relatedIssueUrl = relatedIssue.self.replace(
+					'/rest/api/3/issue/',
+					'/browse/',
+				);
 
-		// Process outward links
-		issueData.fields.issuelinks.forEach((link: IssueLink) => {
-			if (link.outwardIssue) {
-				const issue = link.outwardIssue;
-				const type = link.type?.outward || 'relates to';
-				formattedLinks.push(
-					`- This issue ${type} [${issue.key}](${issue.self.replace('/rest/api/3/issue/', '/browse/')}) - ${issue.fields?.status?.name || 'Unknown status'}`,
+				lines.push(
+					`- ${linkType} ${formatUrl(relatedIssueUrl, relatedIssue.key)}: ${(relatedIssue.fields as { summary?: string })?.summary || 'No summary'}`,
 				);
 			}
-
-			if (link.inwardIssue) {
-				const issue = link.inwardIssue;
-				const type = link.type?.inward || 'is related to';
-				formattedLinks.push(
-					`- This issue ${type} [${issue.key}](${issue.self.replace('/rest/api/3/issue/', '/browse/')}) - ${issue.fields?.status?.name || 'Unknown status'}`,
-				);
-			}
-		});
-
-		// Add the formatted links to the output
-		formattedLinks.forEach((linkText) => {
-			lines.push(linkText);
 		});
 	}
 
 	// Links section
 	lines.push('');
-	lines.push('## Links');
-	const issueUrl = issueData.self.replace('/rest/api/3/issue/', '/browse/');
-	lines.push(`- **Web UI**: [Open in Jira](${issueUrl})`);
+	lines.push(formatHeading('Links', 2));
+	lines.push(`- ${formatUrl(issueUrl, 'Open in Jira')}`);
 
-	// Add timestamp for when this information was retrieved
+	// Footer
 	lines.push('');
-	lines.push(
-		`*Issue information retrieved at ${new Date().toLocaleString()}*`,
-	);
+	lines.push(formatSeparator());
+	lines.push(`*Issue information retrieved at ${formatDate(new Date())}*`);
 	lines.push(`*To view this issue in Jira, visit: ${issueUrl}*`);
 
 	return lines.join('\n');

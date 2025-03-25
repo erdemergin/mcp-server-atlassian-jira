@@ -34,10 +34,13 @@ function registerListIssuesCommand(program: Command): void {
 		.command('list-issues')
 		.description('List Jira issues with optional filtering')
 		.option('-j, --jql <query>', 'JQL query string to filter issues')
-		.option('-l, --limit <number>', 'Maximum number of issues to return')
+		.option(
+			'-l, --limit <number>',
+			'Maximum number of issues to return (1-100). Use this to control the response size. If omitted, defaults to 50.',
+		)
 		.option(
 			'-c, --cursor <cursor>',
-			'Pagination cursor for retrieving the next set of results',
+			'Pagination cursor for retrieving the next set of results. Obtain this value from the previous response when more results are available.',
 		)
 		.action(async (options) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@list-issues]';

@@ -34,10 +34,13 @@ function registerListProjectsCommand(program: Command): void {
 		.command('list-projects')
 		.description('List Jira projects with optional filtering')
 		.option('-q, --query <query>', 'Filter by project name or key')
-		.option('-l, --limit <number>', 'Maximum number of projects to return')
+		.option(
+			'-l, --limit <number>',
+			'Maximum number of projects to return (1-100). Use this to control the response size. If omitted, defaults to 50.',
+		)
 		.option(
 			'-c, --cursor <cursor>',
-			'Pagination cursor for retrieving the next set of results',
+			'Pagination cursor for retrieving the next set of results. Obtain this value from the previous response when more results are available.',
 		)
 		.action(async (options) => {
 			const logPrefix =
