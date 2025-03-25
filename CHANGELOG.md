@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.3.0...v1.4.0) (2025-03-25)
+
+
+### Features
+
+* **cli:** standardize CLI command descriptions with detailed explanations ([86dd0b7](https://github.com/aashari/mcp-server-atlassian-jira/commit/86dd0b724ecb60bf5a910a75782b0942a397a2ae))
+* **format:** implement standardized formatters and update CLI documentation ([e843be1](https://github.com/aashari/mcp-server-atlassian-jira/commit/e843be132cc07ba55ab50c8ac441ec9a3c5203b5))
+
 # [1.3.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.2.1...v1.3.0) (2025-03-25)
 
 
