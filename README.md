@@ -229,6 +229,12 @@ ERRORS:
 - Common error scenarios and how to resolve them
 ```
 
+### File Naming Convention
+
+- All utility files are located in `src/utils/` and follow the `kebab-case` pattern: `{feature-name}.{category}.ts`.
+- Example: `formatter.util.ts`, `logger.util.ts`.
+- Subdirectories under `utils/` are not used to keep the structure flat.
+
 ## Versioning Note
 
 This project follows semantic versioning independently from other MCP servers in the same family (like the Confluence MCP server). Version differences between these projects are expected and reflect their individual development cycles and feature implementations.

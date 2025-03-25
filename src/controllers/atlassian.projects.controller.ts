@@ -1,6 +1,6 @@
 import atlassianProjectsService from '../services/vendor.atlassian.projects.service.js';
 import { Logger } from '../utils/logger.util.js';
-import { handleControllerError } from '../utils/errorHandler.util.js';
+import { handleControllerError } from '../utils/error-handler.util.js';
 import {
 	extractPaginationInfo,
 	PaginationType,

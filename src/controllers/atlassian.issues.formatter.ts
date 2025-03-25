@@ -13,7 +13,7 @@ import {
 	formatBulletList,
 	formatSeparator,
 	formatNumberedList,
-} from '../utils/formatters/common.formatter.js';
+} from '../utils/formatter.util.js';
 
 // Add this interface definition at the top of the file, after the imports
 interface CommentContainer {
