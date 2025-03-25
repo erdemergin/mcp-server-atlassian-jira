@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.5.0...v1.5.1) (2025-03-25)
+
+
+### Bug Fixes
+
+* replace any with unknown in defaults.util.ts ([40cf292](https://github.com/aashari/mcp-server-atlassian-jira/commit/40cf29243796ad1dd279e0e5614c7cc1427b7929))
+
 # [1.5.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.4.0...v1.5.0) (2025-03-25)
 
 
