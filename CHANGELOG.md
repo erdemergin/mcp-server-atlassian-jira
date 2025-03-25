@@ -1,3 +1,15 @@
+# [1.3.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.2.1...v1.3.0) (2025-03-25)
+
+
+### Bug Fixes
+
+* standardize logging patterns and fix linter errors ([82eddd9](https://github.com/aashari/mcp-server-atlassian-jira/commit/82eddd98ccaba27f67d414b1e0822eeebf428a6a))
+
+
+### Features
+
+* **projects:** improve project controller functionality ([754fedf](https://github.com/aashari/mcp-server-atlassian-jira/commit/754fedfb448329361d15df644b941ff11f19bc14))
+
 ## [1.2.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.2.0...v1.2.1) (2025-03-25)
 
 
