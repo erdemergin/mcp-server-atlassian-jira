@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.5.2...v1.6.0) (2025-03-26)
+
+
+### Features
+
+* improve CLI interface with named parameters for issue and project commands ([78788d2](https://github.com/aashari/mcp-server-atlassian-jira/commit/78788d2d06f752c56848991280147ff0cc06e10f))
+
 ## [1.5.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.5.1...v1.5.2) (2025-03-26)
 
 
