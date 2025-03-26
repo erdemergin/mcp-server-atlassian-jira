@@ -1,3 +1,10 @@
+## [1.5.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.5.1...v1.5.2) (2025-03-26)
+
+
+### Bug Fixes
+
+* standardize CLI pagination display and issue count ([73fd1b4](https://github.com/aashari/mcp-server-atlassian-jira/commit/73fd1b467852ea32cd8c37dbb0d17d0c0d96f25e))
+
 ## [1.5.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.5.0...v1.5.1) (2025-03-25)
 
 
