@@ -27,13 +27,33 @@ const PaginationArgs = {
  */
 const ListIssuesToolArgs = z.object({
 	/**
-	 * Standardized filter query parameter
+	 * Standardized query parameter for JQL filtering
 	 */
-	filter: z
+	query: z
 		.string()
 		.optional()
 		.describe(
-			'Filter string to search for issues using JQL syntax. Use this for complex queries.',
+			'Filter issues using JQL syntax. Use this for complex queries like "project = TEAM AND status = \'In Progress\'" or "assignee = currentUser()".',
+		),
+
+	/**
+	 * Project key filter
+	 */
+	projectKey: z
+		.string()
+		.optional()
+		.describe(
+			'Filter issues by project key (e.g., "TEAM" or "PROJ"). Will be combined with other filters using AND logic.',
+		),
+
+	/**
+	 * Status filter
+	 */
+	status: z
+		.string()
+		.optional()
+		.describe(
+			'Filter issues by status (e.g., "In Progress" or "Done"). Will be combined with other filters using AND logic.',
 		),
 
 	/**

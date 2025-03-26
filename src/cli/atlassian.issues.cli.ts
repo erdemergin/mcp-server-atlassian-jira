@@ -37,9 +37,9 @@ function registerListIssuesCommand(program: Command): void {
 			'List Jira issues with optional filtering\n\n' +
 				'Retrieves issues from your Jira instance with filtering and pagination options.\n\n' +
 				'Examples:\n' +
-				'  $ list-issues --project TEAM --status "In Progress"\n' +
-				'  $ list-issues --limit 50 --filter "assignee = currentUser()"\n' +
-				'  $ list-issues --project TEAM --filter "priority = High"',
+				'  $ list-issues --project-key TEAM --status "In Progress"\n' +
+				'  $ list-issues --limit 50 --query "assignee = currentUser()"\n' +
+				'  $ list-issues --project-key TEAM --query "priority = High"',
 		)
 		.option(
 			'-l, --limit <number>',
@@ -50,8 +50,8 @@ function registerListIssuesCommand(program: Command): void {
 			'-c, --cursor <string>',
 			'Pagination cursor for retrieving the next set of results',
 		)
-		.option('-f, --filter <string>', 'Filter issues using JQL syntax')
-		.option('-p, --project <key>', 'Filter by project key')
+		.option('-q, --query <jql>', 'Filter issues using JQL syntax')
+		.option('--project-key <key>', 'Filter by project key')
 		.option('--status <status>', 'Filter by issue status')
 		.action(async (options) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@list-issues]';
@@ -63,15 +63,15 @@ function registerListIssuesCommand(program: Command): void {
 
 				// Build JQL from options
 				let jql = '';
-				if (options.project) {
-					jql += `project = "${options.project}"`;
+				if (options.projectKey) {
+					jql += `project = "${options.projectKey}"`;
 				}
 				if (options.status) {
 					jql +=
 						(jql ? ' AND ' : '') + `status = "${options.status}"`;
 				}
-				if (options.filter) {
-					jql += (jql ? ' AND ' : '') + `(${options.filter})`;
+				if (options.query) {
+					jql += (jql ? ' AND ' : '') + `(${options.query})`;
 				}
 
 				const filterOptions: ListIssuesOptions = {
@@ -98,10 +98,16 @@ function registerListIssuesCommand(program: Command): void {
 
 				// Print pagination information if available
 				if (result.pagination) {
+					// Use the actual number of items displayed rather than potentially zero count
+					// The count comes from the controller - it should be the number of items in the current batch
+					// We extract this from the controller response.
+					// If the response has no items but has more results, show 0 but indicate more are available
+					const displayCount = result.pagination.count ?? 0;
+
 					console.log(
 						'\n' +
 							formatPagination(
-								result.pagination.count || 0,
+								displayCount,
 								result.pagination.hasMore,
 								result.pagination.nextCursor,
 							),

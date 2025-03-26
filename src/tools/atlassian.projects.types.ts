@@ -27,9 +27,9 @@ const PaginationArgs = {
  */
 const ListProjectsToolArgs = z.object({
 	/**
-	 * Standardized filter query parameter
+	 * Standardized query parameter for text filtering
 	 */
-	filter: z
+	query: z
 		.string()
 		.optional()
 		.describe(

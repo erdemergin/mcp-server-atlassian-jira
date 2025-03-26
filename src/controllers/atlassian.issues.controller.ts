@@ -76,9 +76,8 @@ async function list(
 
 		const issuesData = await atlassianIssuesService.search(filters);
 		// Log only the count of issues returned instead of the entire response
-		logger.debug(
-			`${source} Retrieved ${issuesData.issues?.length || 0} issues`,
-		);
+		const issuesCount = issuesData.issues?.length || 0;
+		logger.debug(`${source} Retrieved ${issuesCount} issues`);
 
 		// Extract pagination information using the utility
 		const pagination = extractPaginationInfo(
@@ -86,6 +85,10 @@ async function list(
 			PaginationType.OFFSET,
 			source,
 		);
+
+		// Ensure pagination count is set to the actual number of issues retrieved
+		pagination.count = issuesCount;
+		logger.debug(`${source} Next cursor: ${pagination.nextCursor}`);
 
 		// Format the issues data for display using the formatter
 		const formattedIssues = formatIssuesList(

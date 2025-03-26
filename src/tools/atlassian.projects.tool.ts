@@ -32,7 +32,7 @@ async function listProjects(
 	try {
 		// Pass the filter options to the controller
 		const message = await atlassianProjectsController.list({
-			query: args.filter,
+			query: args.query,
 			limit: args.limit,
 			cursor: args.cursor,
 		});
@@ -133,7 +133,7 @@ WHEN NOT TO USE:
 RETURNS: Formatted list of projects with IDs, keys, names, types, and URLs, plus pagination info.
 
 EXAMPLES:
-- Basic usage: {filter: "Marketing"}
+- Basic usage: {query: "Marketing"}
 - With pagination: {limit: 10, cursor: "10"}
 
 ERRORS:

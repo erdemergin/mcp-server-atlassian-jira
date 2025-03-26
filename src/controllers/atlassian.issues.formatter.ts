@@ -32,12 +32,12 @@ interface ResponsePagination {
 /**
  * Format a list of issues for display
  * @param issuesData - Raw issues data from the API
- * @param pagination - Pagination information including count and next cursor
+ * @param _pagination - Pagination information including count and next cursor (handled by CLI layer)
  * @returns Formatted string with issues information in markdown format
  */
 export function formatIssuesList(
 	issuesData: IssuesData,
-	pagination?: ResponsePagination,
+	_pagination?: ResponsePagination,
 ): string {
 	const { issues } = issuesData;
 
@@ -75,23 +75,6 @@ export function formatIssuesList(
 	});
 
 	lines.push(formattedIssues);
-
-	if (pagination) {
-		const paginationInfo = [];
-		if (pagination.count !== undefined) {
-			paginationInfo.push(`Total: ${pagination.count}`);
-		}
-		if (pagination.hasMore) {
-			paginationInfo.push('Has more: Yes');
-		}
-		if (pagination.nextCursor) {
-			paginationInfo.push(`Next cursor: ${pagination.nextCursor}`);
-		}
-		if (paginationInfo.length > 0) {
-			lines.push('');
-			lines.push(paginationInfo.join(' | '));
-		}
-	}
 
 	return lines.join('\n');
 }

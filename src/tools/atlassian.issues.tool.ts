@@ -30,9 +30,21 @@ async function listIssues(
 	logger.debug(`${logPrefix} Listing Jira issues with filters:`, args);
 
 	try {
-		// Pass the filter options to the controller
+		// Build JQL from args
+		let jql = '';
+		if (args.projectKey) {
+			jql += `project = "${args.projectKey}"`;
+		}
+		if (args.status) {
+			jql += (jql ? ' AND ' : '') + `status = "${args.status}"`;
+		}
+		if (args.query) {
+			jql += (jql ? ' AND ' : '') + `(${args.query})`;
+		}
+
+		// Pass the options to the controller
 		const message = await atlassianIssuesController.list({
-			jql: args.filter,
+			...(jql && { jql }),
 			limit: args.limit,
 			cursor: args.cursor,
 		});
@@ -134,10 +146,11 @@ WHEN NOT TO USE:
 RETURNS: Formatted list of issues with keys, types, summaries, statuses, assignees, and URLs, plus pagination info.
 
 EXAMPLES:
-- Basic project filter: {filter: "project = DEV"}
-- Status filter: {filter: "status = 'In Progress'"}
-- Combined filters: {filter: "project = DEV AND assignee = currentUser()"}
-- With pagination: {filter: "project = DEV", limit: 10, cursor: "10"}
+- Basic project filter: {projectKey: "DEV"}
+- Status filter: {status: "In Progress"}
+- JQL query: {query: "assignee = currentUser()"}
+- Combined filters: {projectKey: "DEV", status: "In Progress", query: "priority = High"}
+- With pagination: {projectKey: "DEV", limit: 10, cursor: "10"}
 
 ERRORS:
 - Invalid JQL: Check JQL syntax

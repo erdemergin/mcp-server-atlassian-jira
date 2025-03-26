@@ -76,7 +76,7 @@ async function list(
 		);
 
 		// Format the projects data for display using the formatter
-		const formattedProjects = formatProjectsList(projectsData);
+		const formattedProjects = formatProjectsList(projectsData, pagination);
 
 		return {
 			content: formattedProjects,

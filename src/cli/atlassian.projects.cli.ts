@@ -3,6 +3,7 @@ import { logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
 import { ListProjectsOptions } from '../controllers/atlassian.projects.types.js';
+import { formatPagination } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira projects.
@@ -33,7 +34,12 @@ function registerListProjectsCommand(program: Command): void {
 	program
 		.command('list-projects')
 		.description(
-			'List Jira projects with optional filtering\n\n  Retrieves projects from your Jira instance with filtering and pagination options.',
+			'List Jira projects with optional filtering\n\n' +
+				'Retrieves projects from your Jira instance with filtering and pagination options.\n\n' +
+				'Examples:\n' +
+				'  $ list-projects --query "Marketing"\n' +
+				'  $ list-projects --limit 10\n' +
+				'  $ list-projects --query "Test" --limit 5',
 		)
 		.option('-q, --query <query>', 'Filter by project name or key')
 		.option(
@@ -72,13 +78,14 @@ function registerListProjectsCommand(program: Command): void {
 				console.log(result.content);
 
 				// Display pagination information if available
-				if (result.pagination?.hasMore) {
-					console.log('\n## Pagination');
+				if (result.pagination) {
 					console.log(
-						`*Showing ${result.pagination.count || ''} items. More results are available.*`,
-					);
-					console.log(
-						`\nTo see more results, use --cursor "${result.pagination.nextCursor}"`,
+						'\n' +
+							formatPagination(
+								result.pagination.count || 0,
+								result.pagination.hasMore,
+								result.pagination.nextCursor,
+							),
 					);
 				}
 			} catch (error) {

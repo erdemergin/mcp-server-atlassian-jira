@@ -1,90 +1,101 @@
 import {
 	ProjectDetailed,
 	ProjectsResponse,
+	Project,
 } from '../services/vendor.atlassian.projects.types.js';
 import {
 	formatUrl,
 	formatDate,
-	formatPagination,
 	formatHeading,
 	formatBulletList,
 	formatSeparator,
-	formatNumberedList,
 } from '../utils/formatter.util.js';
+
+/**
+ * Type safety helper for projects with expanded fields
+ * The Project type doesn't include fields that may be expanded in the API response
+ */
+type ProjectWithExpanded = Project & {
+	description?: string;
+	lead?: {
+		displayName: string;
+		[key: string]: unknown;
+	};
+	projectTypeKey?: string;
+	[key: string]: unknown;
+};
 
 /**
  * Format a list of projects for display
  * @param projectsData - Raw projects data from the API
- * @param nextCursor - Pagination cursor for retrieving the next set of results
+ * @param _pagination - Pagination information (next cursor, has more, count) - handled by CLI layer
  * @returns Formatted string with projects information in markdown format
  */
 export function formatProjectsList(
 	projectsData: ProjectsResponse,
-	nextCursor?: string,
+	_pagination?: { nextCursor?: string; hasMore: boolean; count?: number },
 ): string {
 	if (!projectsData.values || projectsData.values.length === 0) {
-		return 'No Jira projects found.';
+		return 'No Jira projects found matching your criteria.';
 	}
 
 	const lines: string[] = [formatHeading('Jira Projects', 1), ''];
 
-	// Use the numbered list formatter for consistent formatting
-	const formattedList = formatNumberedList(projectsData.values, (project) => {
-		const itemLines: string[] = [];
+	// Use a standard list format instead of map
+	let formattedList = '';
+	projectsData.values.forEach((project, index) => {
+		// Safely cast project to include expanded fields
+		const expandedProject = project as ProjectWithExpanded;
 
-		// Basic information
-		itemLines.push(formatHeading(project.name, 2));
-
-		// Prepare URL
+		// Build URL from project data
 		const projectUrl = project.self.replace(
 			'/rest/api/3/project/',
 			'/browse/',
 		);
 
-		// Create an object with all the properties to display
+		formattedList +=
+			formatHeading(`${index + 1}. ${project.name}`, 2) + '\n\n';
+
+		// Basic properties
 		const properties: Record<string, unknown> = {
 			ID: project.id,
 			Key: project.key,
+			Type:
+				expandedProject.projectTypeKey ||
+				project.projectCategory?.name ||
+				'Not specified',
 			Style: project.style || 'Not specified',
-			Simplified: project.simplified,
-			URL: {
-				url: projectUrl,
-				title: project.key,
-			},
+			Self: formatUrl(projectUrl, 'Open in Jira'),
 		};
 
-		// Format as a bullet list with proper formatting for each value type
-		itemLines.push(formatBulletList(properties, (key) => key));
-
-		// Add avatar if available
-		if (project.avatarUrls && project.avatarUrls['48x48']) {
-			itemLines.push(
-				`![${project.name} Avatar](${project.avatarUrls['48x48']})`,
-			);
+		// Lead information if available
+		if (expandedProject.lead) {
+			properties['Lead'] = expandedProject.lead.displayName;
 		}
 
-		return itemLines.join('\n');
+		// Format as bullet list
+		formattedList += formatBulletList(properties, (key) => key) + '\n\n';
+
+		// Add separator between projects except for the last one
+		if (index < projectsData.values.length - 1) {
+			formattedList += formatSeparator() + '\n\n';
+		}
+
+		// Avatar if available
+		if (project.avatarUrls && project.avatarUrls['48x48']) {
+			formattedList += `![${project.name} Avatar](${project.avatarUrls['48x48']})\n\n`;
+		}
 	});
 
 	lines.push(formattedList);
 
-	// Add pagination information
-	if (nextCursor) {
+	// Add total count information if available
+	if (projectsData.total) {
+		lines.push(`*Total projects: ${projectsData.total}*`);
 		lines.push('');
-		lines.push(formatSeparator());
-		lines.push('');
-		lines.push(
-			formatPagination(projectsData.values.length, true, nextCursor),
-		);
-
-		// Add total count information
-		if (projectsData.total) {
-			lines.push(`*Total projects: ${projectsData.total}*`);
-		}
 	}
 
 	// Add timestamp for when this information was retrieved
-	lines.push('');
 	lines.push(`*Project information retrieved at ${formatDate(new Date())}*`);
 
 	return lines.join('\n');
