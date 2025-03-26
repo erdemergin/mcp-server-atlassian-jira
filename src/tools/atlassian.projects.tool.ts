@@ -166,7 +166,7 @@ WHEN NOT TO USE:
 - When you need to list issues within a project (use list-issues instead)
 - When you need to search issues with complex criteria (use list-issues with JQL instead)
 
-RETURNS: Detailed project information including key, name, description, components, versions, lead, and other metadata.
+RETURNS: Detailed project information including key, name, description, components, versions, lead, and other metadata. Components and versions are always included by default for a comprehensive view.
 
 EXAMPLES:
 - By key: {projectKeyOrId: "TEAM"}
