@@ -4,7 +4,7 @@ This project provides a Model Context Protocol (MCP) server that acts as a bridg
 
 ## What is MCP and Why Use This Server?
 
-Model Context Protocol (MCP) is an open standard enabling AI models to connect securely to external tools and data sources. This server implements MCP specifically for Jira.
+Model Context Protocol (MCP) is an open standard enabling AI models to connect securely to external tools and data sources. This server implements MCP specifically for Jira Cloud.
 
 **Benefits:**
 
@@ -15,23 +15,41 @@ Model Context Protocol (MCP) is an open standard enabling AI models to connect s
 
 ## Available Tools
 
-This MCP server exposes the following capabilities as standardized "Tools" for AI assistants:
+This MCP server provides the following tools for your AI assistant:
 
-| Tool Name       | Key Parameter(s)          | Description                                        | Example Conversational Use              | AI Tool Call Example (Simplified)                           |
-| :-------------- | :------------------------ | :------------------------------------------------- | :-------------------------------------- | :---------------------------------------------------------- |
-| `list-projects` | _None required_           | List available Jira projects.                      | "Show me all my Jira projects"          | `{}`                                                        |
-| `get-project`   | `projectKeyOrId` (string) | Get detailed information about a project.          | "Tell me about the 'DEV' project"       | `{ projectKeyOrId: "DEV" }`                                 |
-| `list-issues`   | `jql` (string, optional)  | Search for issues using JQL (Jira Query Language). | "Find all open bugs in the DEV project" | `{ jql: "project = DEV AND type = Bug AND status = Open" }` |
-| `get-issue`     | `issueIdOrKey` (string)   | Get detailed information about a specific issue.   | "Show me all details for PROJ-123"      | `{ issueIdOrKey: "PROJ-123" }`                              |
+- **List Projects (`list-projects`)**
 
-## Interface Philosophy: Minimal Interface, Maximal Detail
+    - **Purpose:** Discover available Jira projects and find their 'keys' or 'IDs'.
+    - **Use When:** You need to know which projects exist, find a project's key/ID for JQL queries or `get-project`.
+    - **Conversational Example:** "Show me all my Jira projects."
+    - **Parameter Example:** `{}` (no parameters needed for basic list) or `{ query: "Mobile App" }` (to filter).
 
-This server is designed to be simple for both humans (via CLI) and AI (via MCP Tools) to use, while providing rich information:
+- **Get Project (`get-project`)**
 
-1.  **Simple Commands/Tools:** Interfaces require only the essential identifiers or filters (like `projectKeyOrId`, `issueIdOrKey`, `jql`).
-2.  **Comprehensive Results by Default:** Operations that retrieve a specific item (`get-project`, `get-issue`) automatically fetch and return all relevant details (metadata, fields, comments, components, versions, etc.) without needing extra "include" flags.
+    - **Purpose:** Retrieve detailed information about a _specific_ project using its key or ID. Includes components and versions.
+    - **Use When:** You know the project key (e.g., "DEV") or ID (e.g., "10001") and need its full details, components, or versions.
+    - **Conversational Example:** "Tell me about the 'DEV' project in Jira."
+    - **Parameter Example:** `{ projectKeyOrId: "DEV" }` or `{ projectKeyOrId: "10001" }`
 
-This philosophy ensures you get the full picture without complex commands, letting the AI focus on using the information rather than configuring requests.
+- **List Issues (`list-issues`)**
+
+    - **Purpose:** Search for Jira issues using JQL (Jira Query Language). Provides issue keys/IDs needed for `get-issue`.
+    - **Use When:** You need to find issues matching specific criteria (project, status, assignee, text, labels, dates, etc.) using JQL.
+    - **Conversational Example:** "Find open bugs assigned to me in the DEV project."
+    - **Parameter Example:** `{ jql: "project = DEV AND assignee = currentUser() AND status = Open" }` or `{ jql: "text ~ 'performance bug'" }`.
+
+- **Get Issue (`get-issue`)**
+    - **Purpose:** Retrieve comprehensive details for a _specific_ issue using its key or ID. Includes description, comments, attachments, links, etc.
+    - **Use When:** You know the issue key (e.g., "PROJ-123") or ID (e.g., "10001") and need its full context, description, comments, or other details for analysis or summarization.
+    - **Conversational Example:** "Show me the details for Jira issue PROJ-123."
+    - **Parameter Example:** `{ issueIdOrKey: "PROJ-123" }` or `{ issueIdOrKey: "10001" }`
+
+## Interface Philosophy: Simple Input, Rich Output
+
+This server follows a "Minimal Interface, Maximal Detail" approach:
+
+1.  **Simple Tools:** Ask for only essential identifiers or filters (like `projectKeyOrId`, `issueIdOrKey`, `jql`).
+2.  **Rich Details:** When you ask for a specific item (like `get-project` or `get-issue`), the server provides all relevant information by default (description, fields, comments, components, versions, links, etc.) without needing extra flags.
 
 ## Prerequisites
 
@@ -51,21 +69,19 @@ Follow these steps to connect your AI assistant to Jira:
 2.  Click **Create API token**.
 3.  Give it a descriptive **Label** (e.g., `mcp-jira-access`).
 4.  Click **Create**.
-5.  **Immediately copy the generated API token.** You won't be able to see it again. Store it securely (e.g., in a password manager).
+5.  **Immediately copy the generated API token.** You won't be able to see it again. Store it securely.
 
 ### Step 2: Configure the Server Credentials
 
 Choose **one** of the following methods:
 
-#### Method A: Global MCP Config File (Recommended for Persistent Use)
+#### Method A: Global MCP Config File (Recommended)
 
-This is the preferred method as it keeps credentials separate from your AI client configuration.
+This keeps credentials separate and organized.
 
-1.  **Create the directory** (if it doesn't exist):
-    - macOS/Linux: `mkdir -p ~/.mcp`
-    - Windows: Create a folder named `.mcp` in your user profile directory (e.g., `C:\Users\<YourUsername>\.mcp`)
-2.  **Create the config file:** Inside the `.mcp` directory, create a file named `configs.json`.
-3.  **Add the configuration:** Paste the following JSON structure into `configs.json`, replacing the placeholder values:
+1.  **Create the directory** (if needed): `~/.mcp/`
+2.  **Create/Edit the file:** `~/.mcp/configs.json`
+3.  **Add the configuration:** Paste the following JSON structure, replacing the placeholders:
 
     ```json
     {
@@ -76,23 +92,22 @@ This is the preferred method as it keeps credentials separate from your AI clien
     			"ATLASSIAN_API_TOKEN": "<YOUR_COPIED_API_TOKEN>"
     		}
     	}
-    	// You can add configurations for other @aashari MCP servers here too
+    	// Add other servers here if needed
     }
     ```
 
-    - `<YOUR_SITE_NAME>`: Your Atlassian site name (e.g., if your URL is `mycompany.atlassian.net`, enter `mycompany`).
-    - `<YOUR_ATLASSIAN_EMAIL>`: The email address associated with your Atlassian account.
-    - `<YOUR_COPIED_API_TOKEN>`: The API token you generated in Step 1.
+    - `<YOUR_SITE_NAME>`: Your Jira site name (e.g., `mycompany` for `mycompany.atlassian.net`).
+    - `<YOUR_ATLASSIAN_EMAIL>`: Your Atlassian account email.
+    - `<YOUR_COPIED_API_TOKEN>`: The API token from Step 1.
 
-#### Method B: Environment Variables (Alternative / Temporary)
+#### Method B: Environment Variables (Alternative)
 
-You can set environment variables directly when running the server. This is less convenient for regular use but useful for testing.
+Set environment variables when running the server.
 
 ```bash
-# Example for running the server directly (adjust for client config)
-ATLASSIAN_SITE_NAME=<YOUR_SITE_NAME> \
-ATLASSIAN_USER_EMAIL=<YOUR_ATLASSIAN_EMAIL> \
-ATLASSIAN_API_TOKEN=<YOUR_COPIED_API_TOKEN> \
+ATLASSIAN_SITE_NAME="<YOUR_SITE_NAME>" \
+ATLASSIAN_USER_EMAIL="<YOUR_EMAIL>" \
+ATLASSIAN_API_TOKEN="<YOUR_API_TOKEN>" \
 npx -y @aashari/mcp-server-atlassian-jira
 ```
 
@@ -100,11 +115,10 @@ npx -y @aashari/mcp-server-atlassian-jira
 
 Configure your MCP client (Claude Desktop, Cursor, etc.) to run this server.
 
-#### Option 1: Claude Desktop
+#### Claude Desktop
 
-1.  Open Claude Desktop settings (gear icon).
-2.  Click **Edit Config**.
-3.  Add or merge the following into the `mcpServers` section:
+1.  Open Settings (gear icon) > Edit Config.
+2.  Add or merge into `mcpServers`:
 
     ```json
     {
@@ -113,32 +127,30 @@ Configure your MCP client (Claude Desktop, Cursor, etc.) to run this server.
     			"command": "npx",
     			"args": ["-y", "@aashari/mcp-server-atlassian-jira"]
     		}
-    		// Add other servers here if needed
+    		// ... other servers
     	}
     }
     ```
 
-4.  Save the configuration file.
-5.  **Restart Claude Desktop.**
-6.  Verify the connection: Click the "Tools" (hammer) icon. You should see the Jira tools listed (e.g., `list-projects`, `get-issue`).
+3.  Save and **Restart Claude Desktop**.
+4.  **Verify:** Click the "Tools" (hammer) icon; Jira tools should be listed.
 
-#### Option 2: Cursor AI
+#### Cursor AI
 
-1.  Open the Command Palette (`Cmd+Shift+P` or `Ctrl+Shift+P`).
-2.  Search for and select **Cursor Settings > MCP**.
-3.  Click **+ Add new MCP server**.
-4.  Fill in the details:
-    - **Name**: `aashari/mcp-server-atlassian-jira` (or another name you prefer)
-    - **Type**: `command`
-    - **Command**: `npx -y @aashari/mcp-server-atlassian-jira`
-5.  Click **Add**.
-6.  Wait for the indicator next to the server name to turn green, confirming it's running and connected.
+1.  Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) > **Cursor Settings > MCP**.
+2.  Click **+ Add new MCP server**.
+3.  Enter:
+    - Name: `aashari/mcp-server-atlassian-jira`
+    - Type: `command`
+    - Command: `npx -y @aashari/mcp-server-atlassian-jira`
+4.  Click **Add**.
+5.  **Verify:** Wait for the indicator next to the server name to turn green.
 
 ### Step 4: Using the Tools
 
-Now you can ask your AI assistant questions related to your Jira instance:
+You can now ask your AI assistant questions related to your Jira instance:
 
-- "List all the Jira projects."
+- "List the Jira projects."
 - "Tell me about the 'Marketing' project in Jira."
 - "Search Jira for open issues assigned to me in the DEV project using JQL." (e.g., `project = DEV AND assignee = currentUser() AND status = Open`)
 - "Get the details for Jira issue DEV-123."
@@ -146,133 +158,58 @@ Now you can ask your AI assistant questions related to your Jira instance:
 
 ## Using as a Command-Line Tool (CLI)
 
-You can also use this package directly from your terminal for quick checks or scripting.
+You can also use this package directly from your terminal. Ensure credentials are set first (Method A or B above).
 
-#### Method 1: `npx` (No Installation Needed)
-
-Run commands directly using `npx`:
+#### Quick Use with `npx`
 
 ```bash
-# Ensure credentials are set via ~/.mcp/configs.json or environment variables first!
 npx -y @aashari/mcp-server-atlassian-jira list-projects --limit 10
 npx -y @aashari/mcp-server-atlassian-jira get-project --project DEV
 npx -y @aashari/mcp-server-atlassian-jira list-issues --jql "project = DEV AND status = 'In Progress'"
 ```
 
-#### Method 2: Global Installation (for Frequent Use)
+#### Global Installation (Optional)
 
-1.  Install globally: `npm install -g @aashari/mcp-server-atlassian-jira`
-2.  Run commands using the `mcp-jira` alias:
+1.  `npm install -g @aashari/mcp-server-atlassian-jira`
+2.  Use the `mcp-jira` command:
 
 ```bash
-# Ensure credentials are set via ~/.mcp/configs.json or environment variables first!
 mcp-jira list-projects --query "Platform"
 mcp-jira get-issue --issue PROJ-123
 mcp-jira list-issues --jql "project = TEAM AND priority = High" --limit 10
 mcp-jira --help # See all commands
-mcp-jira get-project --help # Help for a specific command
 ```
 
 ## Troubleshooting
 
 - **Authentication Errors (401/403):**
-    - Double-check your `ATLASSIAN_SITE_NAME`, `ATLASSIAN_USER_EMAIL`, and `ATLASSIAN_API_TOKEN` in your `~/.mcp/configs.json` or environment variables.
-    - Ensure the API token is still valid and hasn't been revoked.
-    - Verify your user account has permission to access the Jira instance, projects, and issues you're querying.
+    - Double-check `ATLASSIAN_SITE_NAME`, `ATLASSIAN_USER_EMAIL`, and `ATLASSIAN_API_TOKEN` in `~/.mcp/configs.json` or environment variables.
+    - Verify the API token is correct, valid, and not revoked.
+    - Ensure your user account has permission to access the Jira instance and relevant projects/issues.
 - **Server Not Connecting (in AI Client):**
-    - Ensure the command in your AI client configuration (`npx -y @aashari/mcp-server-atlassian-jira`) is correct.
-    - Check if Node.js/npm are correctly installed and in your system's PATH.
-    - Try running the `npx` command directly in your terminal to see if it outputs any errors.
-- **Resource Not Found (404 Errors):**
-    - Verify the project key/ID or issue key/ID you are using is correct (project/issue keys are usually case-sensitive).
-    - Ensure you have permissions to view the specific project or issue.
-- **JQL Query Errors (400 Errors):**
-    - Check your JQL syntax carefully. Ensure field names, operators (`=`, `!=`, `IN`, `~`, etc.), functions (`currentUser()`), and values (especially strings needing quotes) are correct. Refer to the [Atlassian JQL documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/).
-    - Make sure you are using valid field names and values available in your Jira instance.
-- **Enable Debug Logs:** Set the `DEBUG` environment variable to `true` for more detailed logs. Add `"DEBUG": "true"` inside the `environments` block in `configs.json` or run like `DEBUG=true npx ...`.
+    - Confirm the command (`npx ...`) in your client's config is correct.
+    - Check Node.js/npm installation and PATH.
+    - Run the `npx` command directly in your terminal for errors.
+- **Resource Not Found (404):**
+    - Verify project/issue keys or IDs are correct (keys are case-sensitive).
+    - Check your permissions for the specific project or issue.
+- **JQL Query Errors (400):**
+    - Carefully check JQL syntax (field names, operators, functions like `currentUser()`, quotes around strings). Refer to [Atlassian JQL documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/).
+- **Enable Debug Logs:** Set `DEBUG=true` environment variable (e.g., add `"DEBUG": "true"` in `configs.json` or run `DEBUG=true npx ...`).
 
 ## For Developers: Contributing
 
-Contributions are welcome! Please follow the established architecture and guidelines.
+Contributions are welcome! If you'd like to contribute:
 
-### Project Architecture
-
-This MCP server adheres to a layered architecture promoting separation of concerns:
-
-1.  **`src/cli`**: Defines the command-line interface using `commander`. Minimal logic, mainly argument parsing and calling controllers.
-2.  **`src/tools`**: Defines the MCP tool interface for AI clients using `@modelcontextprotocol/sdk` and `zod` for schemas. Minimal logic, maps arguments and calls controllers.
-3.  **`src/controllers`**: Contains the core application logic. Orchestrates calls to services, uses formatters, handles pagination, and ensures consistent responses. Implements the "maximal detail" principle for 'get' operations.
-4.  **`src/services`**: Acts as an adapter to the specific vendor (Atlassian Jira) API. Uses `transport.util` for actual HTTP calls.
-5.  **`src/formatters`**: Responsible for converting data into user-friendly Markdown output, heavily utilizing `formatter.util`. Handles potential ADF content via `adf.util`.
-6.  **`src/utils`**: Holds shared, reusable utilities (config, logging, errors, formatting, transport, pagination, defaults, ADF conversion).
-7.  **`src/types`**: Defines shared internal TypeScript types (`ControllerResponse`, etc.).
-
-### Setting Up Development
-
-1.  Clone the repository: `git clone <repository-url>`
-2.  Navigate to the project directory: `cd mcp-server-atlassian-jira`
-3.  Install dependencies: `npm install`
-4.  Run the server in development mode (uses `ts-node` and watches for changes): `npm run dev:server`
-5.  Run CLI commands during development: `npm run dev:cli -- <command> [options]` (e.g., `npm run dev:cli -- list-projects`)
-
-### Key Development Scripts
-
-- `npm run dev:server`: Start the MCP server via stdio transport with hot-reloading.
-- `npm run dev:cli -- [args]`: Execute CLI commands using `ts-node`.
-- `npm run build`: Compile TypeScript to JavaScript in `dist/`.
-- `npm test`: Run unit and integration tests using Jest.
-- `npm run lint`: Run ESLint to check for code style issues.
-- `npm run format`: Format code using Prettier.
-
-### Adding a New Feature (Tool/Command)
-
-1.  **API Research:** Identify the target Jira Cloud REST API (v3) endpoint(s).
-2.  **Service Layer:** Add function(s) in `src/services/vendor.atlassian.*.service.ts` using `fetchAtlassian`. Define API types in `src/services/vendor.*.types.ts`.
-3.  **Controller Layer:** Add function in `src/controllers/*.controller.ts`. Define internal types (`*Options`, `*Identifier`) in `src/controllers/*.types.ts`. Call the service, ensure maximum detail for 'get' operations, call the formatter, handle pagination (`extractPaginationInfo` with `PaginationType.OFFSET`), return `ControllerResponse`, and wrap logic in `handleControllerError`.
-4.  **Formatter:** Add/update function in `src/controllers/*.formatter.ts` using `formatter.util` and `adf.util` if needed.
-5.  **Tool Layer:** Define Zod schema in `src/tools/*.types.ts` (minimal args). Define tool in `src/tools/*.tool.ts` using `server.tool()`, including the standard documentation template. Implement handler calling the controller.
-6.  **CLI Layer:** Define command in `src/cli/*.cli.ts` using `commander` (options matching tool args). Implement action calling the controller, formatting output, and using `handleCliError`.
-7.  **Testing:** Add relevant tests (unit, integration, CLI execution).
-8.  **Documentation:** Update this README and ensure tool/CLI descriptions are accurate.
-
-### Standard Tool Documentation Template
-
-Use this template within the description string for `server.tool()`:
-
-```markdown
-PURPOSE: [Briefly explain what the tool does and its primary goal.]
-
-WHEN TO USE:
-
-- [Describe the main scenario(s) where this tool is useful.]
-- [Mention specific situations or questions it answers.]
-
-WHEN NOT TO USE:
-
-- [Point to alternative tools if they are better suited for certain tasks.]
-- [Mention any limitations or anti-patterns.]
-
-RETURNS: [Describe the structure and key information included in the Markdown output. Mention that details are comprehensive by default for 'get' operations.]
-
-EXAMPLES:
-
-- [Provide a simple AI tool call example: { param: "value" }]
-- [Provide a more complex example if applicable, e.g., with filters.]
-
-ERRORS:
-
-- [List common error scenarios (e.g., "Not Found", "Permission Denied", "Invalid JQL").]
-- [Briefly suggest potential causes or checks (e.g., "Verify the ID/Key", "Check credentials/permissions", "Check JQL syntax").]
-```
-
-### File Naming Convention
-
-- Utility files in `src/utils/` use `kebab-case`: `config.util.ts`, `error-handler.util.ts`.
-- Feature-specific files (CLI, Controller, Formatter, Service, Tool, Types) use the pattern `atlassian.{feature}.{layer}.ts` or `vendor.atlassian.{feature}.{layer}.ts` (for services/service-types), e.g., `atlassian.projects.cli.ts`, `atlassian.issues.controller.ts`, `vendor.atlassian.projects.service.ts`.
+- **Architecture:** The server uses a layered approach (CLI/Tool -> Controller -> Service). See `.cursorrules` or code comments.
+- **Setup:** Clone repo, `npm install`. Use `npm run dev:server` or `npm run dev:cli -- <command>`.
+- **Code Style:** Use `npm run lint` and `npm run format`.
+- **Tests:** Add tests via `npm test`.
+- **Consistency:** Follow existing patterns and the "Minimal Interface, Maximal Detail" philosophy.
 
 ## Versioning Note
 
-This project (`@aashari/mcp-server-atlassian-jira`) follows Semantic Versioning. It is versioned independently from other `@aashari/mcp-server-*` packages (like Confluence or Bitbucket). Version differences between these related projects are expected and reflect their individual development cycles.
+This project (`@aashari/mcp-server-atlassian-jira`) follows Semantic Versioning and is versioned independently from other `@aashari/mcp-server-*` packages.
 
 ## License
 
