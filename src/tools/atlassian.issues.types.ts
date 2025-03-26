@@ -27,33 +27,13 @@ const PaginationArgs = {
  */
 const ListIssuesToolArgs = z.object({
 	/**
-	 * Standardized query parameter for JQL filtering
+	 * Standardized JQL parameter for filtering
 	 */
-	query: z
+	jql: z
 		.string()
 		.optional()
 		.describe(
-			'Filter issues using JQL syntax. Use this for complex queries like "project = TEAM AND status = \'In Progress\'" or "assignee = currentUser()".',
-		),
-
-	/**
-	 * Project key filter
-	 */
-	projectKey: z
-		.string()
-		.optional()
-		.describe(
-			'Filter issues by project key (e.g., "TEAM" or "PROJ"). Will be combined with other filters using AND logic.',
-		),
-
-	/**
-	 * Status filter
-	 */
-	status: z
-		.string()
-		.optional()
-		.describe(
-			'Filter issues by status (e.g., "In Progress" or "Done"). Will be combined with other filters using AND logic.',
+			'Filter issues using JQL syntax. Use this for complex queries like "project = TEAM AND status = \'In Progress\'" or "assignee = currentUser()". If omitted, returns issues according to your Jira default search.',
 		),
 
 	/**

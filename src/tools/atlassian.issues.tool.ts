@@ -30,21 +30,9 @@ async function listIssues(
 	logger.debug(`${logPrefix} Listing Jira issues with filters:`, args);
 
 	try {
-		// Build JQL from args
-		let jql = '';
-		if (args.projectKey) {
-			jql += `project = "${args.projectKey}"`;
-		}
-		if (args.status) {
-			jql += (jql ? ' AND ' : '') + `status = "${args.status}"`;
-		}
-		if (args.query) {
-			jql += (jql ? ' AND ' : '') + `(${args.query})`;
-		}
-
 		// Pass the options to the controller
 		const message = await atlassianIssuesController.list({
-			...(jql && { jql }),
+			jql: args.jql,
 			limit: args.limit,
 			cursor: args.cursor,
 		});
@@ -148,9 +136,9 @@ RETURNS: Formatted list of issues with keys, summaries, types, statuses, assigne
 
 EXAMPLES:
 - All issues: {}
-- Project issues: {projectKey: "TEAM"}
-- With status: {projectKey: "TEAM", status: "In Progress"}
-- JQL query: {query: "assignee = currentUser() AND status = 'To Do'"}
+- Project issues: {jql: "project = TEAM"}
+- Status filter: {jql: "status = 'In Progress'"}
+- Complex query: {jql: "project = TEAM AND status = 'In Progress' AND assignee = currentUser()"}
 - With pagination: {limit: 10, cursor: "next-page-token"}
 
 ERRORS:

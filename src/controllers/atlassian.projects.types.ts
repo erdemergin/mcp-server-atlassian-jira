@@ -23,23 +23,3 @@ export interface ListProjectsOptions extends PaginationOptions {
 	 */
 	query?: string;
 }
-
-/**
- * Options for getting detailed project information.
- * These options control what additional data is included in the response.
- */
-export interface GetProjectOptions {
-	/**
-	 * Whether to include components in the response.
-	 * When true, retrieves the list of components defined in the project.
-	 * Default: true
-	 */
-	includeComponents?: boolean;
-
-	/**
-	 * Whether to include versions in the response.
-	 * When true, retrieves the list of versions defined in the project.
-	 * Default: true
-	 */
-	includeVersions?: boolean;
-}

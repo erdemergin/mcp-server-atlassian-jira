@@ -8,18 +8,13 @@ import {
 import { ControllerResponse } from '../types/common.types.js';
 import {
 	ListProjectsOptions,
-	GetProjectOptions,
 	ProjectIdentifier,
 } from './atlassian.projects.types.js';
 import {
 	formatProjectsList,
 	formatProjectDetails,
 } from './atlassian.projects.formatter.js';
-import {
-	DEFAULT_PAGE_SIZE,
-	PROJECT_DEFAULTS,
-	applyDefaults,
-} from '../utils/defaults.util.js';
+import { DEFAULT_PAGE_SIZE } from '../utils/defaults.util.js';
 
 /**
  * Controller for managing Jira projects.
@@ -96,13 +91,9 @@ async function list(
 /**
  * Gets details of a specific Jira project
  * @param identifier - The project identifier
- * @param options - Options for retrieving project details
  * @returns Formatted project details
  */
-async function get(
-	identifier: ProjectIdentifier,
-	options: GetProjectOptions = {},
-): Promise<ControllerResponse> {
+async function get(identifier: ProjectIdentifier): Promise<ControllerResponse> {
 	const { idOrKey } = identifier;
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.projects.controller.ts',
@@ -112,16 +103,10 @@ async function get(
 	methodLogger.debug(`Getting Jira project with ID/key: ${idOrKey}...`);
 
 	try {
-		// Apply default values to options
-		const optionsWithDefaults = applyDefaults(options, {
-			includeComponents: PROJECT_DEFAULTS.INCLUDE_COMPONENTS,
-			includeVersions: PROJECT_DEFAULTS.INCLUDE_VERSIONS,
-		});
-
-		// Map controller options to service parameters
+		// Always include all possible expansions for maximum detail
 		const serviceParams = {
-			includeComponents: optionsWithDefaults.includeComponents,
-			includeVersions: optionsWithDefaults.includeVersions,
+			includeComponents: true,
+			includeVersions: true,
 		};
 
 		const projectData = await atlassianProjectsService.get(
@@ -146,7 +131,6 @@ async function get(
 			entityId: identifier,
 			operation: 'retrieving',
 			source: 'controllers/atlassian.projects.controller.ts@get',
-			additionalInfo: { options },
 		});
 	}
 }
