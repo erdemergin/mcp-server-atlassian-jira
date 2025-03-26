@@ -11,7 +11,7 @@ import {
 	ListIssuesOptions,
 	GetIssueOptions,
 	IssueIdentifier,
-} from './atlassian.issues.type.js';
+} from './atlassian.issues.types.js';
 import {
 	formatIssuesList,
 	formatIssueDetails,

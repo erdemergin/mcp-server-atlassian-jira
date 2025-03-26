@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
-import { ListProjectsOptions } from '../controllers/atlassian.projects.type.js';
+import { ListProjectsOptions } from '../controllers/atlassian.projects.types.js';
 
 /**
  * CLI module for managing Jira projects.

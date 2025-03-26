@@ -2,7 +2,7 @@ import { Command } from 'commander';
 import { logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
-import { ListIssuesOptions } from '../controllers/atlassian.issues.type.js';
+import { ListIssuesOptions } from '../controllers/atlassian.issues.types.js';
 import { formatHeading, formatPagination } from '../utils/formatter.util.js';
 
 /**

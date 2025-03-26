@@ -7,7 +7,7 @@ import {
 	ListProjectsToolArgsType,
 	GetProjectToolArgs,
 	GetProjectToolArgsType,
-} from './atlassian.projects.type.js';
+} from './atlassian.projects.types.js';
 
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
 

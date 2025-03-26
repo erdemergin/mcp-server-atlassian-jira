@@ -10,7 +10,7 @@ import {
 	ListProjectsOptions,
 	GetProjectOptions,
 	ProjectIdentifier,
-} from './atlassian.projects.type.js';
+} from './atlassian.projects.types.js';
 import {
 	formatProjectsList,
 	formatProjectDetails,

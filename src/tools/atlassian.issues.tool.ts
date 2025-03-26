@@ -7,7 +7,7 @@ import {
 	ListIssuesToolArgsType,
 	GetIssueToolArgs,
 	GetIssueToolArgsType,
-} from './atlassian.issues.type.js';
+} from './atlassian.issues.types.js';
 
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
 
