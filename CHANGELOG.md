@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.6.0...v1.7.0) (2025-03-26)
+
+
+### Features
+
+* standardize JQL queries and simplify issue filtering ([6d4168b](https://github.com/aashari/mcp-server-atlassian-jira/commit/6d4168b16cda2939935616e0072e14b9041c0012))
+
 # [1.6.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.5.2...v1.6.0) (2025-03-26)
 
 
