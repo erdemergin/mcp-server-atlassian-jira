@@ -3,6 +3,7 @@ import { logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
 import { ListIssuesOptions } from '../controllers/atlassian.issues.type.js';
+import { formatHeading, formatPagination } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira issues.
@@ -33,17 +34,25 @@ function registerListIssuesCommand(program: Command): void {
 	program
 		.command('list-issues')
 		.description(
-			'List Jira issues with optional filtering\n\n  Retrieves issues from your Jira instance with JQL filtering and pagination options.',
+			'List Jira issues with optional filtering\n\n' +
+				'Retrieves issues from your Jira instance with filtering and pagination options.\n\n' +
+				'Examples:\n' +
+				'  $ list-issues --project TEAM --status "In Progress"\n' +
+				'  $ list-issues --limit 50 --filter "assignee = currentUser()"\n' +
+				'  $ list-issues --project TEAM --filter "priority = High"',
 		)
-		.option('-j, --jql <query>', 'JQL query string to filter issues')
 		.option(
 			'-l, --limit <number>',
-			'Maximum number of issues to return (1-100). Use this to control the response size. If omitted, defaults to 50.',
+			'Maximum number of items to return (1-100)',
+			'25',
 		)
 		.option(
-			'-c, --cursor <cursor>',
-			'Pagination cursor for retrieving the next set of results. Obtain this value from the previous response when more results are available.',
+			'-c, --cursor <string>',
+			'Pagination cursor for retrieving the next set of results',
 		)
+		.option('-f, --filter <string>', 'Filter issues using JQL syntax')
+		.option('-p, --project <key>', 'Filter by project key')
+		.option('--status <status>', 'Filter by issue status')
 		.action(async (options) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@list-issues]';
 			try {
@@ -52,8 +61,21 @@ function registerListIssuesCommand(program: Command): void {
 					options,
 				);
 
+				// Build JQL from options
+				let jql = '';
+				if (options.project) {
+					jql += `project = "${options.project}"`;
+				}
+				if (options.status) {
+					jql +=
+						(jql ? ' AND ' : '') + `status = "${options.status}"`;
+				}
+				if (options.filter) {
+					jql += (jql ? ' AND ' : '') + `(${options.filter})`;
+				}
+
 				const filterOptions: ListIssuesOptions = {
-					...(options.jql && { jql: options.jql }),
+					...(jql && { jql }),
 					...(options.limit && {
 						limit: parseInt(options.limit, 10),
 					}),
@@ -68,7 +90,21 @@ function registerListIssuesCommand(program: Command): void {
 					await atlassianIssuesController.list(filterOptions);
 				logger.debug(`${logPrefix} Successfully retrieved issues`);
 
+				// Print the main content
+				console.log(formatHeading('Issues', 2));
 				console.log(result.content);
+
+				// Print pagination information if available
+				if (result.pagination) {
+					console.log(
+						'\n' +
+							formatPagination(
+								result.pagination.count || 0,
+								result.pagination.hasMore,
+								result.pagination.nextCursor,
+							),
+					);
+				}
 			} catch (error) {
 				logger.error(`${logPrefix} Operation failed:`, error);
 				handleCliError(error);

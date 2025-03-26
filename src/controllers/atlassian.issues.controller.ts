@@ -5,6 +5,7 @@ import {
 	extractPaginationInfo,
 	PaginationType,
 } from '../utils/pagination.util.js';
+import { getAtlassianCredentials } from '../utils/transport.util.js';
 import {
 	ListIssuesOptions,
 	GetIssueOptions,
@@ -36,6 +37,13 @@ async function list(
 	logger.debug(`${source} Listing Jira issues...`, options);
 
 	try {
+		const credentials = getAtlassianCredentials();
+		if (!credentials) {
+			throw new Error(
+				'Atlassian credentials are required for this operation',
+			);
+		}
+
 		// Set default filters and hardcoded values
 		const filters = {
 			// Optional filters with defaults
@@ -81,8 +89,11 @@ async function list(
 
 		// Format the issues data for display using the formatter
 		const formattedIssues = formatIssuesList(
-			issuesData,
-			pagination.nextCursor,
+			{
+				issues: issuesData.issues || [],
+				baseUrl: `https://${credentials.siteName}.atlassian.net`,
+			},
+			pagination,
 		);
 
 		return {
@@ -91,7 +102,7 @@ async function list(
 		};
 	} catch (error) {
 		// Use the standardized error handler
-		handleControllerError(error, {
+		return handleControllerError(error, {
 			entityType: 'Issues',
 			operation: 'listing',
 			source: 'src/controllers/atlassian.issues.controller.ts@list',

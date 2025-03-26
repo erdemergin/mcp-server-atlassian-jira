@@ -2,13 +2,11 @@ import {
 	Issue,
 	IssueComment,
 	IssueLink,
-	IssuesResponse,
 } from '../services/vendor.atlassian.issues.types.js';
 import { adfToMarkdown } from '../utils/adf.util.js';
 import {
 	formatUrl,
 	formatDate,
-	formatPagination,
 	formatHeading,
 	formatBulletList,
 	formatSeparator,
@@ -20,77 +18,80 @@ interface CommentContainer {
 	comments: IssueComment[];
 }
 
+interface IssuesData {
+	issues: Issue[];
+	baseUrl: string;
+}
+
+interface ResponsePagination {
+	nextCursor?: string;
+	hasMore: boolean;
+	count?: number;
+}
+
 /**
  * Format a list of issues for display
  * @param issuesData - Raw issues data from the API
- * @param nextCursor - Pagination cursor for retrieving the next set of results
+ * @param pagination - Pagination information including count and next cursor
  * @returns Formatted string with issues information in markdown format
  */
 export function formatIssuesList(
-	issuesData: IssuesResponse,
-	nextCursor?: string,
+	issuesData: IssuesData,
+	pagination?: ResponsePagination,
 ): string {
-	if (!issuesData.issues || issuesData.issues.length === 0) {
-		return 'No Jira issues found.';
+	const { issues } = issuesData;
+
+	if (!issues || issues.length === 0) {
+		return 'No issues found.';
 	}
 
 	const lines: string[] = [formatHeading('Jira Issues', 1), ''];
 
-	// Use the numbered list formatter for consistent formatting
-	const formattedList = formatNumberedList(issuesData.issues, (issue) => {
-		const itemLines: string[] = [];
-		const summary = issue.fields.summary || 'No summary';
+	const formattedIssues = formatNumberedList(issues, (issue) => {
+		const lines: string[] = [];
 
-		// Basic information
-		itemLines.push(formatHeading(summary, 2));
+		lines.push(formatHeading(`${issue.key}: ${issue.fields.summary}`, 2));
 
-		// Prepare URL
-		const issueUrl = issue.self.replace('/rest/api/3/issue/', '/browse/');
-
-		// Create an object with all the properties to display
 		const properties: Record<string, unknown> = {
-			ID: issue.id,
 			Key: issue.key,
-			Project: issue.fields.project
-				? `${issue.fields.project.name} (${issue.fields.project.key})`
-				: undefined,
+			Summary: issue.fields.summary,
 			Type: issue.fields.issuetype?.name,
 			Status: issue.fields.status?.name,
-			Assignee: issue.fields.assignee?.displayName || 'Unassigned',
+			Priority: issue.fields.priority?.name,
+			Project: issue.fields.project?.name,
+			Assignee: issue.fields.assignee?.displayName,
 			Reporter: issue.fields.reporter?.displayName,
-			Created: issue.fields.created,
+			'Created On': issue.fields.created,
+			'Updated On': issue.fields.updated,
 			URL: {
-				url: issueUrl,
+				url: `${issuesData.baseUrl}/browse/${issue.key}`,
 				title: issue.key,
 			},
 		};
 
-		// Format as a bullet list with proper formatting for each value type
-		itemLines.push(formatBulletList(properties, (key) => key));
+		lines.push(formatBulletList(properties));
 
-		return itemLines.join('\n');
+		return lines.join('\n');
 	});
 
-	lines.push(formattedList);
+	lines.push(formattedIssues);
 
-	// Add pagination information
-	if (nextCursor) {
-		lines.push('');
-		lines.push(formatSeparator());
-		lines.push('');
-		lines.push(
-			formatPagination(issuesData.issues.length, true, nextCursor),
-		);
-
-		// Add total count information
-		if (issuesData.total) {
-			lines.push(`*Total issues: ${issuesData.total}*`);
+	if (pagination) {
+		const paginationInfo = [];
+		if (pagination.count !== undefined) {
+			paginationInfo.push(`Total: ${pagination.count}`);
+		}
+		if (pagination.hasMore) {
+			paginationInfo.push('Has more: Yes');
+		}
+		if (pagination.nextCursor) {
+			paginationInfo.push(`Next cursor: ${pagination.nextCursor}`);
+		}
+		if (paginationInfo.length > 0) {
+			lines.push('');
+			lines.push(paginationInfo.join(' | '));
 		}
 	}
-
-	// Add timestamp for when this information was retrieved
-	lines.push('');
-	lines.push(`*Issue information retrieved at ${formatDate(new Date())}*`);
 
 	return lines.join('\n');
 }
