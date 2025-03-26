@@ -37,9 +37,9 @@ function registerListIssuesCommand(program: Command): void {
 			'List Jira issues with optional filtering\n\n' +
 				'Retrieves issues from your Jira instance with filtering and pagination options.\n\n' +
 				'Examples:\n' +
-				'  $ list-issues --project-key TEAM --status "In Progress"\n' +
-				'  $ list-issues --limit 50 --query "assignee = currentUser()"\n' +
-				'  $ list-issues --project-key TEAM --query "priority = High"',
+				'  $ list-issues --jql "project = TEAM AND status = \'In Progress\'"\n' +
+				'  $ list-issues --limit 50 --jql "assignee = currentUser()"\n' +
+				'  $ list-issues --jql "project = TEAM AND priority = High"',
 		)
 		.option(
 			'-l, --limit <number>',
@@ -50,9 +50,10 @@ function registerListIssuesCommand(program: Command): void {
 			'-c, --cursor <string>',
 			'Pagination cursor for retrieving the next set of results',
 		)
-		.option('-q, --query <jql>', 'Filter issues using JQL syntax')
-		.option('--project-key <key>', 'Filter by project key')
-		.option('-s, --status <status>', 'Filter by issue status')
+		.option(
+			'-q, --jql <jql>',
+			'Filter issues using Jira Query Language (JQL) syntax (e.g., "project = TEAM AND status = \'In Progress\'")',
+		)
 		.action(async (options) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@list-issues]';
 			try {
@@ -61,21 +62,8 @@ function registerListIssuesCommand(program: Command): void {
 					options,
 				);
 
-				// Build JQL from options
-				let jql = '';
-				if (options.projectKey) {
-					jql += `project = "${options.projectKey}"`;
-				}
-				if (options.status) {
-					jql +=
-						(jql ? ' AND ' : '') + `status = "${options.status}"`;
-				}
-				if (options.query) {
-					jql += (jql ? ' AND ' : '') + `(${options.query})`;
-				}
-
 				const filterOptions: ListIssuesOptions = {
-					...(jql && { jql }),
+					...(options.jql && { jql: options.jql }),
 					...(options.limit && {
 						limit: parseInt(options.limit, 10),
 					}),
@@ -131,21 +119,21 @@ function registerGetIssueCommand(program: Command): void {
 			'Get detailed information about a specific Jira issue\n\n' +
 				'Retrieves comprehensive details for an issue including status, comments, attachments, and metadata.\n\n' +
 				'Examples:\n' +
-				'  $ get-issue --issue-id-or-key PROJ-123',
+				'  $ get-issue --issue PROJ-123',
 		)
 		.requiredOption(
-			'--issue-id-or-key <idOrKey>',
-			'ID or key of the issue to retrieve',
+			'--issue <idOrKey>',
+			'ID or key of the issue to retrieve (e.g., "TEAM-123" or "10001")',
 		)
 		.action(async (options) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@get-issue]';
 			try {
 				logger.debug(
-					`${logPrefix} Fetching details for issue ID/key: ${options.issueIdOrKey}`,
+					`${logPrefix} Fetching details for issue ID/key: ${options.issue}`,
 				);
 
 				const result = await atlassianIssuesController.get({
-					idOrKey: options.issueIdOrKey,
+					idOrKey: options.issue,
 				});
 
 				logger.debug(
