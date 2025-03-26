@@ -30,12 +30,9 @@ async function listIssues(
 	logger.debug(`${logPrefix} Listing Jira issues with filters:`, args);
 
 	try {
-		// Handle both new standardized parameters and legacy parameters
-		const jqlQuery = args.filter || args.jql;
-
 		// Pass the filter options to the controller
 		const message = await atlassianIssuesController.list({
-			jql: jqlQuery,
+			jql: args.filter,
 			limit: args.limit,
 			cursor: args.cursor,
 		});
@@ -76,16 +73,13 @@ async function getIssue(
 ) {
 	const logPrefix = '[src/tools/atlassian.issues.tool.ts@getIssue]';
 
-	// Handle both new standardized parameters and legacy parameters
-	const issueIdOrKey = args.entityId || args.idOrKey;
-
 	logger.debug(
-		`${logPrefix} Retrieving issue details for ID/key: ${issueIdOrKey}`,
+		`${logPrefix} Retrieving issue details for ID/key: ${args.entityId}`,
 	);
 
 	try {
 		const message = await atlassianIssuesController.get({
-			idOrKey: issueIdOrKey,
+			idOrKey: args.entityId,
 		});
 		logger.debug(
 			`${logPrefix} Successfully retrieved issue details from controller`,
@@ -140,7 +134,7 @@ WHEN NOT TO USE:
 RETURNS: Formatted list of issues with keys, types, summaries, statuses, assignees, and URLs, plus pagination info.
 
 EXAMPLES:
-- Basic project filter: {filter: "project = DEV"} or {jql: "project = DEV"}
+- Basic project filter: {filter: "project = DEV"}
 - Status filter: {filter: "status = 'In Progress'"}
 - Combined filters: {filter: "project = DEV AND assignee = currentUser()"}
 - With pagination: {filter: "project = DEV", limit: 10, cursor: "10"}
@@ -174,8 +168,8 @@ WHEN NOT TO USE:
 RETURNS: Detailed issue information including key, summary, description, status, assignee, reporter, comments, and relevant dates.
 
 EXAMPLES:
-- By key: {entityId: "DEV-123"} or {idOrKey: "DEV-123"}
-- By ID: {entityId: "10001"} or {idOrKey: "10001"}
+- By key: {entityId: "DEV-123"}
+- By ID: {entityId: "10001"}
 
 ERRORS:
 - Issue not found: Verify the issue key or ID

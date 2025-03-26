@@ -26,6 +26,9 @@ const PaginationArgs = {
  * Includes optional filters with defaults applied in the controller
  */
 const ListIssuesToolArgs = z.object({
+	/**
+	 * Standardized filter query parameter
+	 */
 	filter: z
 		.string()
 		.optional()
@@ -33,13 +36,9 @@ const ListIssuesToolArgs = z.object({
 			'Filter string to search for issues using JQL syntax. Use this for complex queries.',
 		),
 
-	jql: z
-		.string()
-		.optional()
-		.describe(
-			'JQL query string to filter issues. Use this to search for specific issues using Jira Query Language (e.g., "project = PROJ AND status = Open").',
-		),
-
+	/**
+	 * Maximum number of issues to return and pagination
+	 */
 	...PaginationArgs,
 });
 
@@ -47,17 +46,12 @@ type ListIssuesToolArgsType = z.infer<typeof ListIssuesToolArgs>;
 
 /**
  * Arguments for getting a specific Jira issue
- * This matches the controller implementation which takes an ID or key parameter and optional fields
  */
 const GetIssueToolArgs = z.object({
+	/**
+	 * Standardized entity identifier parameter
+	 */
 	entityId: z
-		.string()
-		.optional()
-		.describe(
-			'The ID or key of the Jira issue to retrieve (e.g., "10001" or "PROJ-123"). This is required and must be a valid issue ID or key from your Jira instance.',
-		),
-
-	idOrKey: z
 		.string()
 		.describe(
 			'The ID or key of the Jira issue to retrieve (e.g., "10001" or "PROJ-123"). This is required and must be a valid issue ID or key from your Jira instance.',

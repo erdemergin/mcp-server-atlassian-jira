@@ -32,7 +32,7 @@ async function listProjects(
 	try {
 		// Pass the filter options to the controller
 		const message = await atlassianProjectsController.list({
-			query: args.query,
+			query: args.filter,
 			limit: args.limit,
 			cursor: args.cursor,
 		});
@@ -72,13 +72,14 @@ async function getProject(
 	_extra: RequestHandlerExtra,
 ) {
 	const logPrefix = '[src/tools/atlassian.projects.tool.ts@getProject]';
+
 	logger.debug(
-		`${logPrefix} Retrieving project details for ID/key: ${args.idOrKey}`,
+		`${logPrefix} Retrieving project details for ID/key: ${args.entityId}`,
 	);
 
 	try {
 		const message = await atlassianProjectsController.get({
-			idOrKey: args.idOrKey,
+			idOrKey: args.entityId,
 		});
 		logger.debug(
 			`${logPrefix} Successfully retrieved project details from controller`,
@@ -132,7 +133,7 @@ WHEN NOT TO USE:
 RETURNS: Formatted list of projects with IDs, keys, names, types, and URLs, plus pagination info.
 
 EXAMPLES:
-- Basic usage: {query: "Marketing"}
+- Basic usage: {filter: "Marketing"}
 - With pagination: {limit: 10, cursor: "10"}
 
 ERRORS:
@@ -164,8 +165,8 @@ WHEN NOT TO USE:
 RETURNS: Detailed project information including name, key, ID, type, components, versions, and description.
 
 EXAMPLES:
-- By key: {idOrKey: "DEV"}
-- By ID: {idOrKey: "10001"}
+- By key: {entityId: "DEV"}
+- By ID: {entityId: "10001"}
 
 ERRORS:
 - Project not found: Verify the project ID or key
