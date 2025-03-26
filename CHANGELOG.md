@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.8.0...v1.8.1) (2025-03-26)
+
+
+### Bug Fixes
+
+* improve CLI and tool descriptions with consistent formatting and detailed guidance ([3f6764d](https://github.com/aashari/mcp-server-atlassian-jira/commit/3f6764d624119855824a64cde57547a1b359accd))
+
 # [1.8.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.7.0...v1.8.0) (2025-03-26)
 
 
