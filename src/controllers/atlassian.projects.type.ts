@@ -2,7 +2,7 @@ import {
 	ControllerResponse,
 	PaginationOptions,
 	EntityIdentifier,
-} from './atlassian.type.js';
+} from '../types/common.types.js';
 
 /**
  * Project identifier for retrieving specific projects.

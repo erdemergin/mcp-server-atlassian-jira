@@ -2,7 +2,7 @@ import {
 	PaginationOptions,
 	ControllerResponse,
 	EntityIdentifier,
-} from './atlassian.type.js';
+} from '../types/common.types.js';
 
 /**
  * Issue identifier for retrieving specific issues
