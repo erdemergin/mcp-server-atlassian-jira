@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.7.0...v1.8.0) (2025-03-26)
+
+
+### Features
+
+* trigger release with semantic versioning ([b077be5](https://github.com/aashari/mcp-server-atlassian-jira/commit/b077be50fa7f9a00864934470da873671d575cb6))
+
 # [1.7.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.6.0...v1.7.0) (2025-03-26)
 
 
