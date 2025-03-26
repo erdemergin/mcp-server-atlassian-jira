@@ -115,34 +115,30 @@ function register(server: McpServer) {
 	// Register the list projects tool
 	server.tool(
 		'list-projects',
-		`List Jira projects with optional filtering by name or key.
+		`List Jira projects accessible to the authenticated user, with optional filtering by name/key and pagination.
 
-PURPOSE: Helps you discover available projects in your Jira instance with their keys, names, and metadata.
+        PURPOSE: Discover available projects and retrieve their keys, names, and basic metadata. Essential for finding the correct 'projectKeyOrId' needed as input for the 'get-project' tool or for filtering issues using JQL in the 'list-issues' tool (e.g., "project = KEY").
 
-WHEN TO USE:
-- When you need to find available projects for issue exploration
-- When you need project keys for use with other Jira tools
-- When you want to browse projects before accessing specific issues
-- When you need to filter projects by name or key
-- When you need to find recently updated projects
+        WHEN TO USE:
+        - To find the 'projectKeyOrId' for a known project name.
+        - To explore all projects you have access to.
+        - To get a high-level overview before diving into specific projects or issues.
+        - When you don't know the exact key/ID required by other tools.
 
-WHEN NOT TO USE:
-- When you already know the specific project key (use get-project instead)
-- When you need detailed information about a single project (use get-project instead)
-- When looking for issues rather than projects (use list-issues instead)
-- When you need to search issues across projects (use list-issues with JQL instead)
+        WHEN NOT TO USE:
+        - When you already have the 'projectKeyOrId' and need full details (use 'get-project').
+        - When you need to list *issues* (use 'list-issues').
 
-RETURNS: Formatted list of projects with keys, names, types, categories, and lead information.
+        RETURNS: Formatted list of projects including name, key, ID, type, style, lead, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
 
-EXAMPLES:
-- List all projects: {}
-- Filter by keyword: {query: "team"}
-- With pagination: {limit: 10, cursor: "next-page-token"}
+        EXAMPLES:
+        - List all accessible projects (first page): {}
+        - Filter by name/key fragment: { query: "platform" }
+        - Paginate results (get next page starting from index 50): { limit: 50, cursor: "50" }
 
-ERRORS:
-- Authentication failures: Check your Jira credentials
-- No projects found: You may not have permission to view any projects
-- Rate limiting: Use pagination and reduce query frequency`,
+        ERRORS:
+        - Authentication failures: Check Jira credentials.
+        - No projects found: You may not have access to any projects, or the query filter is too restrictive.`,
 		ListProjectsToolArgs.shape,
 		listProjects,
 	);
@@ -150,31 +146,29 @@ ERRORS:
 	// Register the get project details tool
 	server.tool(
 		'get-project',
-		`Get detailed information about a specific Jira project by ID or key.
+		`Get detailed information about a specific Jira project using its ID or key. Requires 'projectKeyOrId'.
 
-PURPOSE: Retrieves comprehensive project information including components, versions, leads, and issue types.
+        PURPOSE: Retrieves comprehensive metadata for a *known* project, including its full description, lead, components, versions, style, and links.
 
-WHEN TO USE:
-- When you need detailed information about a specific project
-- When you need to verify project existence or accessibility
-- When you need to find available components or versions
-- After using list-projects to identify the project key you're interested in
-- When you need information about project issue types or workflows
+        WHEN TO USE:
+        - When you need full details about a *specific* project and you know its key ('PROJ') or ID ('10001').
+        - After using 'list-projects' to identify the target project key/ID.
+        - To get project metadata, components, or versions before analyzing its issues.
 
-WHEN NOT TO USE:
-- When you don't know which project to look for (use list-projects first)
-- When you need to list issues within a project (use list-issues instead)
-- When you need to search issues with complex criteria (use list-issues with JQL instead)
+        WHEN NOT TO USE:
+        - When you don't know the project key or ID (use 'list-projects' first).
+        - When you only need a list of projects (use 'list-projects').
+        - When you need issue information (use issue tools).
 
-RETURNS: Detailed project information including key, name, description, components, versions, lead, and other metadata. Components and versions are always included by default for a comprehensive view.
+        RETURNS: Detailed project information including key, name, description, lead, components, versions, and links. Fetches all available details (components, versions) by default.
 
-EXAMPLES:
-- By key: {projectKeyOrId: "TEAM"}
-- By ID: {projectKeyOrId: "10001"}
+        EXAMPLES:
+        - Get project by Key: { projectKeyOrId: "DEV" }
+        - Get project by ID: { projectKeyOrId: "10001" }
 
-ERRORS:
-- Project not found: Verify the project ID or key
-- Permission errors: Ensure you have access to the requested project`,
+        ERRORS:
+        - Project not found: Verify the 'projectKeyOrId' is correct and exists.
+        - Permission errors: Ensure you have access to view the specified project.`,
 		GetProjectToolArgs.shape,
 		getProject,
 	);

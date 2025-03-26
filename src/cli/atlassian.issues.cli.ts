@@ -34,12 +34,18 @@ function registerListIssuesCommand(program: Command): void {
 	program
 		.command('list-issues')
 		.description(
-			'List Jira issues with optional filtering\n\n' +
-				'Retrieves issues from your Jira instance with filtering and pagination options.\n\n' +
-				'Examples:\n' +
-				'  $ list-issues --jql "project = TEAM AND status = \'In Progress\'"\n' +
-				'  $ list-issues --limit 50 --jql "assignee = currentUser()"\n' +
-				'  $ list-issues --jql "project = TEAM AND priority = High"',
+			`Search for Jira issues using JQL (Jira Query Language), with pagination.
+
+        PURPOSE: Find and explore issues across projects or within specific criteria using the powerful JQL syntax. Essential for finding issue keys/IDs for 'get-issue'.
+
+        Use Case: Use this for any issue search, from simple text searches to complex filtering based on project, status, assignee, priority, dates, labels, etc.
+
+        Output: Formatted list of issues matching the JQL query, including key, summary, type, status, priority, project, assignee, reporter, and dates. Includes pagination info.
+
+        Examples:
+  $ mcp-jira list-issues --jql "project = TEAM AND status = 'In Progress' ORDER BY updated DESC"
+  $ mcp-jira list-issues --limit 50 --jql "assignee = currentUser() AND resolution = Unresolved"
+  $ mcp-jira list-issues --jql "text ~ 'performance issue'" --cursor "50"`,
 		)
 		.option(
 			'-l, --limit <number>',
@@ -116,10 +122,17 @@ function registerGetIssueCommand(program: Command): void {
 	program
 		.command('get-issue')
 		.description(
-			'Get detailed information about a specific Jira issue\n\n' +
-				'Retrieves comprehensive details for an issue including status, comments, attachments, and metadata.\n\n' +
-				'Examples:\n' +
-				'  $ get-issue --issue PROJ-123',
+			`Get detailed information about a specific Jira issue using its ID or key.
+
+        PURPOSE: Retrieve comprehensive details for a *known* issue, including description, status, comments, attachments, links, worklogs, and all standard fields. Requires the issue ID or key.
+
+        Use Case: Essential for understanding the full context of a specific issue identified via 'list-issues' or prior knowledge. Provides all data needed for analysis or summarization.
+
+        Output: Formatted details of the specified issue. Fetches all available standard fields, comments, attachments, links, and worklogs by default.
+
+        Examples:
+  $ mcp-jira get-issue --issue PROJ-123
+  $ mcp-jira get-issue --issue 10001`,
 		)
 		.requiredOption(
 			'--issue <idOrKey>',

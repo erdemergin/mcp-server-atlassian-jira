@@ -115,37 +115,33 @@ function register(server: McpServer) {
 	// Register the list issues tool
 	server.tool(
 		'list-issues',
-		`List Jira issues with powerful filtering capabilities using JQL.
+		`Search for Jira issues using JQL (Jira Query Language), with pagination.
 
-PURPOSE: Helps you find and explore issues across projects or within a specific project, with comprehensive filtering options.
+        PURPOSE: Find and explore issues across one or more projects using the powerful JQL syntax. Essential for locating specific issues or groups of issues based on criteria like project, status, assignee, text content, labels, dates, etc. Provides issue keys/IDs needed for the 'get-issue' tool.
 
-WHEN TO USE:
-- When you need to find issues matching specific criteria
-- When you need to browse issues in a project
-- When you need issue keys for use with other Jira tools
-- When you need to build complex queries with JQL
-- When you need to filter by project, status, assignee, etc.
+        WHEN TO USE:
+        - To find issues matching specific criteria (status, assignee, project, keywords, labels, priority, dates).
+        - To get an overview of issues in a project or filter.
+        - To find issue keys/IDs for use with the 'get-issue' tool.
+        - Requires formulating a valid JQL query (refer to Jira JQL documentation if unsure).
 
-WHEN NOT TO USE:
-- When you already know the specific issue key (use get-issue instead)
-- When you need detailed information about a single issue (use get-issue instead)
-- When you need to list projects rather than issues (use list-projects instead)
-- When you need extremely complex queries (consider using the Jira UI)
+        WHEN NOT TO USE:
+        - When you already know the specific issue key/ID (use 'get-issue').
+        - When you only need project information (use 'list-projects' or 'get-project').
+        - If the search is very broad (might hit limits or be slow; refine JQL).
 
-RETURNS: Formatted list of issues with keys, summaries, types, statuses, assignees, and URLs.
+        RETURNS: Formatted list of issues matching the JQL query, including key, summary, type, status, priority, project, assignee, reporter, creation/update dates, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
 
-EXAMPLES:
-- All issues: {}
-- Project issues: {jql: "project = TEAM"}
-- Status filter: {jql: "status = 'In Progress'"}
-- Complex query: {jql: "project = TEAM AND status = 'In Progress' AND assignee = currentUser()"}
-- With pagination: {limit: 10, cursor: "next-page-token"}
+        EXAMPLES:
+        - Find open issues in project TEAM: { jql: "project = TEAM AND status = Open" }
+        - Find issues assigned to me: { jql: "assignee = currentUser() AND resolution = Unresolved" }
+        - Find high priority bugs updated recently: { jql: "type = Bug AND priority = High AND updated >= -7d" }
+        - Paginate results (get page 3, assuming limit 25): { jql: "project = TEAM", limit: 25, cursor: "50" }
 
-ERRORS:
-- Invalid JQL: Check syntax of your query
-- Authentication failures: Verify your Jira credentials
-- No results: Try broadening your filters
-- Rate limiting: Use more specific queries, include pagination`,
+        ERRORS:
+        - Invalid JQL: Check the syntax of your JQL query. Ensure field names and values are correct.
+        - Authentication failures: Verify Jira credentials.
+        - No results: The JQL query returned no matching issues, or you lack permission to view them.`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);
@@ -153,32 +149,30 @@ ERRORS:
 	// Register the get issue details tool
 	server.tool(
 		'get-issue',
-		`Get detailed information about a specific Jira issue by ID or key.
+		`Get detailed information about a specific Jira issue using its ID or key. Requires 'issueIdOrKey'.
 
-PURPOSE: Retrieves comprehensive issue information including description, comments, attachments, and workflow details.
+        PURPOSE: Retrieves comprehensive details for a *known* issue, including its summary, description (in Markdown), status, priority, assignee, reporter, comments, attachments, linked issues, worklogs, and all standard fields.
 
-WHEN TO USE:
-- When you need detailed information about a specific issue
-- When you need to check issue status, comments, or history
-- When you need to find linked issues or attachments
-- After using list-issues to identify the issue key you're interested in
-- When you need full information about an issue's fields and metadata
+        WHEN TO USE:
+        - When you need the full content, comments, or metadata of a *specific* issue.
+        - After using 'list-issues' to identify the target issue key/ID.
+        - To get all context associated with an issue for analysis or summarization.
+        - Requires a known 'issueIdOrKey' (e.g., "PROJ-123" or "10001").
 
-WHEN NOT TO USE:
-- When you don't know which issue to look for (use list-issues first)
-- When you need to browse multiple issues (use list-issues instead)
-- When you need project information rather than issue details (use get-project instead)
+        WHEN NOT TO USE:
+        - When you don't know the issue key/ID (use 'list-issues' with JQL first).
+        - When you only need a list of issues (use 'list-issues').
+        - When you need project-level information (use project tools).
 
-RETURNS: Detailed issue information including summary, description, status, assignee, reporter, comments, and attachments.
+        RETURNS: Detailed issue information including key, summary, description (converted to Markdown), status, priority, assignee, reporter, dates, time tracking, attachments, comments (converted to Markdown), linked issues, and worklogs. Fetches all available standard details by default.
 
-EXAMPLES:
-- By key: {issueIdOrKey: "TEAM-123"}
-- By ID: {issueIdOrKey: "10001"}
+        EXAMPLES:
+        - Get issue by Key: { issueIdOrKey: "PROJ-123" }
+        - Get issue by ID: { issueIdOrKey: "10001" }
 
-ERRORS:
-- Issue not found: Verify the issue key or ID is correct
-- Permission errors: Ensure you have access to the requested issue
-- Rate limiting: Cache issue information when possible for frequently referenced issues`,
+        ERRORS:
+        - Issue not found: Verify the 'issueIdOrKey' is correct and exists.
+        - Permission errors: Ensure you have access to view the specified issue.`,
 		GetIssueToolArgs.shape,
 		getIssue,
 	);

@@ -34,12 +34,18 @@ function registerListProjectsCommand(program: Command): void {
 	program
 		.command('list-projects')
 		.description(
-			'List Jira projects with optional filtering\n\n' +
-				'Retrieves projects from your Jira instance with filtering and pagination options.\n\n' +
-				'Examples:\n' +
-				'  $ list-projects --query "Marketing"\n' +
-				'  $ list-projects --limit 10\n' +
-				'  $ list-projects --query "Test" --limit 5',
+			`List Jira projects accessible to the authenticated user.
+
+        PURPOSE: Discover available projects, find their keys for use in other commands (like listing issues), and get a high-level overview of project metadata.
+
+        Use Case: Useful when you don't know the exact key or ID of a project, or when exploring available projects. Allows filtering by name or key.
+
+        Output: Formatted list including project name, key, ID, type, style, lead, and URL. Supports filtering and pagination.
+
+        Examples:
+  $ mcp-jira list-projects --query "Platform Team"
+  $ mcp-jira list-projects --limit 10
+  $ mcp-jira list-projects --cursor "50"`,
 		)
 		.option('-q, --query <query>', 'Filter by project name or key')
 		.option(
@@ -103,7 +109,17 @@ function registerGetProjectCommand(program: Command): void {
 	program
 		.command('get-project')
 		.description(
-			'Get detailed information about a specific Jira project\n\n  Retrieves comprehensive details for a project including components, versions, and metadata.',
+			`Get detailed information about a specific Jira project using its ID or key.
+
+        PURPOSE: Retrieve comprehensive details for a *known* project, including its description, lead, components, versions, and links. Requires the project ID or key.
+
+        Use Case: Useful when you have a specific project identified (via 'list-projects' or prior knowledge) and need its full metadata, including components and versions defined within it.
+
+        Output: Formatted details of the specified project. Fetches all available details (including components and versions) by default.
+
+        Examples:
+  $ mcp-jira get-project --project DEV
+  $ mcp-jira get-project --project 10001`,
 		)
 		.requiredOption(
 			'--project <keyOrId>',
