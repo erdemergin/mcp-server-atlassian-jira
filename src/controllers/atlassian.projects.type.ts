@@ -1,8 +1,4 @@
-import {
-	ControllerResponse,
-	PaginationOptions,
-	EntityIdentifier,
-} from '../types/common.types.js';
+import { PaginationOptions, EntityIdentifier } from '../types/common.types.js';
 
 /**
  * Project identifier for retrieving specific projects.
@@ -47,6 +43,3 @@ export interface GetProjectOptions {
 	 */
 	includeVersions?: boolean;
 }
-
-// Re-export from base types for backward compatibility
-export type { ControllerResponse };

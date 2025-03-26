@@ -6,10 +6,10 @@ import {
 	PaginationType,
 } from '../utils/pagination.util.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
+import { ControllerResponse } from '../types/common.types.js';
 import {
 	ListIssuesOptions,
 	GetIssueOptions,
-	ControllerResponse,
 	IssueIdentifier,
 } from './atlassian.issues.type.js';
 import {
