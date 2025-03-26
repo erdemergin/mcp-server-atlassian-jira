@@ -69,9 +69,9 @@ type ListIssuesToolArgsType = z.infer<typeof ListIssuesToolArgs>;
  */
 const GetIssueToolArgs = z.object({
 	/**
-	 * Standardized entity identifier parameter
+	 * Standardized issue identifier parameter
 	 */
-	entityId: z
+	issueIdOrKey: z
 		.string()
 		.describe(
 			'The ID or key of the Jira issue to retrieve (e.g., "10001" or "PROJ-123"). This is required and must be a valid issue ID or key from your Jira instance.',

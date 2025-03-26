@@ -52,7 +52,7 @@ function registerListIssuesCommand(program: Command): void {
 		)
 		.option('-q, --query <jql>', 'Filter issues using JQL syntax')
 		.option('--project-key <key>', 'Filter by project key')
-		.option('--status <status>', 'Filter by issue status')
+		.option('-s, --status <status>', 'Filter by issue status')
 		.action(async (options) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@list-issues]';
 			try {
@@ -131,18 +131,21 @@ function registerGetIssueCommand(program: Command): void {
 			'Get detailed information about a specific Jira issue\n\n' +
 				'Retrieves comprehensive details for an issue including status, comments, attachments, and metadata.\n\n' +
 				'Examples:\n' +
-				'  $ get-issue PROJ-123',
+				'  $ get-issue --issue-id-or-key PROJ-123',
 		)
-		.argument('<entity-id>', 'ID or key of the issue to retrieve')
-		.action(async (entityId: string) => {
+		.requiredOption(
+			'--issue-id-or-key <idOrKey>',
+			'ID or key of the issue to retrieve',
+		)
+		.action(async (options) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@get-issue]';
 			try {
 				logger.debug(
-					`${logPrefix} Fetching details for issue ID/key: ${entityId}`,
+					`${logPrefix} Fetching details for issue ID/key: ${options.issueIdOrKey}`,
 				);
 
 				const result = await atlassianIssuesController.get({
-					idOrKey: entityId,
+					idOrKey: options.issueIdOrKey,
 				});
 
 				logger.debug(

@@ -72,9 +72,9 @@ async function listIssues(
  * MCP Tool: Get Jira Issue Details
  *
  * Retrieves detailed information about a specific Jira issue.
- * Returns a formatted markdown response with issue metadata, description, comments, etc.
+ * Returns a formatted markdown response with issue data.
  *
- * @param {GetIssueToolArgsType} args - Tool arguments containing the issue ID or key
+ * @param {GetIssueToolArgsType} args - Tool arguments containing the issue ID/key
  * @param {RequestHandlerExtra} _extra - Extra request handler information (unused)
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted issue details
  * @throws Will return error message if issue retrieval fails
@@ -86,12 +86,12 @@ async function getIssue(
 	const logPrefix = '[src/tools/atlassian.issues.tool.ts@getIssue]';
 
 	logger.debug(
-		`${logPrefix} Retrieving issue details for ID/key: ${args.entityId}`,
+		`${logPrefix} Retrieving issue details for ID/key: ${args.issueIdOrKey}`,
 	);
 
 	try {
 		const message = await atlassianIssuesController.get({
-			idOrKey: args.entityId,
+			idOrKey: args.issueIdOrKey,
 		});
 		logger.debug(
 			`${logPrefix} Successfully retrieved issue details from controller`,
@@ -127,35 +127,37 @@ function register(server: McpServer) {
 	// Register the list issues tool
 	server.tool(
 		'list-issues',
-		`List Jira issues with optional filtering using JQL queries.
+		`List Jira issues with powerful filtering capabilities using JQL.
 
-PURPOSE: Finds issues across projects with their keys, summaries, statuses, and assignees to help you understand available tasks.
+PURPOSE: Helps you find and explore issues across projects or within a specific project, with comprehensive filtering options.
 
 WHEN TO USE:
-- Discover issues that match specific criteria (status, assignee, etc.)
-- Find issues within a specific project
-- Browse available issues before accessing specific details
-- Get issue keys for use with other tools
-- Track status of multiple issues at once
+- When you need to find issues matching specific criteria
+- When you need to browse issues in a project
+- When you need issue keys for use with other Jira tools
+- When you need to build complex queries with JQL
+- When you need to filter by project, status, assignee, etc.
 
 WHEN NOT TO USE:
 - When you already know the specific issue key (use get-issue instead)
-- When you need detailed issue content or comments (use get-issue instead)
-- When you need to find projects rather than issues (use list-projects instead)
+- When you need detailed information about a single issue (use get-issue instead)
+- When you need to list projects rather than issues (use list-projects instead)
+- When you need extremely complex queries (consider using the Jira UI)
 
-RETURNS: Formatted list of issues with keys, types, summaries, statuses, assignees, and URLs, plus pagination info.
+RETURNS: Formatted list of issues with keys, summaries, types, statuses, assignees, and URLs.
 
 EXAMPLES:
-- Basic project filter: {projectKey: "DEV"}
-- Status filter: {status: "In Progress"}
-- JQL query: {query: "assignee = currentUser()"}
-- Combined filters: {projectKey: "DEV", status: "In Progress", query: "priority = High"}
-- With pagination: {projectKey: "DEV", limit: 10, cursor: "10"}
+- All issues: {}
+- Project issues: {projectKey: "TEAM"}
+- With status: {projectKey: "TEAM", status: "In Progress"}
+- JQL query: {query: "assignee = currentUser() AND status = 'To Do'"}
+- With pagination: {limit: 10, cursor: "next-page-token"}
 
 ERRORS:
-- Invalid JQL: Check JQL syntax
-- Authentication failures: Check credentials
-- No results: Try broadening your query`,
+- Invalid JQL: Check syntax of your query
+- Authentication failures: Verify your Jira credentials
+- No results: Try broadening your filters
+- Rate limiting: Use more specific queries, include pagination`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);
@@ -165,29 +167,30 @@ ERRORS:
 		'get-issue',
 		`Get detailed information about a specific Jira issue by ID or key.
 
-PURPOSE: Retrieves comprehensive issue data including description, comments, attachments, and history.
+PURPOSE: Retrieves comprehensive issue information including description, comments, attachments, and workflow details.
 
 WHEN TO USE:
-- When you need the full description and context of an issue
-- When you need to see comments, attachments, or custom fields
-- When you need detailed status, assignee, reporter information
-- After using list-issues to identify the relevant issue key
+- When you need detailed information about a specific issue
+- When you need to check issue status, comments, or history
+- When you need to find linked issues or attachments
+- After using list-issues to identify the issue key you're interested in
+- When you need full information about an issue's fields and metadata
 
 WHEN NOT TO USE:
 - When you don't know which issue to look for (use list-issues first)
 - When you need to browse multiple issues (use list-issues instead)
-- When you only need basic issue information (use list-issues if querying multiple)
+- When you need project information rather than issue details (use get-project instead)
 
-RETURNS: Detailed issue information including key, summary, description, status, assignee, reporter, comments, and relevant dates.
+RETURNS: Detailed issue information including summary, description, status, assignee, reporter, comments, and attachments.
 
 EXAMPLES:
-- By key: {entityId: "DEV-123"}
-- By ID: {entityId: "10001"}
+- By key: {issueIdOrKey: "TEAM-123"}
+- By ID: {issueIdOrKey: "10001"}
 
 ERRORS:
-- Issue not found: Verify the issue key or ID
+- Issue not found: Verify the issue key or ID is correct
 - Permission errors: Ensure you have access to the requested issue
-- Rate limiting: Cache issue information when possible`,
+- Rate limiting: Cache issue information when possible for frequently referenced issues`,
 		GetIssueToolArgs.shape,
 		getIssue,
 	);

@@ -49,9 +49,9 @@ type ListProjectsToolArgsType = z.infer<typeof ListProjectsToolArgs>;
  */
 const GetProjectToolArgs = z.object({
 	/**
-	 * Standardized entity identifier parameter
+	 * Standardized project identifier parameter
 	 */
-	entityId: z
+	projectKeyOrId: z
 		.string()
 		.describe(
 			'The ID or key of the Jira project to retrieve (e.g., "10001" or "PROJ"). This is required and must be a valid project ID or key from your Jira instance.',

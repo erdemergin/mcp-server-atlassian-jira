@@ -105,15 +105,18 @@ function registerGetProjectCommand(program: Command): void {
 		.description(
 			'Get detailed information about a specific Jira project\n\n  Retrieves comprehensive details for a project including components, versions, and metadata.',
 		)
-		.argument('<idOrKey>', 'ID or key of the project to retrieve')
-		.action(async (idOrKey: string) => {
+		.requiredOption(
+			'--project-key-or-id <keyOrId>',
+			'ID or key of the project to retrieve',
+		)
+		.action(async (options) => {
 			const logPrefix = '[src/cli/atlassian.projects.cli.ts@get-project]';
 			try {
 				logger.debug(
-					`${logPrefix} Fetching details for project ID/key: ${idOrKey}`,
+					`${logPrefix} Fetching details for project ID/key: ${options.projectKeyOrId}`,
 				);
 				const result = await atlassianProjectsController.get({
-					idOrKey,
+					idOrKey: options.projectKeyOrId,
 				});
 				logger.debug(
 					`${logPrefix} Successfully retrieved project details`,
