@@ -86,8 +86,10 @@ function registerListIssuesCommand(program: Command): void {
 					`${logPrefix} Fetching issues with filters:`,
 					filterOptions,
 				);
+
 				const result =
 					await atlassianIssuesController.list(filterOptions);
+
 				logger.debug(`${logPrefix} Successfully retrieved issues`);
 
 				// Print the main content
@@ -120,16 +122,23 @@ function registerGetIssueCommand(program: Command): void {
 	program
 		.command('get-issue')
 		.description(
-			'Get detailed information about a specific Jira issue\n\n  Retrieves comprehensive details for an issue including status, comments, attachments, and metadata.',
+			'Get detailed information about a specific Jira issue\n\n' +
+				'Retrieves comprehensive details for an issue including status, comments, attachments, and metadata.\n\n' +
+				'Examples:\n' +
+				'  $ get-issue PROJ-123',
 		)
-		.argument('<idOrKey>', 'ID or key of the issue to retrieve')
-		.action(async (idOrKey: string) => {
+		.argument('<entity-id>', 'ID or key of the issue to retrieve')
+		.action(async (entityId: string) => {
 			const logPrefix = '[src/cli/atlassian.issues.cli.ts@get-issue]';
 			try {
 				logger.debug(
-					`${logPrefix} Fetching details for issue ID/key: ${idOrKey}`,
+					`${logPrefix} Fetching details for issue ID/key: ${entityId}`,
 				);
-				const result = await atlassianIssuesController.get({ idOrKey });
+
+				const result = await atlassianIssuesController.get({
+					idOrKey: entityId,
+				});
+
 				logger.debug(
 					`${logPrefix} Successfully retrieved issue details`,
 				);

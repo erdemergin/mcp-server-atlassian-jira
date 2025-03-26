@@ -1,30 +1,46 @@
 import { z } from 'zod';
 
 /**
- * Arguments for listing Jira issues
- * Includes optional filters with defaults applied in the controller
+ * Base pagination arguments for all tools
  */
-const ListIssuesToolArgs = z.object({
-	jql: z
-		.string()
-		.optional()
-		.describe(
-			'JQL query string to filter issues. Use this to search for specific issues using Jira Query Language (e.g., "project = PROJ AND status = Open").',
-		),
+const PaginationArgs = {
 	limit: z
 		.number()
 		.min(1)
 		.max(100)
 		.optional()
 		.describe(
-			'Maximum number of issues to return (1-100). Use this to control the response size. Useful for pagination or when you only need a few results.',
+			'Maximum number of items to return (1-100). Use this to control the response size. Useful for pagination or when you only need a few results.',
 		),
+
 	cursor: z
 		.string()
 		.optional()
 		.describe(
 			'Pagination cursor for retrieving the next set of results. Use this to navigate through large result sets. The cursor value can be obtained from the pagination information in a previous response.',
 		),
+};
+
+/**
+ * Arguments for listing Jira issues
+ * Includes optional filters with defaults applied in the controller
+ */
+const ListIssuesToolArgs = z.object({
+	filter: z
+		.string()
+		.optional()
+		.describe(
+			'Filter string to search for issues using JQL syntax. Use this for complex queries.',
+		),
+
+	jql: z
+		.string()
+		.optional()
+		.describe(
+			'JQL query string to filter issues. Use this to search for specific issues using Jira Query Language (e.g., "project = PROJ AND status = Open").',
+		),
+
+	...PaginationArgs,
 });
 
 type ListIssuesToolArgsType = z.infer<typeof ListIssuesToolArgs>;
@@ -34,6 +50,13 @@ type ListIssuesToolArgsType = z.infer<typeof ListIssuesToolArgs>;
  * This matches the controller implementation which takes an ID or key parameter and optional fields
  */
 const GetIssueToolArgs = z.object({
+	entityId: z
+		.string()
+		.optional()
+		.describe(
+			'The ID or key of the Jira issue to retrieve (e.g., "10001" or "PROJ-123"). This is required and must be a valid issue ID or key from your Jira instance.',
+		),
+
 	idOrKey: z
 		.string()
 		.describe(
