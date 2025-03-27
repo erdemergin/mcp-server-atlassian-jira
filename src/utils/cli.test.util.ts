@@ -108,7 +108,6 @@ export class CliTestUtil {
 	static validateOutputContains(
 		output: string,
 		expectedPatterns: (string | RegExp)[],
-		options: { checkStderr?: boolean } = {},
 	): void {
 		// Filter out debug log lines for cleaner validation
 		const cleanOutput = output
