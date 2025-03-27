@@ -41,7 +41,7 @@ function registerListProjectsCommand(program: Command): void {
         Use Case: Useful when you don't know the exact key or ID of a project, or when exploring available projects. Allows filtering by name or key.
 
         Output: Formatted list including project name, key, ID, type, style, lead, and URL. Supports filtering and pagination.
-        
+
         Sorting: By default, projects are sorted by lastIssueUpdatedTime, showing the most recently active projects first.
 
         Examples:
