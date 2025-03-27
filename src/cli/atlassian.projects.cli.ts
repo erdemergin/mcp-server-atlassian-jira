@@ -40,11 +40,6 @@ function register(program: Command): void {
  * @param program - The Commander program instance
  */
 function registerListProjectsCommand(program: Command): void {
-	const methodLogger = Logger.forContext(
-		'cli/atlassian.projects.cli.ts',
-		'registerListProjectsCommand',
-	);
-
 	program
 		.command('list-projects')
 		.description(
@@ -143,11 +138,6 @@ function registerListProjectsCommand(program: Command): void {
  * @param program - The Commander program instance
  */
 function registerGetProjectCommand(program: Command): void {
-	const methodLogger = Logger.forContext(
-		'cli/atlassian.projects.cli.ts',
-		'registerGetProjectCommand',
-	);
-
 	program
 		.command('get-project')
 		.description(

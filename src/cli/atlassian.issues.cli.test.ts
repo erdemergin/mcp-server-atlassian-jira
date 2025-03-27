@@ -246,12 +246,15 @@ describe('Atlassian Issues CLI Commands', () => {
 		}, 30000);
 
 		it('should handle invalid issue ID', async () => {
-			const { stderr } = await CliTestUtil.runCommand([
+			const { exitCode, stderr } = await CliTestUtil.runCommand([
 				'get-issue',
 				'--issue',
 				'invalid',
 			]);
-			expect(stderr).toContain('Error: Invalid issue ID');
+			expect(exitCode).toBe(1);
+			expect(stderr).toContain(
+				'Issue ID/key must be either a project key with number (e.g., PROJ-123) or a numeric ID',
+			);
 		});
 	});
 });
