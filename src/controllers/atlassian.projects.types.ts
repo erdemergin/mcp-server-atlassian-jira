@@ -24,8 +24,8 @@ export interface ListProjectsOptions extends PaginationOptions {
 	query?: string;
 
 	/**
-	 * Property to sort projects by (e.g., 'key', 'lastIssueUpdateTime')
-	 * Default: 'lastIssueUpdateTime' (most recently updated first)
+	 * Property to sort projects by (e.g., 'key', 'lastIssueUpdatedTime')
+	 * Default: 'lastIssueUpdatedTime' (most recently updated first)
 	 */
 	orderBy?: string;
 }
