@@ -102,7 +102,7 @@ async function list(
 
 		// Extract pagination information using the utility
 		const pagination = extractPaginationInfo(
-			issuesData,
+			issuesData as unknown as Record<string, unknown>,
 			PaginationType.OFFSET,
 		);
 

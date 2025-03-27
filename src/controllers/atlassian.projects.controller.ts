@@ -68,7 +68,7 @@ async function list(
 
 		// Extract pagination information using the utility
 		const pagination = extractPaginationInfo(
-			projectsData,
+			projectsData as unknown as Record<string, unknown>,
 			PaginationType.OFFSET,
 			'controllers/atlassian.projects.controller.ts@list',
 		);
