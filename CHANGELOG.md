@@ -1,3 +1,16 @@
+## [1.11.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.11.1...v1.11.2) (2025-03-27)
+
+
+### Bug Fixes
+
+* correct parameter reference in projects controller to use keyOrId instead of idOrKey ([592e21a](https://github.com/aashari/mcp-server-atlassian-jira/commit/592e21a3e1dcb2f50b12ac992886f024c7870f5e))
+* enforce noUnusedLocals in tsconfig and remove unused property ([0b7ae29](https://github.com/aashari/mcp-server-atlassian-jira/commit/0b7ae29f4b9f95dde5db8278285b0f56ce237d64))
+* improve CLI validation for Jira projects ([d4b17a3](https://github.com/aashari/mcp-server-atlassian-jira/commit/d4b17a3e2cbc935ace801fc8a00d17fe4c530485))
+* standardize startup logging messages for better consistency ([44b49f8](https://github.com/aashari/mcp-server-atlassian-jira/commit/44b49f80936560ddb438ff55fe9e3c314653af6b))
+* standardize vendor types with other MCP projects ([2e1cb34](https://github.com/aashari/mcp-server-atlassian-jira/commit/2e1cb34865660542dfe84c6bc42a7cf26328b7f1))
+* trigger new release ([88f86fa](https://github.com/aashari/mcp-server-atlassian-jira/commit/88f86fa6f258fe8ce1fb4a17b83e1f4ce5451b2c))
+* update applyDefaults utility to work with TypeScript interfaces ([28adb8a](https://github.com/aashari/mcp-server-atlassian-jira/commit/28adb8ad1c8e4dcf4390e4e0fb5a8a3b78057696))
+
 ## [1.11.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.11.0...v1.11.1) (2025-03-27)
 
 
