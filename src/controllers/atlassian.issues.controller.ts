@@ -44,10 +44,19 @@ async function list(
 			);
 		}
 
+		// Set default JQL to sort by updated date if not provided
+		let jql = options.jql || '';
+		if (!jql) {
+			jql = 'ORDER BY updated DESC';
+		} else if (!jql.toUpperCase().includes('ORDER BY')) {
+			// Append default sorting to existing JQL if it doesn't include ORDER BY
+			jql += ' ORDER BY updated DESC';
+		}
+
 		// Set default filters and hardcoded values
 		const filters = {
 			// Optional filters with defaults
-			jql: options.jql,
+			jql: jql,
 			// Always include all fields
 			fields: [
 				'summary',

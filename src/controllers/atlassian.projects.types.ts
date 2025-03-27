@@ -22,4 +22,10 @@ export interface ListProjectsOptions extends PaginationOptions {
 	 * Performs a case-insensitive partial match on project name and key.
 	 */
 	query?: string;
+
+	/**
+	 * Property to sort projects by (e.g., 'key', 'lastIssueUpdateTime')
+	 * Default: 'lastIssueUpdateTime' (most recently updated first)
+	 */
+	orderBy?: string;
 }

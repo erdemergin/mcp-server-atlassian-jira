@@ -52,6 +52,8 @@ async function list(
 			query: options.query,
 			// Always include expanded fields
 			expand: ['description', 'lead'],
+			// Default sorting by last update time if not specified
+			orderBy: options.orderBy || 'lastIssueUpdateTime',
 			// Pagination with defaults
 			maxResults: options.limit || DEFAULT_PAGE_SIZE,
 			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
