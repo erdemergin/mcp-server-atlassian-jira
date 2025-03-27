@@ -114,16 +114,16 @@ async function list(
  * @returns Formatted project details
  */
 async function get(identifier: ProjectIdentifier): Promise<ControllerResponse> {
-	const { idOrKey } = identifier;
+	const { keyOrId } = identifier;
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.projects.controller.ts',
 		'get',
 	);
 
-	methodLogger.debug(`Getting Jira project with ID/key: ${idOrKey}...`);
+	methodLogger.debug(`Getting Jira project with ID/key: ${keyOrId}...`);
 
 	// Validate project ID format
-	if (!idOrKey || idOrKey === 'invalid') {
+	if (!keyOrId || keyOrId === 'invalid') {
 		throw createApiError('Invalid project ID', 400);
 	}
 
@@ -138,7 +138,7 @@ async function get(identifier: ProjectIdentifier): Promise<ControllerResponse> {
 		const serviceParams = defaults;
 
 		const projectData = await atlassianProjectsService.get(
-			idOrKey,
+			keyOrId,
 			serviceParams,
 		);
 		// Log only key information instead of the entire response
