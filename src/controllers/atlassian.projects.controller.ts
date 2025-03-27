@@ -36,9 +36,7 @@ controllerLogger.debug('Jira projects controller initialized');
  * @returns Formatted list of projects with pagination information
  */
 async function list(
-	options: ListProjectsOptions = {
-		limit: DEFAULT_PAGE_SIZE,
-	},
+	options: ListProjectsOptions = {},
 ): Promise<ControllerResponse> {
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.projects.controller.ts',

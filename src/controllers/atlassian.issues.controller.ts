@@ -17,6 +17,7 @@ import {
 	formatIssuesList,
 	formatIssueDetails,
 } from './atlassian.issues.formatter.js';
+import { DEFAULT_PAGE_SIZE } from '../utils/defaults.util.js';
 
 /**
  * Controller for managing Jira issues.
@@ -89,7 +90,7 @@ async function list(
 				'issuelinks',
 			],
 			// Pagination
-			maxResults: options.limit || 50,
+			maxResults: options.limit || DEFAULT_PAGE_SIZE,
 			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
 		};
 
