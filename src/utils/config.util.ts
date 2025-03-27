@@ -19,7 +19,6 @@ configLogger.debug('Config utility initialized');
 class ConfigLoader {
 	private packageName: string;
 	private configLoaded: boolean = false;
-	private config: Map<string, string> = new Map();
 
 	/**
 	 * Create a new ConfigLoader instance
