@@ -15,7 +15,11 @@ import {
 	formatProjectsList,
 	formatProjectDetails,
 } from './atlassian.projects.formatter.js';
-import { DEFAULT_PAGE_SIZE } from '../utils/defaults.util.js';
+import {
+	DEFAULT_PAGE_SIZE,
+	applyDefaults,
+	PROJECT_DEFAULTS,
+} from '../utils/defaults.util.js';
 
 /**
  * Controller for managing Jira projects.
@@ -45,17 +49,32 @@ async function list(
 	methodLogger.debug('Listing Jira projects...', options);
 
 	try {
+		// Create a defaults object with proper typing
+		const defaults: Partial<ListProjectsOptions> = {
+			limit: DEFAULT_PAGE_SIZE,
+			orderBy: 'lastIssueUpdatedTime',
+			cursor: '',
+		};
+
+		// Apply defaults
+		const mergedOptions = applyDefaults<ListProjectsOptions>(
+			options,
+			defaults,
+		);
+
 		// Map controller options to service parameters
 		const serviceParams = {
 			// Optional filters
-			query: options.query,
+			query: mergedOptions.query,
 			// Always include expanded fields
 			expand: ['description', 'lead'],
 			// Default sorting by last update time if not specified
-			orderBy: options.orderBy || 'lastIssueUpdatedTime',
+			orderBy: mergedOptions.orderBy,
 			// Pagination with defaults
-			maxResults: options.limit || DEFAULT_PAGE_SIZE,
-			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
+			maxResults: mergedOptions.limit,
+			startAt: mergedOptions.cursor
+				? parseInt(mergedOptions.cursor, 10)
+				: 0,
 		};
 
 		const projectsData = await atlassianProjectsService.list(serviceParams);
@@ -109,11 +128,14 @@ async function get(identifier: ProjectIdentifier): Promise<ControllerResponse> {
 	}
 
 	try {
-		// Always include all possible expansions for maximum detail
-		const serviceParams = {
-			includeComponents: true,
-			includeVersions: true,
+		// Create defaults object for get operation
+		const defaults = {
+			includeComponents: PROJECT_DEFAULTS.INCLUDE_COMPONENTS,
+			includeVersions: PROJECT_DEFAULTS.INCLUDE_VERSIONS,
 		};
+
+		// Always include all possible expansions for maximum detail
+		const serviceParams = defaults;
 
 		const projectData = await atlassianProjectsService.get(
 			idOrKey,

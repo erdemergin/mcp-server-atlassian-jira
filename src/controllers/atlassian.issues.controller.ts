@@ -17,7 +17,7 @@ import {
 	formatIssuesList,
 	formatIssueDetails,
 } from './atlassian.issues.formatter.js';
-import { DEFAULT_PAGE_SIZE } from '../utils/defaults.util.js';
+import { DEFAULT_PAGE_SIZE, applyDefaults } from '../utils/defaults.util.js';
 
 /**
  * Controller for managing Jira issues.
@@ -57,8 +57,21 @@ async function list(
 			);
 		}
 
+		// Create a defaults object with proper typing
+		const defaults: Partial<ListIssuesOptions> = {
+			limit: DEFAULT_PAGE_SIZE,
+			jql: '',
+			cursor: '',
+		};
+
+		// Apply defaults
+		const mergedOptions = applyDefaults<ListIssuesOptions>(
+			options,
+			defaults,
+		);
+
 		// Set default JQL to sort by updated date if not provided
-		let jql = options.jql || '';
+		let jql = mergedOptions.jql;
 		if (!jql) {
 			jql = 'ORDER BY updated DESC';
 		} else if (!jql.toUpperCase().includes('ORDER BY')) {
@@ -90,8 +103,10 @@ async function list(
 				'issuelinks',
 			],
 			// Pagination
-			maxResults: options.limit || DEFAULT_PAGE_SIZE,
-			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
+			maxResults: mergedOptions.limit,
+			startAt: mergedOptions.cursor
+				? parseInt(mergedOptions.cursor, 10)
+				: 0,
 		};
 
 		methodLogger.debug('Using filters:', filters);
