@@ -82,6 +82,16 @@ function registerListProjectsCommand(program: Command): void {
 			try {
 				actionLogger.debug('Processing command options:', options);
 
+				// Validate limit if provided
+				if (options.limit) {
+					const limit = parseInt(options.limit, 10);
+					if (isNaN(limit) || limit <= 0) {
+						throw new Error(
+							'Invalid --limit value: Must be a positive integer.',
+						);
+					}
+				}
+
 				const filterOptions: ListProjectsOptions = {
 					...(options.query && { query: options.query }),
 					...(options.limit && {
@@ -164,6 +174,27 @@ function registerGetProjectCommand(program: Command): void {
 			);
 
 			try {
+				actionLogger.debug('Processing command options:', options);
+
+				// Validate project key/ID
+				if (!options.project || options.project.trim() === '') {
+					throw new Error(
+						'Project key/ID must be a valid non-empty string',
+					);
+				}
+
+				// Check if it follows the typical Jira project key pattern or is numeric
+				if (
+					!(
+						/^[A-Za-z][A-Za-z0-9_]+$/.test(options.project) ||
+						/^\d+$/.test(options.project)
+					)
+				) {
+					throw new Error(
+						'Project key/ID must be either a valid project key or a numeric ID',
+					);
+				}
+
 				actionLogger.debug(
 					`Fetching details for project: ${options.project}`,
 				);

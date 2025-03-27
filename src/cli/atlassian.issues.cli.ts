@@ -86,6 +86,16 @@ function registerListIssuesCommand(program: Command): void {
 			try {
 				actionLogger.debug('Processing command options:', options);
 
+				// Validate limit if provided
+				if (options.limit) {
+					const limit = parseInt(options.limit, 10);
+					if (isNaN(limit) || limit <= 0) {
+						throw new Error(
+							'Invalid --limit value: Must be a positive integer.',
+						);
+					}
+				}
+
 				const filterOptions: ListIssuesOptions = {
 					...(options.jql && { jql: options.jql }),
 					...(options.limit && {
@@ -168,6 +178,27 @@ function registerGetIssueCommand(program: Command): void {
 			);
 
 			try {
+				actionLogger.debug('Processing command options:', options);
+
+				// Validate issue ID/key
+				if (!options.issue || options.issue.trim() === '') {
+					throw new Error(
+						'Issue ID/key must be a valid non-empty string',
+					);
+				}
+
+				// Check if it follows the typical Jira issue key pattern or is numeric
+				if (
+					!(
+						/^[A-Za-z]+-\d+$/.test(options.issue) ||
+						/^\d+$/.test(options.issue)
+					)
+				) {
+					throw new Error(
+						'Issue ID/key must be either a project key with number (e.g., PROJ-123) or a numeric ID',
+					);
+				}
+
 				actionLogger.debug(
 					`Fetching details for issue ID/key: ${options.issue}`,
 				);
