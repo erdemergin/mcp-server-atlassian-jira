@@ -131,12 +131,15 @@ function register(server: McpServer) {
         - If the search is very broad (might hit limits or be slow; refine JQL).
 
         RETURNS: Formatted list of issues matching the JQL query, including key, summary, type, status, priority, project, assignee, reporter, creation/update dates, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
+        
+        SORTING: By default, issues are sorted by updated date in descending order (most recently updated first). This behavior can be overridden by including an explicit ORDER BY clause in your JQL query.
 
         EXAMPLES:
         - Find open issues in project TEAM: { jql: "project = TEAM AND status = Open" }
         - Find issues assigned to me: { jql: "assignee = currentUser() AND resolution = Unresolved" }
         - Find high priority bugs updated recently: { jql: "type = Bug AND priority = High AND updated >= -7d" }
         - Paginate results (get page 3, assuming limit 25): { jql: "project = TEAM", limit: 25, cursor: "50" }
+        - Simple issue retrieval with default sorting: { }  # Returns all accessible issues, sorted by most recently updated first
 
         ERRORS:
         - Invalid JQL: Check the syntax of your JQL query. Ensure field names and values are correct.

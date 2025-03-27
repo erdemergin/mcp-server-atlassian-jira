@@ -41,6 +41,8 @@ function registerListProjectsCommand(program: Command): void {
         Use Case: Useful when you don't know the exact key or ID of a project, or when exploring available projects. Allows filtering by name or key.
 
         Output: Formatted list including project name, key, ID, type, style, lead, and URL. Supports filtering and pagination.
+        
+        Sorting: By default, projects are sorted by lastIssueUpdatedTime, showing the most recently active projects first.
 
         Examples:
   $ mcp-jira list-projects --query "Platform Team"
@@ -55,6 +57,10 @@ function registerListProjectsCommand(program: Command): void {
 		.option(
 			'-c, --cursor <cursor>',
 			'Pagination cursor for retrieving the next set of results. Obtain this value from the previous response when more results are available.',
+		)
+		.option(
+			'-o, --order-by <field>',
+			'Field to sort by (defaults to "lastIssueUpdatedTime" - most recently updated first). Other options: name, key, owner, category, issueCount, archivedDate, deletedDate.',
 		)
 		.action(async (options) => {
 			const logPrefix =
@@ -71,6 +77,7 @@ function registerListProjectsCommand(program: Command): void {
 						limit: parseInt(options.limit, 10),
 					}),
 					...(options.cursor && { cursor: options.cursor }),
+					...(options.orderBy && { orderBy: options.orderBy }),
 				};
 
 				logger.debug(

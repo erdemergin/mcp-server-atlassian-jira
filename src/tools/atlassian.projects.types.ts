@@ -40,6 +40,16 @@ const ListProjectsToolArgs = z.object({
 	 * Maximum number of projects to return and pagination
 	 */
 	...PaginationArgs,
+
+	/**
+	 * Field to sort the projects by
+	 */
+	orderBy: z
+		.string()
+		.optional()
+		.describe(
+			'Field to sort projects by (e.g., "name", "key", "lastIssueUpdatedTime"). Default is "lastIssueUpdatedTime", which shows the most recently active projects first.',
+		),
 });
 
 type ListProjectsToolArgsType = z.infer<typeof ListProjectsToolArgs>;

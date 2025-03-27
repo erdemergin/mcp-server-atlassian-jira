@@ -35,6 +35,7 @@ async function listProjects(
 			query: args.query,
 			limit: args.limit,
 			cursor: args.cursor,
+			orderBy: args.orderBy,
 		});
 
 		logger.debug(
@@ -130,11 +131,14 @@ function register(server: McpServer) {
         - When you need to list *issues* (use 'list-issues').
 
         RETURNS: Formatted list of projects including name, key, ID, type, style, lead, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
+        
+        SORTING: By default, projects are sorted by 'lastIssueUpdatedTime', showing the most recently active projects first. This can be changed by providing a different value in the 'orderBy' parameter.
 
         EXAMPLES:
         - List all accessible projects (first page): {}
         - Filter by name/key fragment: { query: "platform" }
         - Paginate results (get next page starting from index 50): { limit: 50, cursor: "50" }
+        - Sort by key: { orderBy: "key" }
 
         ERRORS:
         - Authentication failures: Check Jira credentials.
