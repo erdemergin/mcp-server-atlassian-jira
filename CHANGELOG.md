@@ -1,3 +1,14 @@
+## [1.10.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.10.0...v1.10.1) (2025-03-27)
+
+
+### Bug Fixes
+
+* input validation for issues and projects controllers ([2d97932](https://github.com/aashari/mcp-server-atlassian-jira/commit/2d97932fc1fd83ae672f69936e2ea86274da4732))
+* remove unused options parameter from validateOutputContains ([c0c2580](https://github.com/aashari/mcp-server-atlassian-jira/commit/c0c2580ced11dde9debc3010b5b6d34015bcbd13))
+* remove unused stdout variables in test files ([5326e39](https://github.com/aashari/mcp-server-atlassian-jira/commit/5326e39af6143a9bb3318eb4b7b289f8928b1dcf))
+* trigger release ([a0f7645](https://github.com/aashari/mcp-server-atlassian-jira/commit/a0f7645362f2842625fa0ff46e8e4944aceba644))
+* update CLI tests to correctly handle stderr output ([725f85a](https://github.com/aashari/mcp-server-atlassian-jira/commit/725f85a1f54ece490577e39ac4f024694326495f))
+
 # [1.10.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.9.1...v1.10.0) (2025-03-27)
 
 
