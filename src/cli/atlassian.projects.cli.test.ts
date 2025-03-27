@@ -202,5 +202,13 @@ describe('Atlassian Projects CLI Commands', () => {
 				/required option|missing required|specify a project/i,
 			);
 		}, 30000);
+
+		it('should handle invalid project ID', async () => {
+			const { stderr } = await CliTestUtil.executeCommand(
+				'get-project',
+				'--project invalid',
+			);
+			expect(stderr).toContain('Error: Invalid project ID');
+		});
 	});
 });

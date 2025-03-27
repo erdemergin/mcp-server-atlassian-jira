@@ -244,5 +244,13 @@ describe('Atlassian Issues CLI Commands', () => {
 				/required option|missing required|specify an issue/i,
 			);
 		}, 30000);
+
+		it('should handle invalid issue ID', async () => {
+			const { stderr } = await CliTestUtil.executeCommand(
+				'get-issue',
+				'--issue invalid',
+			);
+			expect(stderr).toContain('Error: Invalid issue ID');
+		});
 	});
 });
