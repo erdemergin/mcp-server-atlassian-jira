@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.8.1...v1.9.0) (2025-03-27)
+
+
+### Features
+
+* **jira:** add default sorting to list operations ([318b23e](https://github.com/aashari/mcp-server-atlassian-jira/commit/318b23e16c24a4fa4f4e01ae5c1b567588581380))
+
 ## [1.8.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.8.0...v1.8.1) (2025-03-26)
 
 
