@@ -193,14 +193,14 @@ describe('Atlassian Projects CLI Commands', () => {
 		}, 60000);
 
 		it('should require the project parameter', async () => {
-			const { stdout, exitCode } = await CliTestUtil.runCommand([
+			const { stdout, stderr, exitCode } = await CliTestUtil.runCommand([
 				'get-project',
 			]);
 
 			expect(exitCode).not.toBe(0);
-			CliTestUtil.validateOutputContains(stdout, [
+			expect(stderr).toMatch(
 				/required option|missing required|specify a project/i,
-			]);
+			);
 		}, 30000);
 	});
 });
