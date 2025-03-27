@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.9.1...v1.10.0) (2025-03-27)
+
+
+### Features
+
+* **jira:** document default sorting in projects command ([fb4af7f](https://github.com/aashari/mcp-server-atlassian-jira/commit/fb4af7f7e72ca9124b7f00c1805abb527afa426a))
+
 ## [1.9.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.9.0...v1.9.1) (2025-03-27)
 
 
