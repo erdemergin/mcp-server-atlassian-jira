@@ -235,7 +235,7 @@ describe('Atlassian Issues CLI Commands', () => {
 		}, 60000);
 
 		it('should require the issue parameter', async () => {
-			const { stdout, stderr, exitCode } = await CliTestUtil.runCommand([
+			const { stderr, exitCode } = await CliTestUtil.runCommand([
 				'get-issue',
 			]);
 
@@ -246,10 +246,11 @@ describe('Atlassian Issues CLI Commands', () => {
 		}, 30000);
 
 		it('should handle invalid issue ID', async () => {
-			const { stderr } = await CliTestUtil.executeCommand(
+			const { stderr } = await CliTestUtil.runCommand([
 				'get-issue',
-				'--issue invalid',
-			);
+				'--issue',
+				'invalid',
+			]);
 			expect(stderr).toContain('Error: Invalid issue ID');
 		});
 	});

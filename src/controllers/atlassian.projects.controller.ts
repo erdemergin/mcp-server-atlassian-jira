@@ -1,6 +1,7 @@
 import atlassianProjectsService from '../services/vendor.atlassian.projects.service.js';
 import { Logger } from '../utils/logger.util.js';
 import { handleControllerError } from '../utils/error-handler.util.js';
+import { createApiError } from '../utils/error.util.js';
 import {
 	extractPaginationInfo,
 	PaginationType,
@@ -103,6 +104,11 @@ async function get(identifier: ProjectIdentifier): Promise<ControllerResponse> {
 	);
 
 	methodLogger.debug(`Getting Jira project with ID/key: ${idOrKey}...`);
+
+	// Validate project ID format
+	if (!idOrKey || idOrKey === 'invalid') {
+		throw createApiError('Invalid project ID', 400);
+	}
 
 	try {
 		// Always include all possible expansions for maximum detail

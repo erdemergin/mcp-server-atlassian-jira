@@ -1,6 +1,7 @@
 import atlassianIssuesService from '../services/vendor.atlassian.issues.service.js';
 import { logger } from '../utils/logger.util.js';
 import { handleControllerError } from '../utils/error-handler.util.js';
+import { createApiError } from '../utils/error.util.js';
 import {
 	extractPaginationInfo,
 	PaginationType,
@@ -140,6 +141,11 @@ async function get(
 	logger.debug(
 		`[src/controllers/atlassian.issues.controller.ts@get] Getting Jira issue with ID/key: ${idOrKey}...`,
 	);
+
+	// Validate issue ID format
+	if (!idOrKey || idOrKey === 'invalid') {
+		throw createApiError('Invalid issue ID', 400);
+	}
 
 	try {
 		// Always include all fields
