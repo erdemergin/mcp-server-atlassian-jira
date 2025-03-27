@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.9.0...v1.9.1) (2025-03-27)
+
+
+### Bug Fixes
+
+* **jira:** correct project sorting parameter name ([1b9c805](https://github.com/aashari/mcp-server-atlassian-jira/commit/1b9c805a686d64559784180dc3a3ea9194d3ef94))
+
 # [1.9.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.8.1...v1.9.0) (2025-03-27)
 
 
