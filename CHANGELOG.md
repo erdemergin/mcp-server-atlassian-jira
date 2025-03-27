@@ -1,3 +1,10 @@
+## [1.11.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.11.0...v1.11.1) (2025-03-27)
+
+
+### Bug Fixes
+
+* resolve TypeScript errors and improve type safety ([da039c8](https://github.com/aashari/mcp-server-atlassian-jira/commit/da039c8303580c8b6c3e076637fa7d1d665465ed))
+
 # [1.11.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.10.1...v1.11.0) (2025-03-27)
 
 
