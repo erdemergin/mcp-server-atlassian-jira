@@ -15,7 +15,7 @@ import atlassianIssuesTools from './tools/atlassian.issues.tool.js';
 const indexLogger = Logger.forContext('index.ts');
 
 // Define version constant for easier management and consistent versioning
-const VERSION = '1.10.1';
+const VERSION = '1.11.0';
 
 let serverInstance: McpServer | null = null;
 let transportInstance: SSEServerTransport | StdioServerTransport | null = null;

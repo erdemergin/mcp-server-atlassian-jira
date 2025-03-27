@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.10.1...v1.11.0) (2025-03-27)
+
+
+### Features
+
+* **logging:** migrate to standardized contextual logging pattern ([db09b72](https://github.com/aashari/mcp-server-atlassian-jira/commit/db09b724ff28523035f74b148b83e713aa8c7932))
+
 ## [1.10.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.10.0...v1.10.1) (2025-03-27)
 
 
