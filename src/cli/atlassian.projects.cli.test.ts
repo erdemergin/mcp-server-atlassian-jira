@@ -204,12 +204,16 @@ describe('Atlassian Projects CLI Commands', () => {
 		}, 30000);
 
 		it('should handle invalid project ID', async () => {
-			const { stderr } = await CliTestUtil.runCommand([
+			const { stderr, exitCode } = await CliTestUtil.runCommand([
 				'get-project',
 				'--project',
 				'invalid',
 			]);
-			expect(stderr).toContain('Error: Invalid project ID');
+
+			expect(exitCode).toBe(1);
+			expect(stderr).toContain(
+				'Project key/ID must be either a valid project key',
+			);
 		});
 	});
 });

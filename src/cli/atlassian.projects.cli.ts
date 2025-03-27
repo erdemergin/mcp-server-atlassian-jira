@@ -68,6 +68,10 @@ function registerListProjectsCommand(program: Command): void {
 			'-q, --query <query>',
 			'Filter projects by name or key (case-insensitive)',
 		)
+		.option(
+			'-s, --sort <sort>',
+			'Sort projects by key or name (ascending or descending)',
+		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
 				'cli/atlassian.projects.cli.ts',
@@ -87,12 +91,30 @@ function registerListProjectsCommand(program: Command): void {
 					}
 				}
 
+				// Validate sort if provided - only allow valid sort fields
+				if (
+					options.sort &&
+					!['key', 'name', '-key', '-name'].includes(options.sort)
+				) {
+					throw new Error(
+						'Invalid --sort value: Must be one of: key, name, -key, -name.',
+					);
+				}
+
+				// Validate query value format if provided
+				if (options.query && typeof options.query !== 'string') {
+					throw new Error(
+						'Invalid --query value: Must be a valid search string.',
+					);
+				}
+
 				const filterOptions: ListProjectsOptions = {
 					...(options.query && { query: options.query }),
 					...(options.limit && {
 						limit: parseInt(options.limit, 10),
 					}),
 					...(options.cursor && { cursor: options.cursor }),
+					...(options.sort && { sort: options.sort }),
 				};
 
 				actionLogger.debug(
@@ -166,27 +188,28 @@ function registerGetProjectCommand(program: Command): void {
 			try {
 				actionLogger.debug('Processing command options:', options);
 
-				// Validate project key/ID
+				// Validate project key/ID format
 				if (!options.project || options.project.trim() === '') {
 					throw new Error(
 						'Project key/ID must be a valid non-empty string',
 					);
 				}
 
-				// Check if it follows the typical Jira project key pattern or is numeric
+				// Validate project key/ID format: either an all-numeric ID or a valid project key
+				// Project keys are typically uppercase letters followed by numbers (e.g., PRJ, PRJ1)
 				if (
 					!(
-						/^[A-Za-z][A-Za-z0-9_]+$/.test(options.project) ||
+						/^[A-Z][A-Z0-9_]+$/.test(options.project) ||
 						/^\d+$/.test(options.project)
 					)
 				) {
 					throw new Error(
-						'Project key/ID must be either a valid project key or a numeric ID',
+						'Project key/ID must be either a valid project key (e.g., PRJ, PROJECT1) or a numeric ID',
 					);
 				}
 
 				actionLogger.debug(
-					`Fetching details for project: ${options.project}`,
+					`Fetching details for project key/ID: ${options.project}`,
 				);
 
 				const result = await atlassianProjectsController.get({
