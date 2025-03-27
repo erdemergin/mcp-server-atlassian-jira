@@ -1,8 +1,14 @@
-import fs from 'fs';
-import path from 'path';
-import { logger } from './logger.util.js';
 import dotenv from 'dotenv';
+import path from 'path';
+import { Logger } from './logger.util.js';
+import fs from 'fs';
 import os from 'os';
+
+// Create a contextualized logger for this file
+const configLogger = Logger.forContext('utils/config.util.ts');
+
+// Log config utility initialization
+configLogger.debug('Config utility initialized');
 
 /**
  * Configuration loader that handles multiple sources with priority:
@@ -13,6 +19,7 @@ import os from 'os';
 class ConfigLoader {
 	private packageName: string;
 	private configLoaded: boolean = false;
+	private config: Map<string, string> = new Map();
 
 	/**
 	 * Create a new ConfigLoader instance
@@ -27,13 +34,13 @@ class ConfigLoader {
 	 */
 	load(): void {
 		if (this.configLoaded) {
-			logger.debug(
+			configLogger.debug(
 				'[src/utils/config.util.ts@load] Configuration already loaded, skipping',
 			);
 			return;
 		}
 
-		logger.debug(
+		configLogger.debug(
 			'[src/utils/config.util.ts@load] Loading configuration...',
 		);
 
@@ -47,7 +54,7 @@ class ConfigLoader {
 		// No need to do anything as it already has highest priority
 
 		this.configLoaded = true;
-		logger.debug(
+		configLogger.debug(
 			'[src/utils/config.util.ts@load] Configuration loaded successfully',
 		);
 	}
@@ -56,19 +63,24 @@ class ConfigLoader {
 	 * Load configuration from .env file in project root
 	 */
 	private loadFromEnvFile(): void {
+		const methodLogger = Logger.forContext(
+			'utils/config.util.ts',
+			'loadFromEnvFile',
+		);
+
 		try {
 			const result = dotenv.config();
 			if (result.error) {
-				logger.debug(
+				methodLogger.debug(
 					'[src/utils/config.util.ts@loadFromEnvFile] No .env file found or error reading it',
 				);
 				return;
 			}
-			logger.debug(
+			methodLogger.debug(
 				'[src/utils/config.util.ts@loadFromEnvFile] Loaded configuration from .env file',
 			);
 		} catch (error) {
-			logger.error(
+			methodLogger.error(
 				'[src/utils/config.util.ts@loadFromEnvFile] Error loading .env file',
 				error,
 			);
@@ -79,12 +91,17 @@ class ConfigLoader {
 	 * Load configuration from global config file at $HOME/.mcp/configs.json
 	 */
 	private loadFromGlobalConfig(): void {
+		const methodLogger = Logger.forContext(
+			'utils/config.util.ts',
+			'loadFromGlobalConfig',
+		);
+
 		try {
 			const homedir = os.homedir();
 			const globalConfigPath = path.join(homedir, '.mcp', 'configs.json');
 
 			if (!fs.existsSync(globalConfigPath)) {
-				logger.debug(
+				methodLogger.debug(
 					'[src/utils/config.util.ts@loadFromGlobalConfig] Global config file not found',
 				);
 				return;
@@ -97,7 +114,7 @@ class ConfigLoader {
 				!config[this.packageName] ||
 				!config[this.packageName].environments
 			) {
-				logger.debug(
+				methodLogger.debug(
 					`[src/utils/config.util.ts@loadFromGlobalConfig] No configuration found for ${this.packageName}`,
 				);
 				return;
@@ -111,11 +128,11 @@ class ConfigLoader {
 				}
 			}
 
-			logger.debug(
+			methodLogger.debug(
 				'[src/utils/config.util.ts@loadFromGlobalConfig] Loaded configuration from global config file',
 			);
 		} catch (error) {
-			logger.error(
+			methodLogger.error(
 				'[src/utils/config.util.ts@loadFromGlobalConfig] Error loading global config file',
 				error,
 			);

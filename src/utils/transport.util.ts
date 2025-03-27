@@ -1,4 +1,4 @@
-import { logger } from './logger.util.js';
+import { Logger } from './logger.util.js';
 import { config } from './config.util.js';
 import {
 	createAuthInvalidError,
@@ -6,6 +6,12 @@ import {
 	createUnexpectedError,
 	McpError,
 } from './error.util.js';
+
+// Create a contextualized logger for this file
+const transportLogger = Logger.forContext('utils/transport.util.ts');
+
+// Log transport utility initialization
+transportLogger.debug('Transport utility initialized');
 
 /**
  * Interface for Atlassian API credentials
@@ -30,17 +36,23 @@ export interface RequestOptions {
  * @returns AtlassianCredentials object or null if credentials are missing
  */
 export function getAtlassianCredentials(): AtlassianCredentials | null {
+	const methodLogger = Logger.forContext(
+		'utils/transport.util.ts',
+		'getAtlassianCredentials',
+	);
+
 	const siteName = config.get('ATLASSIAN_SITE_NAME');
 	const userEmail = config.get('ATLASSIAN_USER_EMAIL');
 	const apiToken = config.get('ATLASSIAN_API_TOKEN');
 
 	if (!siteName || !userEmail || !apiToken) {
-		logger.warn(
+		methodLogger.warn(
 			'Missing Atlassian credentials. Please set ATLASSIAN_SITE_NAME, ATLASSIAN_USER_EMAIL, and ATLASSIAN_API_TOKEN environment variables.',
 		);
 		return null;
 	}
 
+	methodLogger.debug('Using Atlassian credentials');
 	return {
 		siteName,
 		userEmail,
@@ -60,6 +72,11 @@ export async function fetchAtlassian<T>(
 	path: string,
 	options: RequestOptions = {},
 ): Promise<T> {
+	const methodLogger = Logger.forContext(
+		'utils/transport.util.ts',
+		'fetchAtlassian',
+	);
+
 	const { siteName, userEmail, apiToken } = credentials;
 
 	// Ensure path starts with a slash
@@ -84,28 +101,30 @@ export async function fetchAtlassian<T>(
 		body: options.body ? JSON.stringify(options.body) : undefined,
 	};
 
-	logger.debug(
-		`[src/utils/transport.util.ts@fetchAtlassian] Calling Atlassian API: ${url}`,
-	);
+	methodLogger.debug(`Calling Atlassian API: ${url}`);
 
 	try {
 		const response = await fetch(url, requestOptions);
 
 		// Log the raw response status and headers
-		logger.debug(
-			`[src/utils/transport.util.ts@fetchAtlassian] Raw response received: ${response.status} ${response.statusText}`,
+		methodLogger.debug(
+			`Raw response received: ${response.status} ${response.statusText}`,
 			{
 				url,
 				status: response.status,
 				statusText: response.statusText,
-				headers: Object.fromEntries(response.headers.entries()),
+				// Just log a simplified representation of headers
+				headers: {
+					contentType: response.headers.get('content-type'),
+					contentLength: response.headers.get('content-length'),
+				},
 			},
 		);
 
 		if (!response.ok) {
 			const errorText = await response.text();
-			logger.error(
-				`[src/utils/transport.util.ts@fetchAtlassian] API error: ${response.status} ${response.statusText}`,
+			methodLogger.error(
+				`API error: ${response.status} ${response.statusText}`,
 				errorText,
 			);
 
@@ -137,10 +156,7 @@ export async function fetchAtlassian<T>(
 					}
 				}
 			} catch (parseError) {
-				logger.debug(
-					`[src/utils/transport.util.ts@fetchAtlassian] Error parsing error response:`,
-					parseError,
-				);
+				methodLogger.debug(`Error parsing error response:`, parseError);
 				// Fall back to the default error message
 			}
 
@@ -158,17 +174,11 @@ export async function fetchAtlassian<T>(
 		// Clone the response to log its content without consuming it
 		const clonedResponse = response.clone();
 		const responseJson = await clonedResponse.json();
-		logger.debug(
-			`[src/utils/transport.util.ts@fetchAtlassian] Response body:`,
-			responseJson,
-		);
+		methodLogger.debug(`Response body:`, responseJson);
 
 		return response.json() as Promise<T>;
 	} catch (error) {
-		logger.error(
-			`[src/utils/transport.util.ts@fetchAtlassian] Request failed`,
-			error,
-		);
+		methodLogger.error(`Request failed`, error);
 
 		// If it's already an McpError, just rethrow it
 		if (error instanceof McpError) {

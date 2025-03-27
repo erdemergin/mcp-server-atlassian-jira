@@ -1,5 +1,4 @@
-import { createAuthMissingError } from '../utils/error.util.js';
-import { logger } from '../utils/logger.util.js';
+import { Logger } from '../utils/logger.util.js';
 import {
 	fetchAtlassian,
 	getAtlassianCredentials,
@@ -10,6 +9,15 @@ import {
 	SearchIssuesParams,
 	GetIssueByIdParams,
 } from './vendor.atlassian.issues.types.js';
+import { createAuthMissingError } from '../utils/error.util.js';
+
+// Create a contextualized logger for this file
+const serviceLogger = Logger.forContext(
+	'services/vendor.atlassian.issues.service.ts',
+);
+
+// Log service initialization
+serviceLogger.debug('Jira issues service initialized');
 
 /**
  * Base API path for Jira REST API v3
@@ -56,15 +64,15 @@ const API_PATH = '/rest/api/3';
 async function search(
 	params: SearchIssuesParams = {},
 ): Promise<IssuesResponse> {
-	const logPrefix =
-		'[src/services/vendor.atlassian.issues.service.ts@search]';
-	logger.debug(`${logPrefix} Searching Jira issues with params:`, params);
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'search',
+	);
+	methodLogger.debug('Searching Jira issues with params:', params);
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError(
-			'Atlassian credentials are required for this operation',
-		);
+		throw createAuthMissingError('Search issues');
 	}
 
 	// Build query parameters
@@ -113,7 +121,7 @@ async function search(
 		: '';
 	const path = `${API_PATH}/search${queryString}`;
 
-	logger.debug(`${logPrefix} Sending request to: ${path}`);
+	methodLogger.debug(`Calling Jira API: ${path}`);
 	return fetchAtlassian<IssuesResponse>(credentials, path);
 }
 
@@ -145,17 +153,15 @@ async function get(
 	idOrKey: string,
 	params: GetIssueByIdParams = {},
 ): Promise<Issue> {
-	const logPrefix = '[src/services/vendor.atlassian.issues.service.ts@get]';
-	logger.debug(
-		`${logPrefix} Getting Jira issue with ID/key: ${idOrKey}, params:`,
-		params,
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'get',
 	);
+	methodLogger.debug(`Getting Jira issue ${idOrKey}`);
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError(
-			'Atlassian credentials are required for this operation',
-		);
+		throw createAuthMissingError(`Get issue ${idOrKey}`);
 	}
 
 	// Build query parameters
@@ -183,9 +189,9 @@ async function get(
 	const queryString = queryParams.toString()
 		? `?${queryParams.toString()}`
 		: '';
-	const path = `${API_PATH}/issue/${idOrKey}${queryString}`;
+	const path = `${API_PATH}/issue/${encodeURIComponent(idOrKey)}${queryString}`;
 
-	logger.debug(`${logPrefix} Sending request to: ${path}`);
+	methodLogger.debug(`Calling Jira API: ${path}`);
 	return fetchAtlassian<Issue>(credentials, path);
 }
 

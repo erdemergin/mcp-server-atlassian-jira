@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { logger } from '../utils/logger.util.js';
+import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
 import { ListIssuesOptions } from '../controllers/atlassian.issues.types.js';
@@ -11,19 +11,28 @@ import { formatHeading, formatPagination } from '../utils/formatter.util.js';
  * All commands require valid Atlassian credentials.
  */
 
+// Create a contextualized logger for this file
+const cliLogger = Logger.forContext('cli/atlassian.issues.cli.ts');
+
+// Log CLI module initialization
+cliLogger.debug('Jira issues CLI module initialized');
+
 /**
  * Register Jira Issues CLI commands with the Commander program
  * @param program - The Commander program instance to register commands with
  * @throws Error if command registration fails
  */
 function register(program: Command): void {
-	const logPrefix = '[src/cli/atlassian.issues.cli.ts@register]';
-	logger.debug(`${logPrefix} Registering Jira Issues CLI commands...`);
+	const methodLogger = Logger.forContext(
+		'cli/atlassian.issues.cli.ts',
+		'register',
+	);
+	methodLogger.debug('Registering Jira Issues CLI commands...');
 
 	registerListIssuesCommand(program);
 	registerGetIssueCommand(program);
 
-	logger.debug(`${logPrefix} CLI commands registered successfully`);
+	methodLogger.debug('CLI commands registered successfully');
 }
 
 /**
@@ -31,6 +40,11 @@ function register(program: Command): void {
  * @param program - The Commander program instance
  */
 function registerListIssuesCommand(program: Command): void {
+	const methodLogger = Logger.forContext(
+		'cli/atlassian.issues.cli.ts',
+		'registerListIssuesCommand',
+	);
+
 	program
 		.command('list-issues')
 		.description(
@@ -64,12 +78,13 @@ function registerListIssuesCommand(program: Command): void {
 			'Filter issues using Jira Query Language (JQL) syntax (e.g., "project = TEAM AND status = \'In Progress\'")',
 		)
 		.action(async (options) => {
-			const logPrefix = '[src/cli/atlassian.issues.cli.ts@list-issues]';
+			const actionLogger = Logger.forContext(
+				'cli/atlassian.issues.cli.ts',
+				'list-issues',
+			);
+
 			try {
-				logger.debug(
-					`${logPrefix} Processing command options:`,
-					options,
-				);
+				actionLogger.debug('Processing command options:', options);
 
 				const filterOptions: ListIssuesOptions = {
 					...(options.jql && { jql: options.jql }),
@@ -79,15 +94,15 @@ function registerListIssuesCommand(program: Command): void {
 					...(options.cursor && { cursor: options.cursor }),
 				};
 
-				logger.debug(
-					`${logPrefix} Fetching issues with filters:`,
+				actionLogger.debug(
+					'Fetching issues with filters:',
 					filterOptions,
 				);
 
 				const result =
 					await atlassianIssuesController.list(filterOptions);
 
-				logger.debug(`${logPrefix} Successfully retrieved issues`);
+				actionLogger.debug('Successfully retrieved issues');
 
 				// Print the main content
 				console.log(formatHeading('Issues', 2));
@@ -111,7 +126,7 @@ function registerListIssuesCommand(program: Command): void {
 					);
 				}
 			} catch (error) {
-				logger.error(`${logPrefix} Operation failed:`, error);
+				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
 			}
 		});
@@ -122,6 +137,11 @@ function registerListIssuesCommand(program: Command): void {
  * @param program - The Commander program instance
  */
 function registerGetIssueCommand(program: Command): void {
+	const methodLogger = Logger.forContext(
+		'cli/atlassian.issues.cli.ts',
+		'registerGetIssueCommand',
+	);
+
 	program
 		.command('get-issue')
 		.description(
@@ -142,23 +162,25 @@ function registerGetIssueCommand(program: Command): void {
 			'ID or key of the issue to retrieve (e.g., "TEAM-123" or "10001")',
 		)
 		.action(async (options) => {
-			const logPrefix = '[src/cli/atlassian.issues.cli.ts@get-issue]';
+			const actionLogger = Logger.forContext(
+				'cli/atlassian.issues.cli.ts',
+				'get-issue',
+			);
+
 			try {
-				logger.debug(
-					`${logPrefix} Fetching details for issue ID/key: ${options.issue}`,
+				actionLogger.debug(
+					`Fetching details for issue ID/key: ${options.issue}`,
 				);
 
 				const result = await atlassianIssuesController.get({
 					idOrKey: options.issue,
 				});
 
-				logger.debug(
-					`${logPrefix} Successfully retrieved issue details`,
-				);
+				actionLogger.debug('Successfully retrieved issue details');
 
 				console.log(result.content);
 			} catch (error) {
-				logger.error(`${logPrefix} Operation failed:`, error);
+				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
 			}
 		});

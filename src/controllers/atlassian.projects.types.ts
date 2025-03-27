@@ -9,7 +9,7 @@ export interface ProjectIdentifier extends EntityIdentifier {
 	 * The ID or key of the project to retrieve.
 	 * Can be either a numeric ID or a string project key.
 	 */
-	idOrKey: string;
+	keyOrId: string;
 }
 
 /**

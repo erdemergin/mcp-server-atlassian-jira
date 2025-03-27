@@ -1,5 +1,5 @@
 import atlassianIssuesService from '../services/vendor.atlassian.issues.service.js';
-import { logger } from '../utils/logger.util.js';
+import { Logger } from '../utils/logger.util.js';
 import { handleControllerError } from '../utils/error-handler.util.js';
 import { createApiError } from '../utils/error.util.js';
 import {
@@ -23,6 +23,14 @@ import {
  * Provides functionality for listing issues and retrieving issue details.
  */
 
+// Create a contextualized logger for this file
+const controllerLogger = Logger.forContext(
+	'controllers/atlassian.issues.controller.ts',
+);
+
+// Log controller initialization
+controllerLogger.debug('Jira issues controller initialized');
+
 /**
  * List Jira issues with optional filtering
  * @param options - Optional filter options for the issues list
@@ -34,8 +42,11 @@ import {
 async function list(
 	options: ListIssuesOptions = {},
 ): Promise<ControllerResponse> {
-	const source = `[src/controllers/atlassian.issues.controller.ts@list]`;
-	logger.debug(`${source} Listing Jira issues...`, options);
+	const methodLogger = Logger.forContext(
+		'controllers/atlassian.issues.controller.ts',
+		'list',
+	);
+	methodLogger.debug('Listing Jira issues...', options);
 
 	try {
 		const credentials = getAtlassianCredentials();
@@ -82,23 +93,22 @@ async function list(
 			startAt: options.cursor ? parseInt(options.cursor, 10) : 0,
 		};
 
-		logger.debug(`${source} Using filters:`, filters);
+		methodLogger.debug('Using filters:', filters);
 
 		const issuesData = await atlassianIssuesService.search(filters);
 		// Log only the count of issues returned instead of the entire response
 		const issuesCount = issuesData.issues?.length || 0;
-		logger.debug(`${source} Retrieved ${issuesCount} issues`);
+		methodLogger.debug(`Retrieved ${issuesCount} issues`);
 
 		// Extract pagination information using the utility
 		const pagination = extractPaginationInfo(
 			issuesData,
 			PaginationType.OFFSET,
-			source,
 		);
 
 		// Ensure pagination count is set to the actual number of issues retrieved
 		pagination.count = issuesCount;
-		logger.debug(`${source} Next cursor: ${pagination.nextCursor}`);
+		methodLogger.debug(`Next cursor: ${pagination.nextCursor}`);
 
 		// Format the issues data for display using the formatter
 		const formattedIssues = formatIssuesList(
@@ -118,7 +128,7 @@ async function list(
 		return handleControllerError(error, {
 			entityType: 'Issues',
 			operation: 'listing',
-			source: 'src/controllers/atlassian.issues.controller.ts@list',
+			source: 'controllers/atlassian.issues.controller.ts@list',
 			additionalInfo: { options, jql: options.jql },
 		});
 	}
@@ -137,10 +147,12 @@ async function get(
 	_options: GetIssueOptions = {},
 ): Promise<ControllerResponse> {
 	const { idOrKey } = identifier;
-
-	logger.debug(
-		`[src/controllers/atlassian.issues.controller.ts@get] Getting Jira issue with ID/key: ${idOrKey}...`,
+	const methodLogger = Logger.forContext(
+		'controllers/atlassian.issues.controller.ts',
+		'get',
 	);
+
+	methodLogger.debug(`Getting Jira issue with ID/key: ${idOrKey}...`);
 
 	// Validate issue ID format
 	if (!idOrKey || idOrKey === 'invalid') {
@@ -174,16 +186,11 @@ async function get(
 			updateHistory: true, // Mark as viewed
 		};
 
-		logger.debug(
-			`[src/controllers/atlassian.issues.controller.ts@get] Using params:`,
-			params,
-		);
+		methodLogger.debug('Using params:', params);
 
 		const issueData = await atlassianIssuesService.get(idOrKey, params);
 		// Log only key information instead of the entire response
-		logger.debug(
-			`[src/controllers/atlassian.issues.controller.ts@get] Retrieved issue: ${issueData.key}`,
-		);
+		methodLogger.debug(`Retrieved issue: ${issueData.key}`);
 
 		// Format the issue data for display using the formatter
 		const formattedIssue = formatIssueDetails(issueData);
@@ -197,7 +204,7 @@ async function get(
 			entityType: 'Issue',
 			entityId: identifier,
 			operation: 'retrieving',
-			source: 'src/controllers/atlassian.issues.controller.ts@get',
+			source: 'controllers/atlassian.issues.controller.ts@get',
 		});
 	}
 }

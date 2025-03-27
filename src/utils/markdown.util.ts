@@ -6,24 +6,13 @@
  */
 
 import TurndownService from 'turndown';
-import { logger } from './logger.util.js';
+import { Logger } from './logger.util.js';
 
-// DOM type definitions
-interface HTMLElement {
-	nodeName: string;
-	parentNode?: Node;
-	childNodes: NodeListOf<Node>;
-}
+// Create a contextualized logger for this file
+const markdownLogger = Logger.forContext('utils/markdown.util.ts');
 
-interface Node {
-	tagName?: string;
-	childNodes: NodeListOf<Node>;
-	parentNode?: Node;
-}
-
-interface NodeListOf<T> extends Array<T> {
-	length: number;
-}
+// Log markdown utility initialization
+markdownLogger.debug('Markdown utility initialized');
 
 // Create a singleton instance of TurndownService with default options
 const turndownService = new TurndownService({
@@ -38,41 +27,8 @@ const turndownService = new TurndownService({
 
 // Add custom rule for strikethrough
 turndownService.addRule('strikethrough', {
-	filter: (node: HTMLElement) => {
-		return (
-			node.nodeName.toLowerCase() === 'del' ||
-			node.nodeName.toLowerCase() === 's' ||
-			node.nodeName.toLowerCase() === 'strike'
-		);
-	},
+	filter: ['del', 's', 'strike'],
 	replacement: (content: string): string => `~~${content}~~`,
-});
-
-// Add custom rule for tables to improve table formatting
-turndownService.addRule('tableCell', {
-	filter: ['th', 'td'],
-	replacement: (content: string, _node: TurndownService.Node): string => {
-		return ` ${content} |`;
-	},
-});
-
-turndownService.addRule('tableRow', {
-	filter: 'tr',
-	replacement: (content: string, node: TurndownService.Node): string => {
-		let output = `|${content}\n`;
-
-		// If this is the first row in a table head, add the header separator row
-		if (
-			node.parentNode &&
-			'tagName' in node.parentNode &&
-			node.parentNode.tagName === 'THEAD'
-		) {
-			const cellCount = node.childNodes.length;
-			output += '|' + ' --- |'.repeat(cellCount) + '\n';
-		}
-
-		return output;
-	},
 });
 
 /**
@@ -82,18 +38,23 @@ turndownService.addRule('tableRow', {
  * @returns The converted Markdown content
  */
 export function htmlToMarkdown(html: string): string {
+	const methodLogger = Logger.forContext(
+		'utils/markdown.util.ts',
+		'htmlToMarkdown',
+	);
+
 	if (!html || html.trim() === '') {
 		return '';
 	}
 
 	try {
 		const markdown = turndownService.turndown(html);
+		methodLogger.debug(
+			`Converted HTML (${html.length} chars) to Markdown (${markdown.length} chars)`,
+		);
 		return markdown;
 	} catch (error) {
-		logger.error(
-			'[src/utils/markdown.util.ts@htmlToMarkdown] Error converting HTML to Markdown:',
-			error,
-		);
+		methodLogger.error('Error converting HTML to Markdown', error);
 		// Return the original HTML if conversion fails
 		return html;
 	}

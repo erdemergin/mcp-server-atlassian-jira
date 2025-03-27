@@ -1,5 +1,4 @@
-import { createAuthMissingError } from '../utils/error.util.js';
-import { logger } from '../utils/logger.util.js';
+import { Logger } from '../utils/logger.util.js';
 import {
 	fetchAtlassian,
 	getAtlassianCredentials,
@@ -10,6 +9,15 @@ import {
 	ListProjectsParams,
 	GetProjectByIdParams,
 } from './vendor.atlassian.projects.types.js';
+import { createAuthMissingError } from '../utils/error.util.js';
+
+// Create a contextualized logger for this file
+const serviceLogger = Logger.forContext(
+	'services/vendor.atlassian.projects.service.ts',
+);
+
+// Log service initialization
+serviceLogger.debug('Jira projects service initialized');
 
 /**
  * Base API path for Jira REST API v3
@@ -57,15 +65,15 @@ const API_PATH = '/rest/api/3';
 async function list(
 	params: ListProjectsParams = {},
 ): Promise<ProjectsResponse> {
-	const logPrefix =
-		'[src/services/vendor.atlassian.projects.service.ts@list]';
-	logger.debug(`${logPrefix} Listing Jira projects with params:`, params);
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.projects.service.ts',
+		'list',
+	);
+	methodLogger.debug('Listing Jira projects with params:', params);
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError(
-			'Atlassian credentials are required for this operation',
-		);
+		throw createAuthMissingError('List projects');
 	}
 
 	// Build query parameters
@@ -117,7 +125,7 @@ async function list(
 		: '';
 	const path = `${API_PATH}/project/search${queryString}`;
 
-	logger.debug(`${logPrefix} Sending request to: ${path}`);
+	methodLogger.debug(`Calling Jira API: ${path}`);
 	return fetchAtlassian<ProjectsResponse>(credentials, path);
 }
 
@@ -148,17 +156,18 @@ async function get(
 	idOrKey: string,
 	params: GetProjectByIdParams = {},
 ): Promise<ProjectDetailed> {
-	const logPrefix = '[src/services/vendor.atlassian.projects.service.ts@get]';
-	logger.debug(
-		`${logPrefix} Getting Jira project with ID/key: ${idOrKey}, params:`,
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.projects.service.ts',
+		'get',
+	);
+	methodLogger.debug(
+		`Getting Jira project with ID/key: ${idOrKey}, params:`,
 		params,
 	);
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError(
-			'Atlassian credentials are required for this operation',
-		);
+		throw createAuthMissingError(`Get project ${idOrKey}`);
 	}
 
 	// Build query parameters
@@ -185,7 +194,7 @@ async function get(
 		: '';
 	const path = `${API_PATH}/project/${idOrKey}${queryString}`;
 
-	logger.debug(`${logPrefix} Sending request to: ${path}`);
+	methodLogger.debug(`Calling Jira API: ${path}`);
 	return fetchAtlassian<ProjectDetailed>(credentials, path);
 }
 

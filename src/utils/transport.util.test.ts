@@ -1,17 +1,27 @@
 import { getAtlassianCredentials, fetchAtlassian } from './transport.util.js';
 import { config } from './config.util.js';
-import { logger } from './logger.util.js';
 import { ProjectsResponse } from '../services/vendor.atlassian.projects.types.js';
 
 // Mock the logger module only to prevent console output during tests
-jest.mock('./logger.util.js', () => ({
-	logger: {
+jest.mock('./logger.util.js', () => {
+	const mockLoggerInstance = {
 		debug: jest.fn(),
 		info: jest.fn(),
 		warn: jest.fn(),
 		error: jest.fn(),
-	},
-}));
+	};
+
+	return {
+		Logger: {
+			forContext: jest.fn().mockReturnValue(mockLoggerInstance),
+		},
+		_mockLoggerInstance: mockLoggerInstance, // Export for test access
+	};
+});
+
+// Get the mock logger instance from the mocked module
+const { _mockLoggerInstance: mockLoggerInstance } =
+	jest.requireMock('./logger.util.js');
 
 // NOTE: We are no longer mocking fetch, using real API calls instead
 
@@ -56,7 +66,7 @@ describe('Transport Utility', () => {
 			expect(credentials).toBeNull();
 
 			// Verify that a warning was logged
-			expect(logger.warn).toHaveBeenCalledWith(
+			expect(mockLoggerInstance.warn).toHaveBeenCalledWith(
 				'Missing Atlassian credentials. Please set ATLASSIAN_SITE_NAME, ATLASSIAN_USER_EMAIL, and ATLASSIAN_API_TOKEN environment variables.',
 			);
 

@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { logger } from '../utils/logger.util.js';
+import { Logger } from '../utils/logger.util.js';
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { formatErrorForMcpTool } from '../utils/error.util.js';
 import {
@@ -11,10 +11,16 @@ import {
 
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
 
+// Create a contextualized logger for this file
+const toolLogger = Logger.forContext('tools/atlassian.projects.tool.ts');
+
+// Log tool module initialization
+toolLogger.debug('Jira projects tool module initialized');
+
 /**
  * MCP Tool: List Jira Projects
  *
- * Lists Jira projects with optional filtering by query and limit.
+ * Lists Jira projects with optional filtering.
  * Returns a formatted markdown response with project details and pagination info.
  *
  * @param {ListProjectsToolArgsType} args - Tool arguments for filtering projects
@@ -26,22 +32,21 @@ async function listProjects(
 	args: ListProjectsToolArgsType,
 	_extra: RequestHandlerExtra,
 ) {
-	const logPrefix = '[src/tools/atlassian.projects.tool.ts@listProjects]';
-	logger.debug(`${logPrefix} Listing Jira projects with filters:`, args);
+	const methodLogger = Logger.forContext(
+		'tools/atlassian.projects.tool.ts',
+		'listProjects',
+	);
+	methodLogger.debug('Listing Jira projects with filters:', args);
 
 	try {
-		// Pass the filter options to the controller
+		// Pass the options to the controller
 		const message = await atlassianProjectsController.list({
 			query: args.query,
 			limit: args.limit,
 			cursor: args.cursor,
-			orderBy: args.orderBy,
 		});
 
-		logger.debug(
-			`${logPrefix} Successfully retrieved projects from controller`,
-			message,
-		);
+		methodLogger.debug('Successfully retrieved projects from controller');
 
 		return {
 			content: [
@@ -52,7 +57,7 @@ async function listProjects(
 			],
 		};
 	} catch (error) {
-		logger.error(`${logPrefix} Failed to list projects`, error);
+		methodLogger.error('Failed to list projects', error);
 		return formatErrorForMcpTool(error);
 	}
 }
@@ -61,7 +66,7 @@ async function listProjects(
  * MCP Tool: Get Jira Project Details
  *
  * Retrieves detailed information about a specific Jira project.
- * Returns a formatted markdown response with project metadata.
+ * Returns a formatted markdown response with project data.
  *
  * @param {GetProjectToolArgsType} args - Tool arguments containing the project ID/key
  * @param {RequestHandlerExtra} _extra - Extra request handler information (unused)
@@ -72,19 +77,21 @@ async function getProject(
 	args: GetProjectToolArgsType,
 	_extra: RequestHandlerExtra,
 ) {
-	const logPrefix = '[src/tools/atlassian.projects.tool.ts@getProject]';
+	const methodLogger = Logger.forContext(
+		'tools/atlassian.projects.tool.ts',
+		'getProject',
+	);
 
-	logger.debug(
-		`${logPrefix} Retrieving project details for ID/key: ${args.projectKeyOrId}`,
+	methodLogger.debug(
+		`Retrieving project details for ID/key: ${args.projectKeyOrId}`,
 	);
 
 	try {
 		const message = await atlassianProjectsController.get({
-			idOrKey: args.projectKeyOrId,
+			keyOrId: args.projectKeyOrId,
 		});
-		logger.debug(
-			`${logPrefix} Successfully retrieved project details from controller`,
-			message,
+		methodLogger.debug(
+			'Successfully retrieved project details from controller',
 		);
 
 		return {
@@ -96,7 +103,7 @@ async function getProject(
 			],
 		};
 	} catch (error) {
-		logger.error(`${logPrefix} Failed to get project details`, error);
+		methodLogger.error('Failed to get project details', error);
 		return formatErrorForMcpTool(error);
 	}
 }
@@ -110,8 +117,11 @@ async function getProject(
  * @param {McpServer} server - The MCP server instance to register tools with
  */
 function register(server: McpServer) {
-	const logPrefix = '[src/tools/atlassian.projects.tool.ts@register]';
-	logger.debug(`${logPrefix} Registering Atlassian Projects tools...`);
+	const methodLogger = Logger.forContext(
+		'tools/atlassian.projects.tool.ts',
+		'register',
+	);
+	methodLogger.debug('Registering Atlassian Projects tools...');
 
 	// Register the list projects tool
 	server.tool(
@@ -177,9 +187,7 @@ function register(server: McpServer) {
 		getProject,
 	);
 
-	logger.debug(
-		`${logPrefix} Successfully registered Atlassian Projects tools`,
-	);
+	methodLogger.debug('Successfully registered Atlassian Projects tools');
 }
 
 export default { register };

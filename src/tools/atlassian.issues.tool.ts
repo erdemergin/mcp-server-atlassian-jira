@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { logger } from '../utils/logger.util.js';
+import { Logger } from '../utils/logger.util.js';
 import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { formatErrorForMcpTool } from '../utils/error.util.js';
 import {
@@ -10,6 +10,12 @@ import {
 } from './atlassian.issues.types.js';
 
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
+
+// Create a contextualized logger for this file
+const toolLogger = Logger.forContext('tools/atlassian.issues.tool.ts');
+
+// Log tool module initialization
+toolLogger.debug('Jira issues tool module initialized');
 
 /**
  * MCP Tool: List Jira Issues
@@ -26,8 +32,11 @@ async function listIssues(
 	args: ListIssuesToolArgsType,
 	_extra: RequestHandlerExtra,
 ) {
-	const logPrefix = '[src/tools/atlassian.issues.tool.ts@listIssues]';
-	logger.debug(`${logPrefix} Listing Jira issues with filters:`, args);
+	const methodLogger = Logger.forContext(
+		'tools/atlassian.issues.tool.ts',
+		'listIssues',
+	);
+	methodLogger.debug('Listing Jira issues with filters:', args);
 
 	try {
 		// Pass the options to the controller
@@ -37,10 +46,7 @@ async function listIssues(
 			cursor: args.cursor,
 		});
 
-		logger.debug(
-			`${logPrefix} Successfully retrieved issues from controller`,
-			message,
-		);
+		methodLogger.debug('Successfully retrieved issues from controller');
 
 		return {
 			content: [
@@ -51,7 +57,7 @@ async function listIssues(
 			],
 		};
 	} catch (error) {
-		logger.error(`${logPrefix} Failed to list issues`, error);
+		methodLogger.error('Failed to list issues', error);
 		return formatErrorForMcpTool(error);
 	}
 }
@@ -71,19 +77,21 @@ async function getIssue(
 	args: GetIssueToolArgsType,
 	_extra: RequestHandlerExtra,
 ) {
-	const logPrefix = '[src/tools/atlassian.issues.tool.ts@getIssue]';
+	const methodLogger = Logger.forContext(
+		'tools/atlassian.issues.tool.ts',
+		'getIssue',
+	);
 
-	logger.debug(
-		`${logPrefix} Retrieving issue details for ID/key: ${args.issueIdOrKey}`,
+	methodLogger.debug(
+		`Retrieving issue details for ID/key: ${args.issueIdOrKey}`,
 	);
 
 	try {
 		const message = await atlassianIssuesController.get({
 			idOrKey: args.issueIdOrKey,
 		});
-		logger.debug(
-			`${logPrefix} Successfully retrieved issue details from controller`,
-			message,
+		methodLogger.debug(
+			'Successfully retrieved issue details from controller',
 		);
 
 		return {
@@ -95,7 +103,7 @@ async function getIssue(
 			],
 		};
 	} catch (error) {
-		logger.error(`${logPrefix} Failed to get issue details`, error);
+		methodLogger.error('Failed to get issue details', error);
 		return formatErrorForMcpTool(error);
 	}
 }
@@ -109,8 +117,11 @@ async function getIssue(
  * @param {McpServer} server - The MCP server instance to register tools with
  */
 function register(server: McpServer) {
-	const logPrefix = '[src/tools/atlassian.issues.tool.ts@register]';
-	logger.debug(`${logPrefix} Registering Atlassian Issues tools...`);
+	const methodLogger = Logger.forContext(
+		'tools/atlassian.issues.tool.ts',
+		'register',
+	);
+	methodLogger.debug('Registering Atlassian Issues tools...');
 
 	// Register the list issues tool
 	server.tool(
@@ -180,7 +191,7 @@ function register(server: McpServer) {
 		getIssue,
 	);
 
-	logger.debug(`${logPrefix} Successfully registered Atlassian Issues tools`);
+	methodLogger.debug('Successfully registered Atlassian Issues tools');
 }
 
 export default { register };

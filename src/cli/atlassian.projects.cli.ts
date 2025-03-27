@@ -1,9 +1,9 @@
 import { Command } from 'commander';
-import { logger } from '../utils/logger.util.js';
+import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
 import { ListProjectsOptions } from '../controllers/atlassian.projects.types.js';
-import { formatPagination } from '../utils/formatter.util.js';
+import { formatHeading, formatPagination } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira projects.
@@ -11,19 +11,28 @@ import { formatPagination } from '../utils/formatter.util.js';
  * All commands require valid Atlassian credentials.
  */
 
+// Create a contextualized logger for this file
+const cliLogger = Logger.forContext('cli/atlassian.projects.cli.ts');
+
+// Log CLI module initialization
+cliLogger.debug('Jira projects CLI module initialized');
+
 /**
  * Register Jira Projects CLI commands with the Commander program
  * @param program - The Commander program instance to register commands with
  * @throws Error if command registration fails
  */
 function register(program: Command): void {
-	const logPrefix = '[src/cli/atlassian.projects.cli.ts@register]';
-	logger.debug(`${logPrefix} Registering Jira Projects CLI commands...`);
+	const methodLogger = Logger.forContext(
+		'cli/atlassian.projects.cli.ts',
+		'register',
+	);
+	methodLogger.debug('Registering Jira Projects CLI commands...');
 
 	registerListProjectsCommand(program);
 	registerGetProjectCommand(program);
 
-	logger.debug(`${logPrefix} CLI commands registered successfully`);
+	methodLogger.debug('CLI commands registered successfully');
 }
 
 /**
@@ -31,45 +40,47 @@ function register(program: Command): void {
  * @param program - The Commander program instance
  */
 function registerListProjectsCommand(program: Command): void {
+	const methodLogger = Logger.forContext(
+		'cli/atlassian.projects.cli.ts',
+		'registerListProjectsCommand',
+	);
+
 	program
 		.command('list-projects')
 		.description(
-			`List Jira projects accessible to the authenticated user.
+			`List Jira projects with pagination and optional filtering.
 
-        PURPOSE: Discover available projects, find their keys for use in other commands (like listing issues), and get a high-level overview of project metadata.
+        PURPOSE: Browse all accessible Jira projects for discovery, exploration, and finding project keys/IDs.
 
-        Use Case: Useful when you don't know the exact key or ID of a project, or when exploring available projects. Allows filtering by name or key.
+        Use Case: Get an overview of all Jira projects you have access to, with essential metadata including key, name, type, and lead. Useful for finding project keys needed for more specific operations.
 
-        Output: Formatted list including project name, key, ID, type, style, lead, and URL. Supports filtering and pagination.
-
-        Sorting: By default, projects are sorted by lastIssueUpdatedTime, showing the most recently active projects first.
-
+        Output: Formatted list of projects with key, name, type, and lead information. Includes pagination support for large project collections.
+        
         Examples:
-  $ mcp-jira list-projects --query "Platform Team"
   $ mcp-jira list-projects --limit 10
-  $ mcp-jira list-projects --cursor "50"`,
+  $ mcp-jira list-projects --query "Marketing" --limit 25 --cursor "25"`,
 		)
-		.option('-q, --query <query>', 'Filter by project name or key')
 		.option(
 			'-l, --limit <number>',
-			'Maximum number of projects to return (1-100). Use this to control the response size. If omitted, defaults to 50.',
+			'Maximum number of items to return (1-100)',
+			'25',
 		)
 		.option(
-			'-c, --cursor <cursor>',
-			'Pagination cursor for retrieving the next set of results. Obtain this value from the previous response when more results are available.',
+			'-c, --cursor <string>',
+			'Pagination cursor for retrieving the next set of results',
 		)
 		.option(
-			'-o, --order-by <field>',
-			'Field to sort by (defaults to "lastIssueUpdatedTime" - most recently updated first). Other options: name, key, owner, category, issueCount, archivedDate, deletedDate.',
+			'-q, --query <query>',
+			'Filter projects by name or key (case-insensitive)',
 		)
 		.action(async (options) => {
-			const logPrefix =
-				'[src/cli/atlassian.projects.cli.ts@list-projects]';
+			const actionLogger = Logger.forContext(
+				'cli/atlassian.projects.cli.ts',
+				'list-projects',
+			);
+
 			try {
-				logger.debug(
-					`${logPrefix} Processing command options:`,
-					options,
-				);
+				actionLogger.debug('Processing command options:', options);
 
 				const filterOptions: ListProjectsOptions = {
 					...(options.query && { query: options.query }),
@@ -77,32 +88,41 @@ function registerListProjectsCommand(program: Command): void {
 						limit: parseInt(options.limit, 10),
 					}),
 					...(options.cursor && { cursor: options.cursor }),
-					...(options.orderBy && { orderBy: options.orderBy }),
 				};
 
-				logger.debug(
-					`${logPrefix} Fetching projects with filters:`,
+				actionLogger.debug(
+					'Fetching projects with filters:',
 					filterOptions,
 				);
+
 				const result =
 					await atlassianProjectsController.list(filterOptions);
-				logger.debug(`${logPrefix} Successfully retrieved projects`);
 
+				actionLogger.debug('Successfully retrieved projects');
+
+				// Print the main content
+				console.log(formatHeading('Projects', 2));
 				console.log(result.content);
 
-				// Display pagination information if available
+				// Print pagination information if available
 				if (result.pagination) {
+					// Use the actual number of items displayed rather than potentially zero count
+					// The count comes from the controller - it should be the number of items in the current batch
+					// We extract this from the controller response.
+					// If the response has no items but has more results, show 0 but indicate more are available
+					const displayCount = result.pagination.count ?? 0;
+
 					console.log(
 						'\n' +
 							formatPagination(
-								result.pagination.count || 0,
+								displayCount,
 								result.pagination.hasMore,
 								result.pagination.nextCursor,
 							),
 					);
 				}
 			} catch (error) {
-				logger.error(`${logPrefix} Operation failed:`, error);
+				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
 			}
 		});
@@ -113,41 +133,50 @@ function registerListProjectsCommand(program: Command): void {
  * @param program - The Commander program instance
  */
 function registerGetProjectCommand(program: Command): void {
+	const methodLogger = Logger.forContext(
+		'cli/atlassian.projects.cli.ts',
+		'registerGetProjectCommand',
+	);
+
 	program
 		.command('get-project')
 		.description(
-			`Get detailed information about a specific Jira project using its ID or key.
+			`Get detailed information about a specific Jira project using its key or ID.
 
-        PURPOSE: Retrieve comprehensive details for a *known* project, including its description, lead, components, versions, and links. Requires the project ID or key.
+        PURPOSE: Retrieve comprehensive details for a *known* project, including its full description, roles, lead, URLs, components, versions, and categories.
 
-        Use Case: Useful when you have a specific project identified (via 'list-projects' or prior knowledge) and need its full metadata, including components and versions defined within it.
+        Use Case: Essential for understanding a specific project's structure, access details and configuration. Provides deeper information than available in the project list.
 
-        Output: Formatted details of the specified project. Fetches all available details (including components and versions) by default.
+        Output: Formatted details of the specified project. Includes key, name, description, roles, lead, URLs, components, versions, and categories.
 
         Examples:
-  $ mcp-jira get-project --project DEV
+  $ mcp-jira get-project --project TEAM
   $ mcp-jira get-project --project 10001`,
 		)
 		.requiredOption(
 			'--project <keyOrId>',
-			'ID or key of the project to retrieve (e.g., "TEAM" or "10010")',
+			'ID or key of the project to retrieve (e.g., "TEAM" or "10001")',
 		)
 		.action(async (options) => {
-			const logPrefix = '[src/cli/atlassian.projects.cli.ts@get-project]';
+			const actionLogger = Logger.forContext(
+				'cli/atlassian.projects.cli.ts',
+				'get-project',
+			);
+
 			try {
-				logger.debug(
-					`${logPrefix} Fetching details for project ID/key: ${options.project}`,
+				actionLogger.debug(
+					`Fetching details for project: ${options.project}`,
 				);
+
 				const result = await atlassianProjectsController.get({
-					idOrKey: options.project,
+					keyOrId: options.project,
 				});
-				logger.debug(
-					`${logPrefix} Successfully retrieved project details`,
-				);
+
+				actionLogger.debug('Successfully retrieved project details');
 
 				console.log(result.content);
 			} catch (error) {
-				logger.error(`${logPrefix} Operation failed:`, error);
+				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
 			}
 		});
