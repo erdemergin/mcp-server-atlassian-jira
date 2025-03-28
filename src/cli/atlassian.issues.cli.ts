@@ -147,18 +147,10 @@ function registerGetIssueCommand(program: Command): void {
 		.description(
 			`Get detailed information about a specific Jira issue using its ID or key.
 
-        PURPOSE: Retrieve comprehensive details for a *known* issue, including description, status, comments, attachments, links, worklogs, and all standard fields. Requires the issue ID or key.
-
-        Use Case: Essential for understanding the full context of a specific issue identified via 'list-issues' or prior knowledge. Provides all data needed for analysis or summarization.
-
-        Output: Formatted details of the specified issue. Fetches all available standard fields, comments, attachments, links, and worklogs by default.
-
-        Examples:
-  $ mcp-jira get-issue --issue PROJ-123
-  $ mcp-jira get-issue --issue 10001`,
+        PURPOSE: Retrieve comprehensive details for a *known* issue, including its summary, description, status, priority, assignee, reporter, comments, attachments, and all standard fields.`,
 		)
 		.requiredOption(
-			'--issue <idOrKey>',
+			'-i, --id <idOrKey>',
 			'ID or key of the issue to retrieve (e.g., "TEAM-123" or "10001")',
 		)
 		.action(async (options) => {
@@ -171,37 +163,18 @@ function registerGetIssueCommand(program: Command): void {
 				actionLogger.debug('Processing command options:', options);
 
 				// Validate issue ID/key
-				if (!options.issue || options.issue.trim() === '') {
-					throw new Error(
-						'Issue ID/key must be a valid non-empty string',
-					);
+				if (!options.id || options.id.trim() === '') {
+					throw new Error('Issue ID or key must not be empty.');
 				}
 
-				// Check if it follows the typical Jira issue key pattern or is numeric
-				if (
-					!(
-						/^[A-Za-z]+-\d+$/.test(options.issue) ||
-						/^\d+$/.test(options.issue)
-					)
-				) {
-					throw new Error(
-						'Issue ID/key must be either a project key with number (e.g., PROJ-123) or a numeric ID',
-					);
-				}
-
-				actionLogger.debug(
-					`Fetching details for issue ID/key: ${options.issue}`,
-				);
+				actionLogger.debug(`Fetching issue: ${options.id}`);
 
 				const result = await atlassianIssuesController.get({
-					idOrKey: options.issue,
+					idOrKey: options.id,
 				});
-
-				actionLogger.debug('Successfully retrieved issue details');
 
 				console.log(result.content);
 			} catch (error) {
-				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
 			}
 		});

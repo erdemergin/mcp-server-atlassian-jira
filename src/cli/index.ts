@@ -1,8 +1,9 @@
 import { Command } from 'commander';
 import { Logger } from '../utils/logger.util.js';
 
-import atlassianProjectsCli from './atlassian.projects.cli.js';
-import atlassianIssuesCli from './atlassian.issues.cli.js';
+import atlassianProjectsCommands from './atlassian.projects.cli.js';
+import atlassianIssuesCommands from './atlassian.issues.cli.js';
+import atlassianSearchCommands from './atlassian.search.cli.js';
 
 // Create a contextualized logger for this file
 const cliLogger = Logger.forContext('cli/index.ts');
@@ -25,8 +26,14 @@ export async function runCli(args: string[]) {
 	program.name(NAME).description(DESCRIPTION).version(VERSION);
 
 	// Register CLI commands
-	atlassianProjectsCli.register(program);
-	atlassianIssuesCli.register(program);
+	atlassianProjectsCommands.register(program);
+	cliLogger.debug('Projects commands registered');
+
+	atlassianIssuesCommands.register(program);
+	cliLogger.debug('Issues commands registered');
+
+	atlassianSearchCommands.register(program);
+	cliLogger.debug('Search commands registered');
 
 	// Handle unknown commands
 	program.on('command:*', (operands) => {

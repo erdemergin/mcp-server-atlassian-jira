@@ -163,20 +163,12 @@ function registerGetProjectCommand(program: Command): void {
 	program
 		.command('get-project')
 		.description(
-			`Get detailed information about a specific Jira project using its key or ID.
+			`Get detailed information about a specific Jira project using its ID or key.
 
-        PURPOSE: Retrieve comprehensive details for a *known* project, including its full description, roles, lead, URLs, components, versions, and categories.
-
-        Use Case: Essential for understanding a specific project's structure, access details and configuration. Provides deeper information than available in the project list.
-
-        Output: Formatted details of the specified project. Includes key, name, description, roles, lead, URLs, components, versions, and categories.
-
-        Examples:
-  $ mcp-jira get-project --project TEAM
-  $ mcp-jira get-project --project 10001`,
+        PURPOSE: Retrieve comprehensive metadata for a *known* project, including its full description, lead, components, versions, style, and links.`,
 		)
 		.requiredOption(
-			'--project <keyOrId>',
+			'-k, --key <keyOrId>',
 			'ID or key of the project to retrieve (e.g., "TEAM" or "10001")',
 		)
 		.action(async (options) => {
@@ -188,39 +180,19 @@ function registerGetProjectCommand(program: Command): void {
 			try {
 				actionLogger.debug('Processing command options:', options);
 
-				// Validate project key/ID format
-				if (!options.project || options.project.trim() === '') {
-					throw new Error(
-						'Project key/ID must be a valid non-empty string',
-					);
+				// Validate project ID/key
+				if (!options.key || options.key.trim() === '') {
+					throw new Error('Project ID or key must not be empty.');
 				}
 
-				// Validate project key/ID format: either an all-numeric ID or a valid project key
-				// Project keys are typically uppercase letters followed by numbers (e.g., PRJ, PRJ1)
-				if (
-					!(
-						/^[A-Z][A-Z0-9_]+$/.test(options.project) ||
-						/^\d+$/.test(options.project)
-					)
-				) {
-					throw new Error(
-						'Project key/ID must be either a valid project key (e.g., PRJ, PROJECT1) or a numeric ID',
-					);
-				}
-
-				actionLogger.debug(
-					`Fetching details for project key/ID: ${options.project}`,
-				);
+				actionLogger.debug(`Fetching project: ${options.key}`);
 
 				const result = await atlassianProjectsController.get({
-					keyOrId: options.project,
+					keyOrId: options.key,
 				});
-
-				actionLogger.debug('Successfully retrieved project details');
 
 				console.log(result.content);
 			} catch (error) {
-				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
 			}
 		});

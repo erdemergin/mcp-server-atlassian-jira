@@ -10,6 +10,7 @@ import { runCli } from './cli/index.js';
 // Import Jira-specific tools
 import atlassianProjectsTools from './tools/atlassian.projects.tool.js';
 import atlassianIssuesTools from './tools/atlassian.issues.tool.js';
+import atlassianSearchTools from './tools/atlassian.search.tool.js';
 
 // Define version constant for easier management and consistent versioning
 const VERSION = '1.13.0';
@@ -61,6 +62,9 @@ export async function startServer(mode: 'stdio' | 'sse' = 'stdio') {
 
 	atlassianIssuesTools.register(serverInstance);
 	indexLogger.debug('Issues tools registered');
+
+	atlassianSearchTools.register(serverInstance);
+	indexLogger.debug('Search tools registered');
 
 	indexLogger.info('All tools registered successfully');
 
