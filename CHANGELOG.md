@@ -1,3 +1,19 @@
+# [1.14.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.13.0...v1.14.0) (2025-03-28)
+
+
+### Bug Fixes
+
+* **cli:** standardize identifier parameter naming across codebase ([3b7e1ba](https://github.com/aashari/mcp-server-atlassian-jira/commit/3b7e1baf80ab47e8a4aa2ef35e2f5e5a25d609cc))
+* resolve linting issues in Jira MCP server ([7c28dba](https://github.com/aashari/mcp-server-atlassian-jira/commit/7c28dba07803178e480bc22cec7060e859926766))
+* **tests:** improve test coverage for projects controller and restore devinfo tests ([a1d249a](https://github.com/aashari/mcp-server-atlassian-jira/commit/a1d249aec62fb4300e3326dbc3daee9d83040bfa))
+* **types:** add null checks to date fields in tests ([ebb206a](https://github.com/aashari/mcp-server-atlassian-jira/commit/ebb206a518e51f70561d1433d2b534a46f792c73))
+
+
+### Features
+
+* standardize CLI flag patterns and entity identifier parameters ([29b6a3f](https://github.com/aashari/mcp-server-atlassian-jira/commit/29b6a3f93b9bb524e015c4dd1349e50bb8e0725b))
+* **test:** add integration tests for Jira projects service and controller ([981abad](https://github.com/aashari/mcp-server-atlassian-jira/commit/981abada38427ae4fc06abf8977285a77db20aa5))
+
 # [1.13.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.12.1...v1.13.0) (2025-03-28)
 
 

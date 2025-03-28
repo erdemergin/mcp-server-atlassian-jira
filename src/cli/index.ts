@@ -12,7 +12,7 @@ const cliLogger = Logger.forContext('cli/index.ts');
 cliLogger.debug('Jira CLI module initialized');
 
 // Get the version from package.json
-const VERSION = '1.13.0'; // This should match the version in src/index.ts
+const VERSION = '1.14.0'; // This should match the version in src/index.ts
 const NAME = '@aashari/mcp-atlassian-jira';
 const DESCRIPTION =
 	'A Model Context Protocol (MCP) server for Atlassian Jira integration';

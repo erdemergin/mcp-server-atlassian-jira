@@ -13,7 +13,7 @@ import atlassianIssuesTools from './tools/atlassian.issues.tool.js';
 import atlassianSearchTools from './tools/atlassian.search.tool.js';
 
 // Define version constant for easier management and consistent versioning
-const VERSION = '1.13.0';
+const VERSION = '1.14.0';
 
 // Create a contextualized logger for this file
 const indexLogger = Logger.forContext('index.ts');
