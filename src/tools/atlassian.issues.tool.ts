@@ -125,20 +125,20 @@ function register(server: McpServer) {
 
 	// Register the list issues tool
 	server.tool(
-		'list-issues',
+		'list_issues',
 		`Search for Jira issues using JQL (Jira Query Language), with pagination.
 
-        PURPOSE: Find and explore issues across one or more projects using the powerful JQL syntax. Essential for locating specific issues or groups of issues based on criteria like project, status, assignee, text content, labels, dates, etc. Provides issue keys/IDs needed for the 'get-issue' tool.
+        PURPOSE: Find and explore issues across one or more projects using the powerful JQL syntax. Essential for locating specific issues or groups of issues based on criteria like project, status, assignee, text content, labels, dates, etc. Provides issue keys/IDs needed for the 'get_issue' tool.
 
         WHEN TO USE:
         - To find issues matching specific criteria (status, assignee, project, keywords, labels, priority, dates).
         - To get an overview of issues in a project or filter.
-        - To find issue keys/IDs for use with the 'get-issue' tool.
+        - To find issue keys/IDs for use with the 'get_issue' tool.
         - Requires formulating a valid JQL query (refer to Jira JQL documentation if unsure).
 
         WHEN NOT TO USE:
-        - When you already know the specific issue key/ID (use 'get-issue').
-        - When you only need project information (use 'list-projects' or 'get-project').
+        - When you already know the specific issue key/ID (use 'get_issue').
+        - When you only need project information (use 'list_projects' or 'get_project').
         - If the search is very broad (might hit limits or be slow; refine JQL).
 
         RETURNS: Formatted list of issues matching the JQL query, including key, summary, type, status, priority, project, assignee, reporter, creation/update dates, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
@@ -162,20 +162,20 @@ function register(server: McpServer) {
 
 	// Register the get issue details tool
 	server.tool(
-		'get-issue',
+		'get_issue',
 		`Get detailed information about a specific Jira issue using its ID or key. Requires 'issueIdOrKey'.
 
         PURPOSE: Retrieves comprehensive details for a *known* issue, including its summary, description (in Markdown), status, priority, assignee, reporter, comments, attachments, linked issues, worklogs, and all standard fields.
 
         WHEN TO USE:
         - When you need the full content, comments, or metadata of a *specific* issue.
-        - After using 'list-issues' to identify the target issue key/ID.
+        - After using 'list_issues' to identify the target issue key/ID.
         - To get all context associated with an issue for analysis or summarization.
         - Requires a known 'issueIdOrKey' (e.g., "PROJ-123" or "10001").
 
         WHEN NOT TO USE:
-        - When you don't know the issue key/ID (use 'list-issues' with JQL first).
-        - When you only need a list of issues (use 'list-issues').
+        - When you don't know the issue key/ID (use 'list_issues' with JQL first).
+        - When you only need a list of issues (use 'list_issues').
         - When you need project-level information (use project tools).
 
         RETURNS: Detailed issue information including key, summary, description (converted to Markdown), status, priority, assignee, reporter, dates, time tracking, attachments, comments (converted to Markdown), linked issues, and worklogs. Fetches all available standard details by default.

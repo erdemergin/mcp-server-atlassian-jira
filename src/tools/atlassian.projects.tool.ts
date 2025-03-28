@@ -125,10 +125,10 @@ function register(server: McpServer) {
 
 	// Register the list projects tool
 	server.tool(
-		'list-projects',
+		'list_projects',
 		`List Jira projects accessible to the authenticated user, with optional filtering by name/key and pagination.
 
-        PURPOSE: Discover available projects and retrieve their keys, names, and basic metadata. Essential for finding the correct 'projectKeyOrId' needed as input for the 'get-project' tool or for filtering issues using JQL in the 'list-issues' tool (e.g., "project = KEY").
+        PURPOSE: Discover available projects and retrieve their keys, names, and basic metadata. Essential for finding the correct 'projectKeyOrId' needed as input for the 'get_project' tool or for filtering issues using JQL in the 'list_issues' tool (e.g., "project = KEY").
 
         WHEN TO USE:
         - To find the 'projectKeyOrId' for a known project name.
@@ -137,8 +137,8 @@ function register(server: McpServer) {
         - When you don't know the exact key/ID required by other tools.
 
         WHEN NOT TO USE:
-        - When you already have the 'projectKeyOrId' and need full details (use 'get-project').
-        - When you need to list *issues* (use 'list-issues').
+        - When you already have the 'projectKeyOrId' and need full details (use 'get_project').
+        - When you need to list *issues* (use 'list_issues').
 
         RETURNS: Formatted list of projects including name, key, ID, type, style, lead, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
         
@@ -159,19 +159,19 @@ function register(server: McpServer) {
 
 	// Register the get project details tool
 	server.tool(
-		'get-project',
+		'get_project',
 		`Get detailed information about a specific Jira project using its ID or key. Requires 'projectKeyOrId'.
 
         PURPOSE: Retrieves comprehensive metadata for a *known* project, including its full description, lead, components, versions, style, and links.
 
         WHEN TO USE:
         - When you need full details about a *specific* project and you know its key ('PROJ') or ID ('10001').
-        - After using 'list-projects' to identify the target project key/ID.
+        - After using 'list_projects' to identify the target project key/ID.
         - To get project metadata, components, or versions before analyzing its issues.
 
         WHEN NOT TO USE:
-        - When you don't know the project key or ID (use 'list-projects' first).
-        - When you only need a list of projects (use 'list-projects').
+        - When you don't know the project key or ID (use 'list_projects' first).
+        - When you only need a list of projects (use 'list_projects').
         - When you need issue information (use issue tools).
 
         RETURNS: Detailed project information including key, name, description, lead, components, versions, and links. Fetches all available details (components, versions) by default.
