@@ -5,57 +5,23 @@ import { config } from '../utils/config.util.js';
 import { McpError } from '../utils/error.util.js';
 
 describe('Vendor Atlassian DevInfo Service', () => {
-	// Flag to track if DevInfo API is available
-	let skipAllDevinfoTests = false;
-
 	// Load configuration and check for credentials before all tests
-	beforeAll(async () => {
+	beforeAll(() => {
 		config.load(); // Ensure config is loaded
 		const credentials = getAtlassianCredentials();
 		if (!credentials) {
 			console.warn(
 				'Skipping Atlassian DevInfo Service tests: No credentials available',
 			);
-			skipAllDevinfoTests = true;
-			return;
 		}
+	});
 
-		// Try to make a simple call to the DevInfo API to check if it's available
-		try {
-			// First, get a valid issue ID
-			const searchResult = await atlassianIssuesService.search({
-				maxResults: 1,
-			});
-
-			if (searchResult.issues.length === 0) {
-				console.warn('No issues found for DevInfo tests');
-				skipAllDevinfoTests = true;
-				return;
-			}
-
-			// Try to get the development info summary
-			await atlassianDevinfoService.getSummary(searchResult.issues[0].id);
-		} catch (error) {
-			if (
-				error instanceof McpError &&
-				(error.statusCode === 401 || error.statusCode === 403)
-			) {
-				console.warn(
-					'Skipping ALL DevInfo tests: Authentication failed for the DevInfo API',
-				);
-				skipAllDevinfoTests = true;
-			}
-		}
-	}, 30000);
-
-	// Helper function to skip tests when credentials are missing or DevInfo API is not available
-	const skipIfUnavailable = () => {
-		return skipAllDevinfoTests || !getAtlassianCredentials();
-	};
+	// Helper function to skip tests when credentials are missing
+	const skipIfNoCredentials = () => !getAtlassianCredentials();
 
 	// Helper function to get a valid issue ID (numeric) for testing
 	async function getValidIssueId(): Promise<string | null> {
-		if (skipIfUnavailable()) return null;
+		if (skipIfNoCredentials()) return null;
 		try {
 			// Search for a recent issue
 			const searchResult = await atlassianIssuesService.search({
@@ -79,12 +45,7 @@ describe('Vendor Atlassian DevInfo Service', () => {
 
 	describe('getSummary', () => {
 		it('should retrieve development information summary for a valid issue ID', async () => {
-			if (skipIfUnavailable()) {
-				console.warn(
-					'Skipping getSummary test: DevInfo API not available',
-				);
-				return;
-			}
+			if (skipIfNoCredentials()) return;
 
 			const issueId = await getValidIssueId();
 			if (!issueId) {
@@ -106,13 +67,15 @@ describe('Vendor Atlassian DevInfo Service', () => {
 				expect(result.summary).toHaveProperty('pullrequest');
 				expect(result.summary).toHaveProperty('branch');
 			} catch (error) {
-				// If API doesn't support devinfo, we'll skip the test without failing
+				// If API has authentication issues or doesn't support devinfo, skip without failing
 				if (
 					error instanceof McpError &&
-					(error.statusCode === 404 || error.statusCode === 403)
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
 				) {
 					console.warn(
-						'DevInfo API may not be available in this Jira instance',
+						'DevInfo API is not accessible: authentication error or feature not available',
 					);
 					return;
 				}
@@ -121,13 +84,36 @@ describe('Vendor Atlassian DevInfo Service', () => {
 		}, 30000);
 
 		it('should handle errors for non-existent issue ID', async () => {
-			if (skipIfUnavailable()) {
-				console.warn(
-					'Skipping non-existent ID test: DevInfo API not available',
-				);
-				return;
+			if (skipIfNoCredentials()) return;
+
+			// First check if we can access the DevInfo API at all
+			try {
+				const testId = await getValidIssueId();
+				if (testId) {
+					// Quick auth check
+					await atlassianDevinfoService.getSummary(testId);
+				} else {
+					console.warn(
+						'Skipping non-existent ID test: No test issue available',
+					);
+					return;
+				}
+			} catch (error) {
+				// If we can't access the API at all, skip this test
+				if (
+					error instanceof McpError &&
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
+				) {
+					console.warn(
+						'Skipping non-existent ID test: DevInfo API not accessible',
+					);
+					return;
+				}
 			}
 
+			// Actual test for non-existent ID
 			const nonExistentIssueId = '99999999';
 
 			try {
@@ -143,12 +129,7 @@ describe('Vendor Atlassian DevInfo Service', () => {
 
 	describe('getCommits', () => {
 		it('should retrieve commits for a valid issue ID', async () => {
-			if (skipIfUnavailable()) {
-				console.warn(
-					'Skipping getCommits test: DevInfo API not available',
-				);
-				return;
-			}
+			if (skipIfNoCredentials()) return;
 
 			const issueId = await getValidIssueId();
 			if (!issueId) {
@@ -168,13 +149,15 @@ describe('Vendor Atlassian DevInfo Service', () => {
 				// The arrays might be empty if no commits exist
 				expect(Array.isArray(result.detail)).toBe(true);
 			} catch (error) {
-				// If API doesn't support devinfo, we'll skip the test without failing
+				// If API has authentication issues or doesn't support devinfo, skip without failing
 				if (
 					error instanceof McpError &&
-					(error.statusCode === 404 || error.statusCode === 403)
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
 				) {
 					console.warn(
-						'DevInfo API may not be available in this Jira instance',
+						'DevInfo API is not accessible: authentication error or feature not available',
 					);
 					return;
 				}
@@ -183,8 +166,36 @@ describe('Vendor Atlassian DevInfo Service', () => {
 		}, 30000);
 
 		it('should handle errors for non-existent issue ID', async () => {
-			if (skipIfUnavailable()) return;
+			if (skipIfNoCredentials()) return;
 
+			// First check if we can access the DevInfo API at all
+			try {
+				const testId = await getValidIssueId();
+				if (testId) {
+					// Quick auth check
+					await atlassianDevinfoService.getCommits(testId);
+				} else {
+					console.warn(
+						'Skipping non-existent ID test: No test issue available',
+					);
+					return;
+				}
+			} catch (error) {
+				// If we can't access the API at all, skip this test
+				if (
+					error instanceof McpError &&
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
+				) {
+					console.warn(
+						'Skipping non-existent ID test: DevInfo API not accessible',
+					);
+					return;
+				}
+			}
+
+			// Actual test for non-existent ID
 			const nonExistentIssueId = '99999999';
 
 			try {
@@ -200,12 +211,7 @@ describe('Vendor Atlassian DevInfo Service', () => {
 
 	describe('getBranches', () => {
 		it('should retrieve branches for a valid issue ID', async () => {
-			if (skipIfUnavailable()) {
-				console.warn(
-					'Skipping getBranches test: DevInfo API not available',
-				);
-				return;
-			}
+			if (skipIfNoCredentials()) return;
 
 			const issueId = await getValidIssueId();
 			if (!issueId) {
@@ -225,13 +231,15 @@ describe('Vendor Atlassian DevInfo Service', () => {
 				// The arrays might be empty if no branches exist
 				expect(Array.isArray(result.detail)).toBe(true);
 			} catch (error) {
-				// If API doesn't support devinfo, we'll skip the test without failing
+				// If API has authentication issues or doesn't support devinfo, skip without failing
 				if (
 					error instanceof McpError &&
-					(error.statusCode === 404 || error.statusCode === 403)
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
 				) {
 					console.warn(
-						'DevInfo API may not be available in this Jira instance',
+						'DevInfo API is not accessible: authentication error or feature not available',
 					);
 					return;
 				}
@@ -240,8 +248,36 @@ describe('Vendor Atlassian DevInfo Service', () => {
 		}, 30000);
 
 		it('should handle errors for non-existent issue ID', async () => {
-			if (skipIfUnavailable()) return;
+			if (skipIfNoCredentials()) return;
 
+			// First check if we can access the DevInfo API at all
+			try {
+				const testId = await getValidIssueId();
+				if (testId) {
+					// Quick auth check
+					await atlassianDevinfoService.getBranches(testId);
+				} else {
+					console.warn(
+						'Skipping non-existent ID test: No test issue available',
+					);
+					return;
+				}
+			} catch (error) {
+				// If we can't access the API at all, skip this test
+				if (
+					error instanceof McpError &&
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
+				) {
+					console.warn(
+						'Skipping non-existent ID test: DevInfo API not accessible',
+					);
+					return;
+				}
+			}
+
+			// Actual test for non-existent ID
 			const nonExistentIssueId = '99999999';
 
 			try {
@@ -257,12 +293,7 @@ describe('Vendor Atlassian DevInfo Service', () => {
 
 	describe('getPullRequests', () => {
 		it('should retrieve pull requests for a valid issue ID', async () => {
-			if (skipIfUnavailable()) {
-				console.warn(
-					'Skipping getPullRequests test: DevInfo API not available',
-				);
-				return;
-			}
+			if (skipIfNoCredentials()) return;
 
 			const issueId = await getValidIssueId();
 			if (!issueId) {
@@ -282,13 +313,15 @@ describe('Vendor Atlassian DevInfo Service', () => {
 				// The arrays might be empty if no pull requests exist
 				expect(Array.isArray(result.detail)).toBe(true);
 			} catch (error) {
-				// If API doesn't support devinfo, we'll skip the test without failing
+				// If API has authentication issues or doesn't support devinfo, skip without failing
 				if (
 					error instanceof McpError &&
-					(error.statusCode === 404 || error.statusCode === 403)
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
 				) {
 					console.warn(
-						'DevInfo API may not be available in this Jira instance',
+						'DevInfo API is not accessible: authentication error or feature not available',
 					);
 					return;
 				}
@@ -297,8 +330,36 @@ describe('Vendor Atlassian DevInfo Service', () => {
 		}, 30000);
 
 		it('should handle errors for non-existent issue ID', async () => {
-			if (skipIfUnavailable()) return;
+			if (skipIfNoCredentials()) return;
 
+			// First check if we can access the DevInfo API at all
+			try {
+				const testId = await getValidIssueId();
+				if (testId) {
+					// Quick auth check
+					await atlassianDevinfoService.getPullRequests(testId);
+				} else {
+					console.warn(
+						'Skipping non-existent ID test: No test issue available',
+					);
+					return;
+				}
+			} catch (error) {
+				// If we can't access the API at all, skip this test
+				if (
+					error instanceof McpError &&
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
+				) {
+					console.warn(
+						'Skipping non-existent ID test: DevInfo API not accessible',
+					);
+					return;
+				}
+			}
+
+			// Actual test for non-existent ID
 			const nonExistentIssueId = '99999999';
 
 			try {
@@ -316,12 +377,7 @@ describe('Vendor Atlassian DevInfo Service', () => {
 
 	describe('getAllDevInfo', () => {
 		it('should retrieve all development information for a valid issue ID', async () => {
-			if (skipIfUnavailable()) {
-				console.warn(
-					'Skipping getAllDevInfo test: DevInfo API not available',
-				);
-				return;
-			}
+			if (skipIfNoCredentials()) return;
 
 			const issueId = await getValidIssueId();
 			if (!issueId) {
@@ -357,13 +413,15 @@ describe('Vendor Atlassian DevInfo Service', () => {
 				expect(result.pullRequests).toHaveProperty('detail');
 				expect(Array.isArray(result.pullRequests.detail)).toBe(true);
 			} catch (error) {
-				// If API doesn't support devinfo, we'll skip the test without failing
+				// If API has authentication issues or doesn't support devinfo, skip without failing
 				if (
 					error instanceof McpError &&
-					(error.statusCode === 404 || error.statusCode === 403)
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
 				) {
 					console.warn(
-						'DevInfo API may not be available in this Jira instance',
+						'DevInfo API is not accessible: authentication error or feature not available',
 					);
 					return;
 				}
@@ -372,12 +430,7 @@ describe('Vendor Atlassian DevInfo Service', () => {
 		}, 30000);
 
 		it('should handle empty development information gracefully', async () => {
-			if (skipIfUnavailable()) {
-				console.warn(
-					'Skipping empty devinfo test: DevInfo API not available',
-				);
-				return;
-			}
+			if (skipIfNoCredentials()) return;
 
 			const issueId = await getValidIssueId();
 			if (!issueId) {
@@ -398,13 +451,15 @@ describe('Vendor Atlassian DevInfo Service', () => {
 				expect(result).toHaveProperty('branches');
 				expect(result).toHaveProperty('pullRequests');
 			} catch (error) {
-				// If API doesn't support devinfo, we'll skip the test without failing
+				// If API has authentication issues or doesn't support devinfo, skip without failing
 				if (
 					error instanceof McpError &&
-					(error.statusCode === 404 || error.statusCode === 403)
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
 				) {
 					console.warn(
-						'DevInfo API may not be available in this Jira instance',
+						'DevInfo API is not accessible: authentication error or feature not available',
 					);
 					return;
 				}
@@ -413,8 +468,36 @@ describe('Vendor Atlassian DevInfo Service', () => {
 		}, 30000);
 
 		it('should handle errors for non-existent issue ID', async () => {
-			if (skipIfUnavailable()) return;
+			if (skipIfNoCredentials()) return;
 
+			// First check if we can access the DevInfo API at all
+			try {
+				const testId = await getValidIssueId();
+				if (testId) {
+					// Quick auth check
+					await atlassianDevinfoService.getAllDevInfo(testId);
+				} else {
+					console.warn(
+						'Skipping non-existent ID test: No test issue available',
+					);
+					return;
+				}
+			} catch (error) {
+				// If we can't access the API at all, skip this test
+				if (
+					error instanceof McpError &&
+					(error.statusCode === 401 ||
+						error.statusCode === 403 ||
+						error.statusCode === 404)
+				) {
+					console.warn(
+						'Skipping non-existent ID test: DevInfo API not accessible',
+					);
+					return;
+				}
+			}
+
+			// Actual test for non-existent ID
 			const nonExistentIssueId = '99999999';
 
 			try {

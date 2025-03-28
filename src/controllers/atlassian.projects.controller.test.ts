@@ -125,6 +125,79 @@ describe('Atlassian Projects Controller', () => {
 				// Further checks could involve verifying sorting/filtering in Markdown, but that's complex
 			}
 		}, 30000);
+
+		it('should handle empty result scenario gracefully', async () => {
+			if (skipIfNoCredentials()) return;
+
+			// Use a name that is very unlikely to match any projects
+			const uniqueName = `NONEXISTENT_PROJECT_${Date.now()}`;
+			const result = await atlassianProjectsController.list({
+				name: uniqueName,
+			});
+
+			// Verify the ControllerResponse structure
+			expect(result).toHaveProperty('content');
+			expect(typeof result.content).toBe('string');
+
+			// Should show no projects found message
+			expect(result.content).toBe(
+				'No Jira projects found matching your criteria.',
+			);
+
+			// Should have pagination but with count 0 and hasMore false
+			expect(result.pagination).toBeDefined();
+			expect(result.pagination).toHaveProperty('count', 0);
+			expect(result.pagination).toHaveProperty('hasMore', false);
+			expect(result.pagination?.nextCursor).toBeUndefined();
+		}, 30000);
+
+		it('should handle various filtering combinations', async () => {
+			if (skipIfNoCredentials()) return;
+
+			// Find a project to use for filtering
+			const listResult = await atlassianProjectsController.list({
+				limit: 1,
+			});
+			if (
+				listResult.content ===
+				'No Jira projects found matching your criteria.'
+			) {
+				console.warn(
+					'Skipping controller combined filters test: No projects found.',
+				);
+				return;
+			}
+
+			// Extract a project key from the content
+			const keyMatch = listResult.content.match(
+				/\*\*Key\*\*:\s+([^\s\n]+)/,
+			);
+			if (!keyMatch || !keyMatch[1]) {
+				console.warn(
+					'Skipping controller combined filters test: Could not extract project key.',
+				);
+				return;
+			}
+			const projectKey = keyMatch[1];
+
+			// Test filtering by exact key (should return exactly one project)
+			const result = await atlassianProjectsController.list({
+				name: projectKey, // Use the key as the name filter
+				orderBy: 'key',
+				limit: 10,
+			});
+
+			// Verify response (might find 0 or 1 projects due to exact matching)
+			expect(result).toHaveProperty('content');
+			expect(typeof result.content).toBe('string');
+			expect(result).toHaveProperty('pagination');
+			expect(result.pagination).toHaveProperty('count');
+
+			// If we found exactly the project we filtered for, its key should be in the content
+			if (result.pagination?.count === 1) {
+				expect(result.content).toContain(`**Key**: ${projectKey}`);
+			}
+		}, 30000);
 	});
 
 	describe('get', () => {
@@ -210,6 +283,41 @@ describe('Atlassian Projects Controller', () => {
 				expect(e).toBeInstanceOf(McpError);
 				expect((e as McpError).statusCode).toBe(404); // Expecting Not Found
 				expect((e as McpError).message).toContain('not found');
+			}
+		}, 30000);
+
+		it('should throw McpError for an invalid project key/ID format', async () => {
+			if (skipIfNoCredentials()) return;
+
+			// Use a key with invalid characters
+			const invalidFormat = 'invalid!key@format#$%';
+
+			try {
+				await atlassianProjectsController.get({
+					projectKeyOrId: invalidFormat,
+				});
+				fail('Expected an error for invalid project key format');
+			} catch (error) {
+				expect(error).toBeInstanceOf(McpError);
+				// Status code should be 404 (Not Found) or 400 (Bad Request)
+				expect([404, 400]).toContain((error as McpError).statusCode);
+			}
+		}, 30000);
+
+		it('should throw McpError for an empty project key/ID', async () => {
+			if (skipIfNoCredentials()) return;
+
+			try {
+				await atlassianProjectsController.get({
+					projectKeyOrId: '',
+				});
+				fail('Expected an error for empty project key/ID');
+			} catch (error) {
+				expect(error).toBeInstanceOf(McpError);
+				// Status code might vary by API implementation
+				expect([400, 404, 405]).toContain(
+					(error as McpError).statusCode,
+				);
 			}
 		}, 30000);
 	});
