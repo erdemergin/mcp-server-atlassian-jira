@@ -130,6 +130,128 @@ describe('Vendor Atlassian Projects Service', () => {
 				).toBe(true);
 			});
 		}, 30000);
+
+		it('should support filtering with keys', async () => {
+			if (skipIfNoCredentials()) return;
+
+			// First get a list of projects to extract some keys
+			const initialList = await atlassianProjectsService.list({
+				maxResults: 2,
+			});
+			if (initialList.values.length < 1) {
+				console.warn(
+					'Skipping keys filter test: Not enough projects available',
+				);
+				return;
+			}
+
+			// Extract keys from initial results
+			const projectKeys = initialList.values.map(
+				(project) => project.key,
+			);
+
+			try {
+				// Request filtered results by keys
+				const result = await atlassianProjectsService.list({
+					keys: projectKeys,
+				});
+
+				// Verify filtering worked correctly
+				expect(Array.isArray(result.values)).toBe(true);
+
+				// If results are returned, verify they match the filter
+				if (result.values.length > 0) {
+					result.values.forEach((project) => {
+						expect(projectKeys).toContain(project.key);
+					});
+				}
+			} catch (error) {
+				// Some Jira instances might not support filtering by keys
+				// In that case, we'll accept the error as valid
+				expect(error).toBeInstanceOf(McpError);
+				expect((error as McpError).statusCode).toBe(400);
+			}
+		}, 30000);
+
+		it('should support filtering with ids', async () => {
+			if (skipIfNoCredentials()) return;
+
+			// First get a list of projects to extract some IDs
+			const initialList = await atlassianProjectsService.list({
+				maxResults: 2,
+			});
+			if (initialList.values.length < 1) {
+				console.warn(
+					'Skipping IDs filter test: Not enough projects available',
+				);
+				return;
+			}
+
+			// Extract IDs from initial results
+			const projectIds = initialList.values.map((project) => project.id);
+
+			try {
+				// Request filtered results by IDs
+				const result = await atlassianProjectsService.list({
+					ids: projectIds,
+				});
+
+				// Verify filtering worked correctly
+				expect(Array.isArray(result.values)).toBe(true);
+
+				// If results are returned, verify they match the filter
+				if (result.values.length > 0) {
+					result.values.forEach((project) => {
+						expect(projectIds).toContain(project.id);
+					});
+				}
+			} catch (error) {
+				// Some Jira instances might not support filtering by IDs
+				// In that case, we'll accept the error as valid
+				expect(error).toBeInstanceOf(McpError);
+				expect((error as McpError).statusCode).toBe(400);
+			}
+		}, 30000);
+
+		it('should handle combining multiple filters', async () => {
+			if (skipIfNoCredentials()) return;
+
+			// First get a project to use for filtering
+			const initialList = await atlassianProjectsService.list({
+				maxResults: 1,
+			});
+			if (initialList.values.length < 1) {
+				console.warn(
+					'Skipping combined filter test: No projects available',
+				);
+				return;
+			}
+
+			// Extract first project's id and key
+			const projectId = initialList.values[0].id;
+			const projectKey = initialList.values[0].key;
+
+			// Request with multiple filters (query + id)
+			try {
+				const result = await atlassianProjectsService.list({
+					ids: [projectId],
+					query: projectKey, // Use key as query text
+				});
+
+				// Verify filtering worked correctly (should return 0 or 1 results)
+				expect(result.values.length).toBeLessThanOrEqual(1);
+
+				// If a result is returned, it must match both filters
+				if (result.values.length === 1) {
+					expect(result.values[0].id).toBe(projectId);
+					expect(result.values[0].key).toBe(projectKey);
+				}
+			} catch (error) {
+				// Some Jira servers might not support combining filters
+				// In that case, this should throw a properly formatted error
+				expect(error).toBeInstanceOf(McpError);
+			}
+		}, 30000);
 	});
 
 	describe('get', () => {
@@ -209,6 +331,48 @@ describe('Vendor Atlassian Projects Service', () => {
 			} catch (e) {
 				expect(e).toBeInstanceOf(McpError);
 				expect((e as McpError).statusCode).toBe(404); // Expecting Not Found
+			}
+		}, 30000);
+
+		it('should throw an McpError for invalid key format', async () => {
+			if (skipIfNoCredentials()) return;
+
+			// Test with an invalid key format (keys should be uppercase letters and numbers)
+			const invalidFormat = 'invalid!key@format#$%';
+
+			try {
+				await atlassianProjectsService.get(invalidFormat);
+				fail('Expected an error for invalid key format');
+			} catch (error) {
+				expect(error).toBeInstanceOf(McpError);
+				// API should return 404 or 400 for invalid format
+				expect([400, 404]).toContain((error as McpError).statusCode);
+			}
+		}, 30000);
+
+		it('should throw an McpError for empty project key/ID', async () => {
+			if (skipIfNoCredentials()) return;
+
+			try {
+				// We need to cast the empty string to 'any' to bypass TypeScript's type checking
+				// The purpose of this test is to check the API's handling of an empty value
+				await atlassianProjectsService.get('' as any);
+				fail('Expected an error for empty key/ID');
+			} catch (error) {
+				// Error might be a JavaScript ReferenceError or an McpError depending on implementation
+				// We'll accept either as valid
+				expect(
+					error instanceof McpError ||
+						error instanceof ReferenceError ||
+						error instanceof TypeError,
+				).toBe(true);
+
+				// If it's an McpError, check status code
+				if (error instanceof McpError) {
+					expect([400, 404, 405]).toContain(
+						(error as McpError).statusCode,
+					);
+				}
 			}
 		}, 30000);
 	});
