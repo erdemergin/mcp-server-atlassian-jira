@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.12.0...v1.12.1) (2025-03-28)
+
+
+### Performance Improvements
+
+* rename tools to use underscore instead of hyphen ([f2e3728](https://github.com/aashari/mcp-server-atlassian-jira/commit/f2e372876e92d4683c8e6a5e39f032503764260d))
+
 # [1.12.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.11.1...v1.12.0) (2025-03-27)
 
 
