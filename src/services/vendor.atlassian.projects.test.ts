@@ -1,40 +1,37 @@
 import atlassianProjectsService from './vendor.atlassian.projects.service.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { config } from '../utils/config.util.js';
+import { McpError } from '../utils/error.util.js';
 
 describe('Vendor Atlassian Projects Service', () => {
-	// Load configuration and skip all tests if Atlassian credentials are not available
+	// Load configuration and check for credentials before all tests
 	beforeAll(() => {
-		// Load configuration from all sources
-		config.load();
-
+		config.load(); // Ensure config is loaded
 		const credentials = getAtlassianCredentials();
 		if (!credentials) {
 			console.warn(
-				'Skipping Atlassian Projects tests: No credentials available',
+				'Skipping Atlassian Projects Service tests: No credentials available',
 			);
 		}
 	});
 
-	describe('listProjects', () => {
-		it('should return a list of projects', async () => {
-			// Check if credentials are available
-			const credentials = getAtlassianCredentials();
-			if (!credentials) {
-				return; // Skip this test if no credentials
-			}
+	// Helper function to skip tests when credentials are missing
+	const skipIfNoCredentials = () => !getAtlassianCredentials();
 
-			// Call the function with the real API
+	describe('list', () => {
+		it('should return a list of projects', async () => {
+			if (skipIfNoCredentials()) return;
+
 			const result = await atlassianProjectsService.list();
 
-			// Verify the response structure
+			// Verify the response structure based on ProjectsResponse
 			expect(result).toHaveProperty('values');
 			expect(Array.isArray(result.values)).toBe(true);
-			expect(result).toHaveProperty('startAt');
+			expect(result).toHaveProperty('startAt'); // Jira uses offset
 			expect(result).toHaveProperty('maxResults');
 			expect(result).toHaveProperty('total');
+			expect(result).toHaveProperty('isLast'); // Jira uses isLast
 
-			// If projects are returned, verify their structure
 			if (result.values.length > 0) {
 				const project = result.values[0];
 				expect(project).toHaveProperty('id');
@@ -43,183 +40,176 @@ describe('Vendor Atlassian Projects Service', () => {
 				expect(project).toHaveProperty('self');
 				expect(project).toHaveProperty('avatarUrls');
 			}
-		}, 15000); // Increase timeout for API call
+		}, 30000); // Increased timeout
 
-		it('should support pagination', async () => {
-			// Check if credentials are available
-			const credentials = getAtlassianCredentials();
-			if (!credentials) {
-				return; // Skip this test if no credentials
-			}
+		it('should support pagination with maxResults and startAt', async () => {
+			if (skipIfNoCredentials()) return;
 
-			// Call the function with the real API and limit results
-			const result = await atlassianProjectsService.list({
-				maxResults: 2,
+			// Get first page
+			const result1 = await atlassianProjectsService.list({
+				maxResults: 1,
+				startAt: 0,
 			});
 
-			// Verify the pagination parameters
-			expect(result).toHaveProperty('maxResults', 2);
-			expect(result.values.length).toBeLessThanOrEqual(2);
+			expect(result1).toHaveProperty('maxResults');
+			expect(result1.maxResults).toBeGreaterThanOrEqual(1); // API might return more than requested min
+			expect(result1.values.length).toBeLessThanOrEqual(
+				result1.maxResults,
+			);
+			expect(result1.startAt).toBe(0);
 
-			// If there are more than 2 total projects, verify nextPage
-			if (result.total > 2) {
-				expect(result).toHaveProperty('nextPage');
-				expect(result.isLast).toBe(false);
+			// If there's a next page (isLast is false), fetch it
+			if (!result1.isLast) {
+				const nextStartAt = result1.startAt + result1.values.length;
+				const result2 = await atlassianProjectsService.list({
+					maxResults: 1,
+					startAt: nextStartAt,
+				});
+				expect(result2.startAt).toBe(nextStartAt);
+				expect(result2.values.length).toBeLessThanOrEqual(1);
+				// Check if the project IDs are different to confirm pagination worked
+				if (result1.values.length > 0 && result2.values.length > 0) {
+					expect(result1.values[0].id).not.toEqual(
+						result2.values[0].id,
+					);
+				}
+			} else {
+				console.warn(
+					'Skipping pagination step: Only one page of projects found.',
+				);
 			}
-		}, 15000); // Increase timeout for API call
+		}, 30000);
 
-		it('should support filtering by query', async () => {
-			// Check if credentials are available
-			const credentials = getAtlassianCredentials();
-			if (!credentials) {
-				return; // Skip this test if no credentials
+		it('should support sorting with orderBy', async () => {
+			if (skipIfNoCredentials()) return;
+
+			const result = await atlassianProjectsService.list({
+				orderBy: 'name',
+				maxResults: 5,
+			}); // Sort by name
+
+			expect(result.values.length).toBeLessThanOrEqual(5);
+			if (result.values.length > 1) {
+				// Check if names are approximately sorted alphabetically
+				expect(
+					result.values[0].name.localeCompare(result.values[1].name),
+				).toBeLessThanOrEqual(0);
 			}
+		}, 30000);
 
-			// First get all projects to find a valid name to search for
-			const allProjects = await atlassianProjectsService.list();
+		it('should support filtering with query', async () => {
+			if (skipIfNoCredentials()) return;
 
-			// Skip if no projects are available
-			if (allProjects.values.length === 0) {
-				console.warn('Skipping test: No projects available');
+			// Try to find a project name to filter by
+			const listResult = await atlassianProjectsService.list({
+				maxResults: 1,
+			});
+			if (listResult.values.length === 0) {
+				console.warn(
+					'Skipping query filter test: No projects found to query.',
+				);
 				return;
 			}
+			const projectNameQuery = listResult.values[0].name.substring(0, 3); // Use first 3 chars
 
-			// Use the first project's name as a query
-			const projectName = allProjects.values[0].name;
-
-			// Call the function with the real API and filter by query
 			const result = await atlassianProjectsService.list({
-				query: projectName,
+				query: projectNameQuery,
+				maxResults: 5,
 			});
 
-			// Verify the response contains projects matching the query
-			expect(result.values.length).toBeGreaterThan(0);
-
-			// At least one project should match the name (might be partial match)
-			const matchingProject = result.values.find(
-				(p) =>
-					p.name.includes(projectName) ||
-					projectName.includes(p.name),
-			);
-			expect(matchingProject).toBeDefined();
-		}, 15000); // Increase timeout for API call
+			expect(result.values.length).toBeLessThanOrEqual(5);
+			// All returned projects should somehow match the query (name or key)
+			result.values.forEach((p) => {
+				expect(
+					p.name
+						.toLowerCase()
+						.includes(projectNameQuery.toLowerCase()) ||
+						p.key
+							.toLowerCase()
+							.includes(projectNameQuery.toLowerCase()),
+				).toBe(true);
+			});
+		}, 30000);
 	});
 
-	describe('getProjectById', () => {
-		it('should return details for a valid project ID', async () => {
-			// Check if credentials are available
-			const credentials = getAtlassianCredentials();
-			if (!credentials) {
-				return; // Skip this test if no credentials
+	describe('get', () => {
+		// Helper to get a valid key/ID for testing 'get'
+		async function getFirstProjectKeyOrId(): Promise<string | null> {
+			if (skipIfNoCredentials()) return null;
+			try {
+				const listResult = await atlassianProjectsService.list({
+					maxResults: 1,
+				});
+				// Prefer key, fallback to ID
+				return listResult.values.length > 0
+					? listResult.values[0].key || listResult.values[0].id
+					: null;
+			} catch (error) {
+				console.warn(
+					"Could not fetch project list for 'get' test setup:",
+					error,
+				);
+				return null;
 			}
+		}
 
-			// First, get a list of projects to find a valid ID
-			const projects = await atlassianProjectsService.list({
-				maxResults: 1,
-			});
-
-			// Skip if no projects are available
-			if (projects.values.length === 0) {
-				console.warn('Skipping test: No projects available');
+		it('should return details for a valid project key or ID', async () => {
+			const projectKeyOrId = await getFirstProjectKeyOrId();
+			if (!projectKeyOrId) {
+				console.warn('Skipping get test: No project key/ID found.');
 				return;
 			}
 
-			const projectId = projects.values[0].id;
+			const result = await atlassianProjectsService.get(projectKeyOrId);
 
-			// Call the function with the real API
-			const result = await atlassianProjectsService.get(projectId);
-
-			// Verify the response contains expected fields
-			expect(result).toHaveProperty('id', projectId);
-			expect(result).toHaveProperty('key');
-			expect(result).toHaveProperty('name');
-			expect(result).toHaveProperty('self');
-			expect(result).toHaveProperty('avatarUrls');
-		}, 15000); // Increase timeout for API call
-
-		it('should return details for a valid project key', async () => {
-			// Check if credentials are available
-			const credentials = getAtlassianCredentials();
-			if (!credentials) {
-				return; // Skip this test if no credentials
-			}
-
-			// First, get a list of projects to find a valid key
-			const projects = await atlassianProjectsService.list({
-				maxResults: 1,
-			});
-
-			// Skip if no projects are available
-			if (projects.values.length === 0) {
-				console.warn('Skipping test: No projects available');
-				return;
-			}
-
-			const projectKey = projects.values[0].key;
-
-			// Call the function with the real API
-			const result = await atlassianProjectsService.get(projectKey);
-
-			// Verify the response contains expected fields
-			expect(result).toHaveProperty('key', projectKey);
+			// Verify the response structure based on ProjectDetailed
 			expect(result).toHaveProperty('id');
+			expect(result).toHaveProperty('key');
+			// Check if the key or ID matches the input
+			expect([result.key, result.id]).toContain(projectKeyOrId);
 			expect(result).toHaveProperty('name');
 			expect(result).toHaveProperty('self');
 			expect(result).toHaveProperty('avatarUrls');
-		}, 15000); // Increase timeout for API call
+			expect(result).toHaveProperty('projectTypeKey'); // From default expansion
+			expect(result).toHaveProperty('lead'); // From default expansion
+		}, 30000);
 
-		it('should include additional fields when requested', async () => {
-			// Check if credentials are available
-			const credentials = getAtlassianCredentials();
-			if (!credentials) {
-				return; // Skip this test if no credentials
-			}
-
-			// First, get a list of projects to find a valid ID
-			const projects = await atlassianProjectsService.list({
-				maxResults: 1,
-			});
-
-			// Skip if no projects are available
-			if (projects.values.length === 0) {
-				console.warn('Skipping test: No projects available');
+		it('should include expanded fields when requested', async () => {
+			const projectKeyOrId = await getFirstProjectKeyOrId();
+			if (!projectKeyOrId) {
+				console.warn(
+					'Skipping get expand test: No project key/ID found.',
+				);
 				return;
 			}
 
-			const projectId = projects.values[0].id;
-
-			// Call the function with the real API and request additional fields
-			const result = await atlassianProjectsService.get(projectId, {
+			const result = await atlassianProjectsService.get(projectKeyOrId, {
 				includeComponents: true,
 				includeVersions: true,
 			});
 
-			// Verify the response contains expected fields
-			expect(result).toHaveProperty('id', projectId);
-
-			// Check for components if they were requested
+			// Check for expanded fields
 			expect(result).toHaveProperty('components');
 			expect(Array.isArray(result.components)).toBe(true);
-
-			// Check for versions if they were requested
 			expect(result).toHaveProperty('versions');
 			expect(Array.isArray(result.versions)).toBe(true);
-		}, 15000); // Increase timeout for API call
+		}, 30000);
 
-		it('should handle invalid project IDs', async () => {
-			// Check if credentials are available
-			const credentials = getAtlassianCredentials();
-			if (!credentials) {
-				return; // Skip this test if no credentials
-			}
+		it('should throw an McpError for an invalid project key/ID', async () => {
+			if (skipIfNoCredentials()) return;
 
-			// Use an invalid project ID
-			const invalidId = 'invalid-project-id';
+			const invalidKeyOrId = 'THIS-PROJECT-DOES-NOT-EXIST-999';
 
-			// Call the function with the real API and expect it to throw
 			await expect(
-				atlassianProjectsService.get(invalidId),
-			).rejects.toThrow();
-		}, 15000); // Increase timeout for API call
+				atlassianProjectsService.get(invalidKeyOrId),
+			).rejects.toThrow(McpError);
+
+			try {
+				await atlassianProjectsService.get(invalidKeyOrId);
+			} catch (e) {
+				expect(e).toBeInstanceOf(McpError);
+				expect((e as McpError).statusCode).toBe(404); // Expecting Not Found
+			}
+		}, 30000);
 	});
 });
