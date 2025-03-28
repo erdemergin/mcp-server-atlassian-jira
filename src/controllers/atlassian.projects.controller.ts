@@ -65,7 +65,7 @@ async function list(
 		// Map controller options to service parameters
 		const serviceParams = {
 			// Optional filters
-			query: mergedOptions.query,
+			query: mergedOptions.name,
 			// Always include expanded fields
 			expand: ['description', 'lead'],
 			// Default sorting by last update time if not specified
@@ -114,17 +114,19 @@ async function list(
  * @returns Formatted project details
  */
 async function get(identifier: ProjectIdentifier): Promise<ControllerResponse> {
-	const { keyOrId } = identifier;
+	const { projectKeyOrId } = identifier;
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.projects.controller.ts',
 		'get',
 	);
 
-	methodLogger.debug(`Getting Jira project with ID/key: ${keyOrId}...`);
+	methodLogger.debug(
+		`Getting Jira project with key/ID: ${projectKeyOrId}...`,
+	);
 
-	// Validate project ID format
-	if (!keyOrId || keyOrId === 'invalid') {
-		throw createApiError('Invalid project ID', 400);
+	// Validate project key/ID format
+	if (!projectKeyOrId || projectKeyOrId === 'invalid') {
+		throw createApiError('Invalid project key or ID', 400);
 	}
 
 	try {
@@ -138,7 +140,7 @@ async function get(identifier: ProjectIdentifier): Promise<ControllerResponse> {
 		const serviceParams = defaults;
 
 		const projectData = await atlassianProjectsService.get(
-			keyOrId,
+			projectKeyOrId,
 			serviceParams,
 		);
 		// Log only key information instead of the entire response

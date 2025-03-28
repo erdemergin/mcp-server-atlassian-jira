@@ -6,10 +6,10 @@ import { PaginationOptions, EntityIdentifier } from '../types/common.types.js';
  */
 export interface ProjectIdentifier extends EntityIdentifier {
 	/**
-	 * The ID or key of the project to retrieve.
-	 * Can be either a numeric ID or a string project key.
+	 * The key or numeric ID of the project to retrieve.
+	 * Can be either a string project key (e.g., "PROJ") or a numeric ID (e.g., "10001").
 	 */
-	keyOrId: string;
+	projectKeyOrId: string;
 }
 
 /**
@@ -18,10 +18,10 @@ export interface ProjectIdentifier extends EntityIdentifier {
  */
 export interface ListProjectsOptions extends PaginationOptions {
 	/**
-	 * Filter projects by query (project name or key).
+	 * Filter projects by name or key.
 	 * Performs a case-insensitive partial match on project name and key.
 	 */
-	query?: string;
+	name?: string;
 
 	/**
 	 * Property to sort projects by (e.g., 'key', 'lastIssueUpdatedTime')

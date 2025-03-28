@@ -27,13 +27,13 @@ const PaginationArgs = {
  */
 const ListProjectsToolArgs = z.object({
 	/**
-	 * Standardized query parameter for text filtering
+	 * Filter by project name or key
 	 */
-	query: z
+	name: z
 		.string()
 		.optional()
 		.describe(
-			'Filter projects by name or key. Use this to search for specific projects by their name or project key.',
+			'Filter projects by name or key (case-insensitive). Use this to find specific projects by their display name or project key.',
 		),
 
 	/**
@@ -59,12 +59,12 @@ type ListProjectsToolArgsType = z.infer<typeof ListProjectsToolArgs>;
  */
 const GetProjectToolArgs = z.object({
 	/**
-	 * Standardized project identifier parameter
+	 * Project key or numeric ID
 	 */
 	projectKeyOrId: z
 		.string()
 		.describe(
-			'The ID or key of the Jira project to retrieve (e.g., "10001" or "PROJ"). This is required and must be a valid project ID or key from your Jira instance.',
+			'The key or numeric ID of the Jira project to retrieve (e.g., "PROJ" or "10001"). This is required and must be a valid project key or ID from your Jira instance.',
 		),
 });
 

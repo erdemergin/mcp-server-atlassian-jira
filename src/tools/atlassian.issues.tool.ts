@@ -88,7 +88,7 @@ async function getIssue(
 
 	try {
 		const message = await atlassianIssuesController.get({
-			idOrKey: args.issueIdOrKey,
+			issueIdOrKey: args.issueIdOrKey,
 		});
 		methodLogger.debug(
 			'Successfully retrieved issue details from controller',

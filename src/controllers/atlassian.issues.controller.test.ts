@@ -120,7 +120,7 @@ describe('Atlassian Issues Controller', () => {
 
 			// Call the controller with the issue key
 			const result = await atlassianIssuesController.get({
-				idOrKey: issueKey,
+				issueIdOrKey: issueKey,
 			});
 
 			// Verify the response structure
@@ -154,7 +154,7 @@ describe('Atlassian Issues Controller', () => {
 
 			// Call the controller with the issue key and optional fields
 			const result = await atlassianIssuesController.get(
-				{ idOrKey: issueKey },
+				{ issueIdOrKey: issueKey },
 				{
 					includeComments: true,
 					includeAttachments: true,
@@ -180,7 +180,7 @@ describe('Atlassian Issues Controller', () => {
 			// Call the controller with a non-existent issue key
 			try {
 				await atlassianIssuesController.get({
-					idOrKey: 'NONEXISTENT-99999',
+					issueIdOrKey: 'NONEXISTENT-99999',
 				});
 				// If we get here, the test should fail
 				expect(true).toBe(false);

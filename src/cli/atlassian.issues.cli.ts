@@ -150,7 +150,7 @@ function registerGetIssueCommand(program: Command): void {
         PURPOSE: Retrieve comprehensive details for a *known* issue, including its summary, description, status, priority, assignee, reporter, comments, attachments, and all standard fields.`,
 		)
 		.requiredOption(
-			'-i, --id <idOrKey>',
+			'--issue-id-or-key <idOrKey>',
 			'ID or key of the issue to retrieve (e.g., "TEAM-123" or "10001")',
 		)
 		.action(async (options) => {
@@ -163,14 +163,17 @@ function registerGetIssueCommand(program: Command): void {
 				actionLogger.debug('Processing command options:', options);
 
 				// Validate issue ID/key
-				if (!options.id || options.id.trim() === '') {
+				if (
+					!options.issueIdOrKey ||
+					options.issueIdOrKey.trim() === ''
+				) {
 					throw new Error('Issue ID or key must not be empty.');
 				}
 
-				actionLogger.debug(`Fetching issue: ${options.id}`);
+				actionLogger.debug(`Fetching issue: ${options.issueIdOrKey}`);
 
 				const result = await atlassianIssuesController.get({
-					idOrKey: options.id,
+					issueIdOrKey: options.issueIdOrKey,
 				});
 
 				console.log(result.content);

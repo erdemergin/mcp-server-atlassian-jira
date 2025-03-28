@@ -53,7 +53,8 @@ function registerListProjectsCommand(program: Command): void {
         
         Examples:
   $ mcp-jira list-projects --limit 10
-  $ mcp-jira list-projects --query "Marketing" --limit 25 --cursor "25"`,
+  $ mcp-jira list-projects --name "Marketing" --limit 25 --cursor "25"
+  $ mcp-jira list-projects --order-by "key"`,
 		)
 		.option(
 			'-l, --limit <number>',
@@ -65,12 +66,12 @@ function registerListProjectsCommand(program: Command): void {
 			'Pagination cursor for retrieving the next set of results',
 		)
 		.option(
-			'-q, --query <query>',
+			'--name <name>',
 			'Filter projects by name or key (case-insensitive)',
 		)
 		.option(
-			'-s, --sort <sort>',
-			'Sort projects by key or name (ascending or descending)',
+			'--order-by <field>',
+			'Sort projects by field (e.g., key, name, lastIssueUpdatedTime)',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
@@ -93,28 +94,28 @@ function registerListProjectsCommand(program: Command): void {
 
 				// Validate sort if provided - only allow valid sort fields
 				if (
-					options.sort &&
-					!['key', 'name', '-key', '-name'].includes(options.sort)
+					options.orderBy &&
+					!['key', 'name', '-key', '-name'].includes(options.orderBy)
 				) {
 					throw new Error(
-						'Invalid --sort value: Must be one of: key, name, -key, -name.',
+						'Invalid --order-by value: Must be one of: key, name, -key, -name.',
 					);
 				}
 
-				// Validate query value format if provided
-				if (options.query && typeof options.query !== 'string') {
+				// Validate name value format if provided
+				if (options.name && typeof options.name !== 'string') {
 					throw new Error(
-						'Invalid --query value: Must be a valid search string.',
+						'Invalid --name value: Must be a valid search string.',
 					);
 				}
 
 				const filterOptions: ListProjectsOptions = {
-					...(options.query && { query: options.query }),
+					...(options.name && { name: options.name }),
 					...(options.limit && {
 						limit: parseInt(options.limit, 10),
 					}),
 					...(options.cursor && { cursor: options.cursor }),
-					...(options.sort && { sort: options.sort }),
+					...(options.orderBy && { orderBy: options.orderBy }),
 				};
 
 				actionLogger.debug(
@@ -163,13 +164,13 @@ function registerGetProjectCommand(program: Command): void {
 	program
 		.command('get-project')
 		.description(
-			`Get detailed information about a specific Jira project using its ID or key.
+			`Get detailed information about a specific Jira project using its key or ID.
 
         PURPOSE: Retrieve comprehensive metadata for a *known* project, including its full description, lead, components, versions, style, and links.`,
 		)
 		.requiredOption(
-			'-k, --key <keyOrId>',
-			'ID or key of the project to retrieve (e.g., "TEAM" or "10001")',
+			'--project-key-or-id <keyOrId>',
+			'Key or numeric ID of the project to retrieve (e.g., "TEAM" or "10001")',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
@@ -180,15 +181,20 @@ function registerGetProjectCommand(program: Command): void {
 			try {
 				actionLogger.debug('Processing command options:', options);
 
-				// Validate project ID/key
-				if (!options.key || options.key.trim() === '') {
-					throw new Error('Project ID or key must not be empty.');
+				// Validate project key/ID
+				if (
+					!options.projectKeyOrId ||
+					options.projectKeyOrId.trim() === ''
+				) {
+					throw new Error('Project key or ID must not be empty.');
 				}
 
-				actionLogger.debug(`Fetching project: ${options.key}`);
+				actionLogger.debug(
+					`Fetching project: ${options.projectKeyOrId}`,
+				);
 
 				const result = await atlassianProjectsController.get({
-					keyOrId: options.key,
+					projectKeyOrId: options.projectKeyOrId,
 				});
 
 				console.log(result.content);

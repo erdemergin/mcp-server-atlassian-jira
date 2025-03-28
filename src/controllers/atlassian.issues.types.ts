@@ -5,9 +5,9 @@ import { PaginationOptions, EntityIdentifier } from '../types/common.types.js';
  */
 export interface IssueIdentifier extends EntityIdentifier {
 	/**
-	 * The ID or key of the issue to retrieve
+	 * The ID or key of the issue to retrieve (e.g., "PROJ-123" or "10001")
 	 */
-	idOrKey: string;
+	issueIdOrKey: string;
 }
 
 /**

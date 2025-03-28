@@ -41,9 +41,10 @@ async function listProjects(
 	try {
 		// Pass the options to the controller
 		const message = await atlassianProjectsController.list({
-			query: args.query,
+			name: args.name,
 			limit: args.limit,
 			cursor: args.cursor,
+			orderBy: args.orderBy,
 		});
 
 		methodLogger.debug('Successfully retrieved projects from controller');
@@ -83,12 +84,12 @@ async function getProject(
 	);
 
 	methodLogger.debug(
-		`Retrieving project details for ID/key: ${args.projectKeyOrId}`,
+		`Retrieving project details for key/ID: ${args.projectKeyOrId}`,
 	);
 
 	try {
 		const message = await atlassianProjectsController.get({
-			keyOrId: args.projectKeyOrId,
+			projectKeyOrId: args.projectKeyOrId,
 		});
 		methodLogger.debug(
 			'Successfully retrieved project details from controller',
@@ -128,16 +129,16 @@ function register(server: McpServer) {
 		'list_projects',
 		`List Jira projects accessible to the authenticated user, with optional filtering by name/key and pagination.
 
-        PURPOSE: Discover available projects and retrieve their keys, names, and basic metadata. Essential for finding the correct 'projectKeyOrId' needed as input for the 'get_project' tool or for filtering issues using JQL in the 'list_issues' tool (e.g., "project = KEY").
+        PURPOSE: Discover available projects and retrieve their keys, names, and basic metadata. Essential for finding the correct project key needed as input for the 'get_project' tool or for filtering issues using JQL in the 'list_issues' tool (e.g., "project = KEY").
 
         WHEN TO USE:
-        - To find the 'projectKeyOrId' for a known project name.
+        - To find the project key for a known project name.
         - To explore all projects you have access to.
         - To get a high-level overview before diving into specific projects or issues.
-        - When you don't know the exact key/ID required by other tools.
+        - When you don't know the exact key required by other tools.
 
         WHEN NOT TO USE:
-        - When you already have the 'projectKeyOrId' and need full details (use 'get_project').
+        - When you already have the project key and need full details (use 'get_project').
         - When you need to list *issues* (use 'list_issues').
 
         RETURNS: Formatted list of projects including name, key, ID, type, style, lead, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
@@ -146,13 +147,13 @@ function register(server: McpServer) {
 
         EXAMPLES:
         - List all accessible projects (first page): {}
-        - Filter by name/key fragment: { query: "platform" }
+        - Filter by name/key fragment: { name: "platform" }
         - Paginate results (get next page starting from index 50): { limit: 50, cursor: "50" }
         - Sort by key: { orderBy: "key" }
 
         ERRORS:
         - Authentication failures: Check Jira credentials.
-        - No projects found: You may not have access to any projects, or the query filter is too restrictive.`,
+        - No projects found: You may not have access to any projects, or the name filter is too restrictive.`,
 		ListProjectsToolArgs.shape,
 		listProjects,
 	);
@@ -160,13 +161,13 @@ function register(server: McpServer) {
 	// Register the get project details tool
 	server.tool(
 		'get_project',
-		`Get detailed information about a specific Jira project using its ID or key. Requires 'projectKeyOrId'.
+		`Get detailed information about a specific Jira project using its key or ID. Requires 'projectKeyOrId'.
 
         PURPOSE: Retrieves comprehensive metadata for a *known* project, including its full description, lead, components, versions, style, and links.
 
         WHEN TO USE:
         - When you need full details about a *specific* project and you know its key ('PROJ') or ID ('10001').
-        - After using 'list_projects' to identify the target project key/ID.
+        - After using 'list_projects' to identify the target project key or ID.
         - To get project metadata, components, or versions before analyzing its issues.
 
         WHEN NOT TO USE:

@@ -159,7 +159,7 @@ async function list(
 /**
  * Get details of a specific Jira issue
  * @param identifier - Object containing the ID or key of the issue to retrieve
- * @param identifier.idOrKey - The ID or key of the issue
+ * @param identifier.issueIdOrKey - The ID or key of the issue (e.g., "PROJ-123" or "10001")
  * @param _options - Options for retrieving the issue (currently not used, but maintained for future extensibility)
  * @returns Promise with formatted issue details content
  * @throws Error if issue retrieval fails
@@ -168,16 +168,16 @@ async function get(
 	identifier: IssueIdentifier,
 	_options: GetIssueOptions = {},
 ): Promise<ControllerResponse> {
-	const { idOrKey } = identifier;
+	const { issueIdOrKey } = identifier;
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.issues.controller.ts',
 		'get',
 	);
 
-	methodLogger.debug(`Getting Jira issue with ID/key: ${idOrKey}...`);
+	methodLogger.debug(`Getting Jira issue with ID/key: ${issueIdOrKey}...`);
 
 	// Validate issue ID format
-	if (!idOrKey || idOrKey === 'invalid') {
+	if (!issueIdOrKey || issueIdOrKey === 'invalid') {
 		throw createApiError('Invalid issue ID', 400);
 	}
 
@@ -202,17 +202,12 @@ async function get(
 			'issuelinks',
 		];
 
-		// Parameters for the service call
-		const params = {
+		// Get issue details
+		const issueData = await atlassianIssuesService.get(issueIdOrKey, {
 			fields,
-			updateHistory: true, // Mark as viewed
-		};
+		});
 
-		methodLogger.debug('Using params:', params);
-
-		const issueData = await atlassianIssuesService.get(idOrKey, params);
-		// Log only key information instead of the entire response
-		methodLogger.debug(`Retrieved issue: ${issueData.key}`);
+		methodLogger.debug(`Retrieved issue: ${issueIdOrKey}`);
 
 		// Format the issue data for display using the formatter
 		const formattedIssue = formatIssueDetails(issueData);
