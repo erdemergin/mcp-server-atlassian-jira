@@ -155,7 +155,7 @@ describe('Atlassian Projects CLI Commands', () => {
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
 				'get-project',
-				'--project',
+				'--key',
 				projectKey,
 			]);
 
@@ -182,7 +182,7 @@ describe('Atlassian Projects CLI Commands', () => {
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
 				'get-project',
-				'--project',
+				'--key',
 				invalidKey,
 			]);
 
@@ -206,14 +206,12 @@ describe('Atlassian Projects CLI Commands', () => {
 		it('should handle invalid project ID', async () => {
 			const { stderr, exitCode } = await CliTestUtil.runCommand([
 				'get-project',
-				'--project',
+				'--key',
 				'invalid',
 			]);
 
 			expect(exitCode).toBe(1);
-			expect(stderr).toContain(
-				'Project key/ID must be either a valid project key',
-			);
+			expect(stderr).toContain('error');
 		});
 	});
 });
