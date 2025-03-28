@@ -1,4 +1,5 @@
 import atlassianIssuesService from '../services/vendor.atlassian.issues.service.js';
+import atlassianDevInfoService from '../services/vendor.atlassian.devinfo.service.js';
 import { Logger } from '../utils/logger.util.js';
 import { handleControllerError } from '../utils/error-handler.util.js';
 import { createApiError } from '../utils/error.util.js';
@@ -16,8 +17,13 @@ import {
 import {
 	formatIssuesList,
 	formatIssueDetails,
+	formatDevelopmentInfo,
 } from './atlassian.issues.formatter.js';
 import { DEFAULT_PAGE_SIZE, applyDefaults } from '../utils/defaults.util.js';
+import {
+	DevInfoResponse,
+	DevInfoSummaryResponse,
+} from '../services/vendor.atlassian.issues.types.js';
 
 /**
  * Controller for managing Jira issues.
@@ -211,12 +217,77 @@ async function get(
 		// Format the issue data for display using the formatter
 		const formattedIssue = formatIssueDetails(issueData);
 
+		// Get development information if available
+		let devInfoSummary: DevInfoSummaryResponse | null = null;
+		let devInfoCommits: DevInfoResponse | null = null;
+		let devInfoBranches: DevInfoResponse | null = null;
+		let devInfoPullRequests: DevInfoResponse | null = null;
+
+		try {
+			// Use the issue ID to get development information
+			methodLogger.debug(
+				`Getting development information for issue ID: ${issueData.id}...`,
+			);
+
+			// Get summary first to check if there's any dev info available
+			devInfoSummary = await atlassianDevInfoService.getSummary(
+				issueData.id,
+			);
+
+			// If there's any development information available, get the details
+			if (
+				devInfoSummary?.summary?.repository?.overall?.count ||
+				devInfoSummary?.summary?.branch?.overall?.count ||
+				devInfoSummary?.summary?.pullrequest?.overall?.count
+			) {
+				// Fetch detailed development information
+				methodLogger.debug(
+					'Development information available, fetching details...',
+				);
+
+				// Run these in parallel for better performance
+				[devInfoCommits, devInfoBranches, devInfoPullRequests] =
+					await Promise.all([
+						atlassianDevInfoService.getCommits(issueData.id),
+						atlassianDevInfoService.getBranches(issueData.id),
+						atlassianDevInfoService.getPullRequests(issueData.id),
+					]);
+
+				methodLogger.debug(
+					'Successfully retrieved development information',
+				);
+			} else {
+				methodLogger.debug(
+					'No development information available for this issue',
+				);
+			}
+		} catch (error) {
+			// Log the error but don't fail the whole request
+			methodLogger.warn(
+				'Failed to retrieve development information:',
+				error,
+			);
+		}
+
+		// Format development information if available
+		const formattedDevInfo = formatDevelopmentInfo(
+			devInfoSummary,
+			devInfoCommits,
+			devInfoBranches,
+			devInfoPullRequests,
+		);
+
+		// Combine the formatted issue details with the formatted development information
+		const combinedContent = formattedDevInfo
+			? `${formattedIssue}\n${formattedDevInfo}`
+			: formattedIssue;
+
 		return {
-			content: formattedIssue,
+			content: combinedContent,
 		};
 	} catch (error) {
 		// Use the standardized error handler
-		handleControllerError(error, {
+		return handleControllerError(error, {
 			entityType: 'Issue',
 			entityId: identifier,
 			operation: 'retrieving',

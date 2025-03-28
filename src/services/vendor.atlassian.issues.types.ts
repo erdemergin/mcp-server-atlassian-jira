@@ -287,3 +287,137 @@ export interface IssuesResponse {
 	schema?: Record<string, unknown>;
 	nextPageToken?: string;
 }
+
+/**
+ * Development information for issues
+ */
+export interface DevInfoCommit {
+	id: string;
+	displayId: string;
+	message: string;
+	author?: {
+		name: string;
+		avatar?: string;
+	};
+	authorTimestamp: string;
+	url: string;
+	fileCount: number;
+	merge: boolean;
+	files: Array<unknown>;
+}
+
+export interface DevInfoRepository {
+	id: string;
+	name: string;
+	avatar: string;
+	url: string;
+	commits?: DevInfoCommit[];
+}
+
+export interface DevInfoBranch {
+	name: string;
+	url: string;
+	createPullRequestUrl: string;
+	repository?: {
+		id: string;
+		name: string;
+		avatar: string;
+		url: string;
+	};
+	lastCommit?: DevInfoCommit;
+}
+
+export interface DevInfoReviewer {
+	name: string;
+	avatar?: string;
+	approved: boolean;
+}
+
+export interface DevInfoPullRequest {
+	id: string;
+	name: string;
+	commentCount: number;
+	source?: {
+		branch: string;
+		url: string;
+	};
+	destination?: {
+		branch: string;
+		url: string;
+	};
+	reviewers?: DevInfoReviewer[];
+	status: string;
+	url: string;
+	lastUpdate: string;
+	repositoryId: string;
+	repositoryName: string;
+	repositoryUrl: string;
+	repositoryAvatarUrl: string;
+	author?: {
+		name: string;
+		avatar?: string;
+	};
+}
+
+export interface DevInfoInstance {
+	singleInstance: boolean;
+	baseUrl: string;
+	name: string;
+	typeName: string;
+	id: string;
+	type: string;
+}
+
+export interface DevInfoDetail {
+	repositories?: DevInfoRepository[];
+	branches?: DevInfoBranch[];
+	pullRequests?: DevInfoPullRequest[];
+	_instance?: DevInfoInstance;
+}
+
+export interface DevInfoResponse {
+	errors: string[];
+	detail: DevInfoDetail[];
+}
+
+export interface DevInfoSummaryRepository {
+	count: number;
+	lastUpdated: string | null;
+	dataType: string;
+}
+
+export interface DevInfoSummaryPullRequest {
+	count: number;
+	lastUpdated: string | null;
+	stateCount: number;
+	state: string | null;
+	dataType: string;
+	open: boolean;
+}
+
+export interface DevInfoSummaryBranch {
+	count: number;
+	lastUpdated: string | null;
+	dataType: string;
+}
+
+export interface DevInfoSummaryData {
+	pullrequest: {
+		overall: DevInfoSummaryPullRequest;
+		byInstanceType: Record<string, { count: number; name: string }>;
+	};
+	repository: {
+		overall: DevInfoSummaryRepository;
+		byInstanceType: Record<string, { count: number; name: string }>;
+	};
+	branch: {
+		overall: DevInfoSummaryBranch;
+		byInstanceType: Record<string, { count: number; name: string }>;
+	};
+}
+
+export interface DevInfoSummaryResponse {
+	errors: string[];
+	configErrors: string[];
+	summary: DevInfoSummaryData;
+}

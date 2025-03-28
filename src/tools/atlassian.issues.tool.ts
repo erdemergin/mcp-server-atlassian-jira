@@ -165,10 +165,11 @@ function register(server: McpServer) {
 		'get_issue',
 		`Get detailed information about a specific Jira issue using its ID or key. Requires 'issueIdOrKey'.
 
-        PURPOSE: Retrieves comprehensive details for a *known* issue, including its summary, description (in Markdown), status, priority, assignee, reporter, comments, attachments, linked issues, worklogs, and all standard fields.
+        PURPOSE: Retrieves comprehensive details for a *known* issue, including its summary, description (in Markdown), status, priority, assignee, reporter, comments, attachments, linked issues, worklogs, and all standard fields. Also retrieves related development information like commits, branches, and pull requests if available.
 
         WHEN TO USE:
         - When you need the full content, comments, or metadata of a *specific* issue.
+        - When you need to see Git/Bitbucket commits, branches, or pull requests linked to the issue.
         - After using 'list_issues' to identify the target issue key/ID.
         - To get all context associated with an issue for analysis or summarization.
         - Requires a known 'issueIdOrKey' (e.g., "PROJ-123" or "10001").
@@ -178,7 +179,7 @@ function register(server: McpServer) {
         - When you only need a list of issues (use 'list_issues').
         - When you need project-level information (use project tools).
 
-        RETURNS: Detailed issue information including key, summary, description (converted to Markdown), status, priority, assignee, reporter, dates, time tracking, attachments, comments (converted to Markdown), linked issues, and worklogs. Fetches all available standard details by default.
+        RETURNS: Detailed issue information including key, summary, description (converted to Markdown), status, priority, assignee, reporter, dates, time tracking, attachments, comments (converted to Markdown), linked issues, worklogs, and related development information (commits, branches, pull requests). Fetches all available standard details by default.
 
         EXAMPLES:
         - Get issue by Key: { issueIdOrKey: "PROJ-123" }
