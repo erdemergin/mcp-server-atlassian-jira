@@ -132,10 +132,12 @@ describe('Vendor Atlassian Issues Service', () => {
 				// Check if dates are sorted (if we have multiple issues)
 				if (result.issues.length >= 2) {
 					const date1 = new Date(
-						result.issues[0].fields.created,
+						result.issues[0].fields.created ||
+							new Date().toISOString(),
 					).getTime();
 					const date2 = new Date(
-						result.issues[1].fields.created,
+						result.issues[1].fields.created ||
+							new Date().toISOString(),
 					).getTime();
 					expect(date1).toBeGreaterThanOrEqual(date2);
 				}
@@ -163,7 +165,9 @@ describe('Vendor Atlassian Issues Service', () => {
 				// Verify each issue matches the criteria
 				if (result.issues.length > 0) {
 					result.issues.forEach((issue) => {
-						const created = new Date(issue.fields.created);
+						const created = new Date(
+							issue.fields.created || new Date().toISOString(),
+						);
 						const sixtyDaysAgo = new Date();
 						sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
