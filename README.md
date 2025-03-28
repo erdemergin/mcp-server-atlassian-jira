@@ -39,9 +39,10 @@ This MCP server provides the following tools for your AI assistant:
     - **Parameter Example:** `{ jql: "project = DEV AND assignee = currentUser() AND status = Open" }` or `{ jql: "text ~ 'performance bug'" }`.
 
 - **Get Issue (`get-issue`)**
-    - **Purpose:** Retrieve comprehensive details for a _specific_ issue using its key or ID. Includes description, comments, attachments, links, etc.
+    - **Purpose:** Retrieve comprehensive details for a _specific_ issue using its key or ID. Includes description, comments, attachments, links, etc. **Now with development information** showing related commits, branches, and pull requests.
     - **Use When:** You know the issue key (e.g., "PROJ-123") or ID (e.g., "10001") and need its full context, description, comments, or other details for analysis or summarization.
-    - **Conversational Example:** "Show me the details for Jira issue PROJ-123."
+    - **Development Information:** Automatically fetches and displays associated Git commits, branches, and pull requests linked to the issue (requires Development Information integration in your Jira instance).
+    - **Conversational Example:** "Show me the details for Jira issue PROJ-123 including linked commits."
     - **Parameter Example:** `{ issueIdOrKey: "PROJ-123" }` or `{ issueIdOrKey: "10001" }`
 
 ## Interface Philosophy: Simple Input, Rich Output
@@ -49,7 +50,7 @@ This MCP server provides the following tools for your AI assistant:
 This server follows a "Minimal Interface, Maximal Detail" approach:
 
 1.  **Simple Tools:** Ask for only essential identifiers or filters (like `projectKeyOrId`, `issueIdOrKey`, `jql`).
-2.  **Rich Details:** When you ask for a specific item (like `get-project` or `get-issue`), the server provides all relevant information by default (description, fields, comments, components, versions, links, etc.) without needing extra flags.
+2.  **Rich Details:** When you ask for a specific item (like `get-project` or `get-issue`), the server provides all relevant information by default (description, fields, comments, components, versions, links, development information, etc.) without needing extra flags.
 
 ## Prerequisites
 
@@ -154,6 +155,7 @@ You can now ask your AI assistant questions related to your Jira instance:
 - "Tell me about the 'Marketing' project in Jira."
 - "Search Jira for open issues assigned to me in the DEV project using JQL." (e.g., `project = DEV AND assignee = currentUser() AND status = Open`)
 - "Get the details for Jira issue DEV-123."
+- "Show me the commits and pull requests linked to issue CORE-456."
 - "Summarize the description and latest comments for issue CORE-456."
 
 ## Using as a Command-Line Tool (CLI)
@@ -166,6 +168,7 @@ You can also use this package directly from your terminal. Ensure credentials ar
 npx -y @aashari/mcp-server-atlassian-jira list-projects --limit 10
 npx -y @aashari/mcp-server-atlassian-jira get-project --project DEV
 npx -y @aashari/mcp-server-atlassian-jira list-issues --jql "project = DEV AND status = 'In Progress'"
+npx -y @aashari/mcp-server-atlassian-jira get-issue --issue PROJ-123
 ```
 
 #### Global Installation (Optional)
@@ -179,6 +182,16 @@ mcp-jira get-issue --issue PROJ-123
 mcp-jira list-issues --jql "project = TEAM AND priority = High" --limit 10
 mcp-jira --help # See all commands
 ```
+
+## Feature: Development Information Integration
+
+The `get-issue` command now includes development information related to Jira issues:
+
+- **Commits**: View linked Git commits with details like ID, author, timestamp, and message.
+- **Branches**: See branches associated with the issue, including their names and last commit info.
+- **Pull Requests**: View related PRs with status, author, reviewers, and source/destination branches.
+
+This feature leverages Jira's Development Information API endpoints to provide a complete view of the development activity related to each issue, making it easier to track implementation progress and code changes.
 
 ## Troubleshooting
 
@@ -195,6 +208,10 @@ mcp-jira --help # See all commands
     - Check your permissions for the specific project or issue.
 - **JQL Query Errors (400):**
     - Carefully check JQL syntax (field names, operators, functions like `currentUser()`, quotes around strings). Refer to [Atlassian JQL documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/).
+- **Development Information Not Showing:**
+    - Ensure your Jira instance has development tools integration (Bitbucket, GitHub, etc.) properly configured.
+    - Verify the issue has linked commits/branches/PRs and that you have permission to view them.
+    - Check that your commits mention the issue key in their messages (e.g., "PROJ-123: Fix bug").
 - **Enable Debug Logs:** Set `DEBUG=true` environment variable (e.g., add `"DEBUG": "true"` in `configs.json` or run `DEBUG=true npx ...`).
 
 ## For Developers: Contributing
