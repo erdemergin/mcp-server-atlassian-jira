@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.12.1...v1.13.0) (2025-03-28)
+
+
+### Features
+
+* **jira:** add development information to issue details ([f731129](https://github.com/aashari/mcp-server-atlassian-jira/commit/f731129e0444424b869148c408e5da6ecd8120ac))
+
 ## [1.12.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.12.0...v1.12.1) (2025-03-28)
 
 
