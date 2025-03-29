@@ -52,9 +52,9 @@ function registerListProjectsCommand(program: Command): void {
         Output: Formatted list of projects with key, name, type, and lead information. Includes pagination support for large project collections.
         
         Examples:
-  $ mcp-jira list-projects --limit 10
-  $ mcp-jira list-projects --name "Marketing" --limit 25 --cursor "25"
-  $ mcp-jira list-projects --order-by "key"`,
+  $ mcp-atlassian-jira list-projects --limit 10
+  $ mcp-atlassian-jira list-projects --name "Marketing" --limit 25 --cursor "25"
+  $ mcp-atlassian-jira list-projects --order-by "key"`,
 		)
 		.option(
 			'-l, --limit <number>',

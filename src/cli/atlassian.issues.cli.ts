@@ -54,10 +54,10 @@ function registerListIssuesCommand(program: Command): void {
         Sorting: By default, issues are sorted by updated date in descending order (most recently updated first). This behavior can be overridden by including an explicit ORDER BY clause in your JQL query.
 
         Examples:
-  $ mcp-jira list-issues --jql "project = TEAM AND status = 'In Progress' ORDER BY updated DESC"
-  $ mcp-jira list-issues --limit 50 --jql "assignee = currentUser() AND resolution = Unresolved"
-  $ mcp-jira list-issues --jql "text ~ 'performance issue'" --cursor "50"
-  $ mcp-jira list-issues  # Returns all issues, sorted by most recently updated first`,
+  $ mcp-atlassian-jira list-issues --jql "project = TEAM AND status = 'In Progress' ORDER BY updated DESC"
+  $ mcp-atlassian-jira list-issues --limit 50 --jql "assignee = currentUser() AND resolution = Unresolved"
+  $ mcp-atlassian-jira list-issues --jql "text ~ 'performance issue'" --cursor "50"
+  $ mcp-atlassian-jira list-issues  # Returns all issues, sorted by most recently updated first`,
 		)
 		.option(
 			'-l, --limit <number>',

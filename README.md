@@ -174,13 +174,13 @@ npx -y @aashari/mcp-server-atlassian-jira get-issue --issue PROJ-123
 #### Global Installation (Optional)
 
 1.  `npm install -g @aashari/mcp-server-atlassian-jira`
-2.  Use the `mcp-jira` command:
+2.  Use the `mcp-atlassian-jira` command:
 
 ```bash
-mcp-jira list-projects --query "Platform"
-mcp-jira get-issue --issue PROJ-123
-mcp-jira list-issues --jql "project = TEAM AND priority = High" --limit 10
-mcp-jira --help # See all commands
+mcp-atlassian-jira list-projects --query "Platform"
+mcp-atlassian-jira get-issue --issue PROJ-123
+mcp-atlassian-jira list-issues --jql "project = TEAM AND priority = High" --limit 10
+mcp-atlassian-jira --help # See all commands
 ```
 
 ## Feature: Development Information Integration

@@ -10,7 +10,7 @@
 		"url": "https://github.com/aashari/mcp-server-atlassian-jira.git"
 	},
 	"bin": {
-		"mcp-jira": "./dist/index.js"
+		"mcp-atlassian-jira": "./dist/index.js"
 	},
 	"scripts": {
 		"build": "tsc",
