@@ -1,3 +1,10 @@
+## [1.14.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.14.1...v1.14.2) (2025-04-01)
+
+
+### Bug Fixes
+
+* **cli:** improve search command documentation consistency ([c16240c](https://github.com/aashari/mcp-server-atlassian-jira/commit/c16240cd87ec625b83313bce0b1b9c2d951570c4))
+
 ## [1.14.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.14.0...v1.14.1) (2025-03-29)
 
 
