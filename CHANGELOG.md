@@ -1,3 +1,10 @@
+## [1.14.4](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.14.3...v1.14.4) (2025-04-03)
+
+
+### Bug Fixes
+
+* **logger:** ensure consistent logger implementation across all projects ([541928a](https://github.com/aashari/mcp-server-atlassian-jira/commit/541928a6e4f3da63171a361e5714b92d6281040c))
+
 ## [1.14.3](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.14.2...v1.14.3) (2025-04-03)
 
 
