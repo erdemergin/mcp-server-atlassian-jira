@@ -1,3 +1,16 @@
+# [1.16.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.15.0...v1.16.0) (2025-04-03)
+
+
+### Bug Fixes
+
+* **test:** adapt search CLI test to handle cases with and without credentials ([1b93fb7](https://github.com/aashari/mcp-server-atlassian-jira/commit/1b93fb7ef55b539483690f488b7f8f97eee9c8af))
+* **test:** update issue description test to check for Basic Information section ([118e93a](https://github.com/aashari/mcp-server-atlassian-jira/commit/118e93a852a82911e32be74efed04a70d7861a35))
+
+
+### Features
+
+* trigger new release ([46f9d02](https://github.com/aashari/mcp-server-atlassian-jira/commit/46f9d02034d5805ef81db0ddaed1264d9b88b379))
+
 # [1.15.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.14.4...v1.15.0) (2025-04-03)
 
 
