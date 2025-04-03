@@ -2,7 +2,7 @@
 
 This project provides a Model Context Protocol (MCP) server that acts as a bridge between AI assistants (like Anthropic's Claude, Cursor AI, or other MCP-compatible clients) and your Atlassian Jira instance. It allows AI to securely access and interact with your projects, issues, and other Jira resources in real-time.
 
-## What is MCP and Why Use This Server?
+### What is MCP and Why Use This Server?
 
 Model Context Protocol (MCP) is an open standard enabling AI models to connect securely to external tools and data sources. This server implements MCP specifically for Jira Cloud.
 
@@ -13,44 +13,58 @@ Model Context Protocol (MCP) is an open standard enabling AI models to connect s
 - **Enhanced AI Capabilities:** Enables AI to search for issues, analyze issue details, summarize project status, and work with your tickets contextually.
 - **Security:** You control access via an Atlassian API token. The AI interacts through the server, and sensitive operations remain contained.
 
-## Available Tools
-
-This MCP server provides the following tools for your AI assistant:
-
-- **List Projects (`list-projects`)**
-
-    - **Purpose:** Discover available Jira projects and find their 'keys' or 'IDs'.
-    - **Use When:** You need to know which projects exist, find a project's key/ID for JQL queries or `get-project`.
-    - **Conversational Example:** "Show me all my Jira projects."
-    - **Parameter Example:** `{}` (no parameters needed for basic list) or `{ query: "Mobile App" }` (to filter).
-
-- **Get Project (`get-project`)**
-
-    - **Purpose:** Retrieve detailed information about a _specific_ project using its key or ID. Includes components and versions.
-    - **Use When:** You know the project key (e.g., "DEV") or ID (e.g., "10001") and need its full details, components, or versions.
-    - **Conversational Example:** "Tell me about the 'DEV' project in Jira."
-    - **Parameter Example:** `{ projectKeyOrId: "DEV" }` or `{ projectKeyOrId: "10001" }`
-
-- **List Issues (`list-issues`)**
-
-    - **Purpose:** Search for Jira issues using JQL (Jira Query Language). Provides issue keys/IDs needed for `get-issue`.
-    - **Use When:** You need to find issues matching specific criteria (project, status, assignee, text, labels, dates, etc.) using JQL.
-    - **Conversational Example:** "Find open bugs assigned to me in the DEV project."
-    - **Parameter Example:** `{ jql: "project = DEV AND assignee = currentUser() AND status = Open" }` or `{ jql: "text ~ 'performance bug'" }`.
-
-- **Get Issue (`get-issue`)**
-    - **Purpose:** Retrieve comprehensive details for a _specific_ issue using its key or ID. Includes description, comments, attachments, links, etc. **Now with development information** showing related commits, branches, and pull requests.
-    - **Use When:** You know the issue key (e.g., "PROJ-123") or ID (e.g., "10001") and need its full context, description, comments, or other details for analysis or summarization.
-    - **Development Information:** Automatically fetches and displays associated Git commits, branches, and pull requests linked to the issue (requires Development Information integration in your Jira instance).
-    - **Conversational Example:** "Show me the details for Jira issue PROJ-123 including linked commits."
-    - **Parameter Example:** `{ issueIdOrKey: "PROJ-123" }` or `{ issueIdOrKey: "10001" }`
-
-## Interface Philosophy: Simple Input, Rich Output
+### Interface Philosophy: Simple Input, Rich Output
 
 This server follows a "Minimal Interface, Maximal Detail" approach:
 
 1.  **Simple Tools:** Ask for only essential identifiers or filters (like `projectKeyOrId`, `issueIdOrKey`, `jql`).
 2.  **Rich Details:** When you ask for a specific item (like `get-project` or `get-issue`), the server provides all relevant information by default (description, fields, comments, components, versions, links, development information, etc.) without needing extra flags.
+
+## Available Tools
+
+This MCP server provides the following tools for your AI assistant:
+
+### List Projects (`list-projects`)
+
+**Purpose:** Discover available Jira projects and find their 'keys' or 'IDs'.
+
+**Use When:** You need to know which projects exist, find a project's key/ID for JQL queries or `get-project`.
+
+**Conversational Example:** "Show me all my Jira projects."
+
+**Parameter Example:** `{}` (no parameters needed for basic list) or `{ query: "Mobile App" }` (to filter).
+
+### Get Project (`get-project`)
+
+**Purpose:** Retrieve detailed information about a _specific_ project using its key or ID. Includes components and versions.
+
+**Use When:** You know the project key (e.g., "DEV") or ID (e.g., "10001") and need its full details, components, or versions.
+
+**Conversational Example:** "Tell me about the 'DEV' project in Jira."
+
+**Parameter Example:** `{ projectKeyOrId: "DEV" }` or `{ projectKeyOrId: "10001" }`
+
+### List Issues (`list-issues`)
+
+**Purpose:** Search for Jira issues using JQL (Jira Query Language). Provides issue keys/IDs needed for `get-issue`.
+
+**Use When:** You need to find issues matching specific criteria (project, status, assignee, text, labels, dates, etc.) using JQL.
+
+**Conversational Example:** "Find open bugs assigned to me in the DEV project."
+
+**Parameter Example:** `{ jql: "project = DEV AND assignee = currentUser() AND status = Open" }` or `{ jql: "text ~ 'performance bug'" }`.
+
+### Get Issue (`get-issue`)
+
+**Purpose:** Retrieve comprehensive details for a _specific_ issue using its key or ID. Includes description, comments, attachments, links, etc. **Now with development information** showing related commits, branches, and pull requests.
+
+**Use When:** You know the issue key (e.g., "PROJ-123") or ID (e.g., "10001") and need its full context, description, comments, or other details for analysis or summarization.
+
+**Development Information:** Automatically fetches and displays associated Git commits, branches, and pull requests linked to the issue (requires Development Information integration in your Jira instance).
+
+**Conversational Example:** "Show me the details for Jira issue PROJ-123 including linked commits."
+
+**Parameter Example:** `{ issueIdOrKey: "PROJ-123" }` or `{ issueIdOrKey: "10001" }`
 
 ## Prerequisites
 
@@ -93,7 +107,6 @@ This keeps credentials separate and organized.
     			"ATLASSIAN_API_TOKEN": "<YOUR_COPIED_API_TOKEN>"
     		}
     	}
-    	// Add other servers here if needed
     }
     ```
 
@@ -128,7 +141,6 @@ Configure your MCP client (Claude Desktop, Cursor, etc.) to run this server.
     			"command": "npx",
     			"args": ["-y", "@aashari/mcp-server-atlassian-jira"]
     		}
-    		// ... other servers
     	}
     }
     ```
@@ -153,80 +165,87 @@ You can now ask your AI assistant questions related to your Jira instance:
 
 - "List the Jira projects."
 - "Tell me about the 'Marketing' project in Jira."
-- "Search Jira for open issues assigned to me in the DEV project using JQL." (e.g., `project = DEV AND assignee = currentUser() AND status = Open`)
+- "Search Jira for open issues assigned to me in the DEV project using JQL."
 - "Get the details for Jira issue DEV-123."
 - "Show me the commits and pull requests linked to issue CORE-456."
 - "Summarize the description and latest comments for issue CORE-456."
 
 ## Using as a Command-Line Tool (CLI)
 
-You can also use this package directly from your terminal. Ensure credentials are set first (Method A or B above).
+You can also use this package directly from your terminal:
 
-#### Quick Use with `npx`
+### Quick Use with `npx`
+
+No installation required - run directly using npx:
 
 ```bash
+# List projects
 npx -y @aashari/mcp-server-atlassian-jira list-projects --limit 10
+
+# Get project details
 npx -y @aashari/mcp-server-atlassian-jira get-project --project DEV
+
+# Search for issues
 npx -y @aashari/mcp-server-atlassian-jira list-issues --jql "project = DEV AND status = 'In Progress'"
+
+# Get issue details
 npx -y @aashari/mcp-server-atlassian-jira get-issue --issue PROJ-123
 ```
 
-#### Global Installation (Optional)
+### Global Installation
 
-1.  `npm install -g @aashari/mcp-server-atlassian-jira`
-2.  Use the `mcp-atlassian-jira` command:
+For frequent use, you can install the package globally on your system:
 
-```bash
-mcp-atlassian-jira list-projects --query "Platform"
-mcp-atlassian-jira get-issue --issue PROJ-123
-mcp-atlassian-jira list-issues --jql "project = TEAM AND priority = High" --limit 10
-mcp-atlassian-jira --help # See all commands
-```
+1. **Install globally** using npm:
+
+    ```bash
+    npm install -g @aashari/mcp-server-atlassian-jira
+    ```
+
+2. **Verify installation** by checking the version:
+
+    ```bash
+    mcp-atlassian-jira --version
+    ```
+
+3. **Use the commands** without npx prefix:
+
+    ```bash
+    # List projects
+    mcp-atlassian-jira list-projects --limit 10
+
+    # Filter projects by name
+    mcp-atlassian-jira list-projects --query "Platform"
+
+    # Get project details
+    mcp-atlassian-jira get-project --project DEV
+
+    # Search for issues with JQL
+    mcp-atlassian-jira list-issues --jql "project = TEAM AND priority = High" --limit 10
+
+    # Get issue details including linked development information
+    mcp-atlassian-jira get-issue --issue PROJ-123
+    ```
+
+### Configuration with Global Installation
+
+When installed globally, you can still use the same configuration methods:
+
+1. **Using environment variables**:
+
+    ```bash
+    ATLASSIAN_SITE_NAME="<YOUR_SITE_NAME>" \
+    ATLASSIAN_USER_EMAIL="<YOUR_EMAIL>" \
+    ATLASSIAN_API_TOKEN="<YOUR_API_TOKEN>" \
+    mcp-atlassian-jira list-projects
+    ```
+
+2. **Using global MCP config file** (recommended):
+   Set up the `~/.mcp/configs.json` file as described in the Quick Start Guide.
 
 ## Feature: Development Information Integration
 
-The `get-issue` command now includes development information related to Jira issues:
-
-- **Commits**: View linked Git commits with details like ID, author, timestamp, and message.
-- **Branches**: See branches associated with the issue, including their names and last commit info.
-- **Pull Requests**: View related PRs with status, author, reviewers, and source/destination branches.
-
-This feature leverages Jira's Development Information API endpoints to provide a complete view of the development activity related to each issue, making it easier to track implementation progress and code changes.
-
-## Troubleshooting
-
-- **Authentication Errors (401/403):**
-    - Double-check `ATLASSIAN_SITE_NAME`, `ATLASSIAN_USER_EMAIL`, and `ATLASSIAN_API_TOKEN` in `~/.mcp/configs.json` or environment variables.
-    - Verify the API token is correct, valid, and not revoked.
-    - Ensure your user account has permission to access the Jira instance and relevant projects/issues.
-- **Server Not Connecting (in AI Client):**
-    - Confirm the command (`npx ...`) in your client's config is correct.
-    - Check Node.js/npm installation and PATH.
-    - Run the `npx` command directly in your terminal for errors.
-- **Resource Not Found (404):**
-    - Verify project/issue keys or IDs are correct (keys are case-sensitive).
-    - Check your permissions for the specific project or issue.
-- **JQL Query Errors (400):**
-    - Carefully check JQL syntax (field names, operators, functions like `currentUser()`, quotes around strings). Refer to [Atlassian JQL documentation](https://support.atlassian.com/jira-software-cloud/docs/jql-fields/).
-- **Development Information Not Showing:**
-    - Ensure your Jira instance has development tools integration (Bitbucket, GitHub, etc.) properly configured.
-    - Verify the issue has linked commits/branches/PRs and that you have permission to view them.
-    - Check that your commits mention the issue key in their messages (e.g., "PROJ-123: Fix bug").
-- **Enable Debug Logs:** Set `DEBUG=true` environment variable (e.g., add `"DEBUG": "true"` in `configs.json` or run `DEBUG=true npx ...`).
-
-## For Developers: Contributing
-
-Contributions are welcome! If you'd like to contribute:
-
-- **Architecture:** The server uses a layered approach (CLI/Tool -> Controller -> Service). See `.cursorrules` or code comments.
-- **Setup:** Clone repo, `npm install`. Use `npm run dev:server` or `npm run dev:cli -- <command>`.
-- **Code Style:** Use `npm run lint` and `npm run format`.
-- **Tests:** Add tests via `npm test`.
-- **Consistency:** Follow existing patterns and the "Minimal Interface, Maximal Detail" philosophy.
-
-## Versioning Note
-
-This project (`@aashari/mcp-server-atlassian-jira`) follows Semantic Versioning and is versioned independently from other `@aashari/mcp-server-*` packages.
+The `get-issue` command includes development information related to Jira issues, showing Git commits, branches, and pull requests associated with an issue. This helps track implementation progress and code changes directly through your AI assistant.
 
 ## License
 
