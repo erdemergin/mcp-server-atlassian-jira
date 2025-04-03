@@ -1,9 +1,14 @@
 import { Command } from 'commander';
 import { Logger } from '../utils/logger.util.js';
+import { VERSION, CLI_NAME } from '../utils/constants.util.js';
 
 import atlassianProjectsCommands from './atlassian.projects.cli.js';
 import atlassianIssuesCommands from './atlassian.issues.cli.js';
 import atlassianSearchCommands from './atlassian.search.cli.js';
+
+// Package description
+const DESCRIPTION =
+	'A Model Context Protocol (MCP) server for Atlassian Jira integration';
 
 // Create a contextualized logger for this file
 const cliLogger = Logger.forContext('cli/index.ts');
@@ -11,19 +16,13 @@ const cliLogger = Logger.forContext('cli/index.ts');
 // Log CLI module initialization
 cliLogger.debug('Jira CLI module initialized');
 
-// Get the version from package.json
-const VERSION = '1.14.2'; // This should match the version in src/index.ts
-const NAME = 'mcp-atlassian-jira';
-const DESCRIPTION =
-	'A Model Context Protocol (MCP) server for Atlassian Jira integration';
-
 export async function runCli(args: string[]) {
 	const methodLogger = Logger.forContext('cli/index.ts', 'runCli');
 	methodLogger.debug('Running CLI with arguments', args);
 
 	const program = new Command();
 
-	program.name(NAME).description(DESCRIPTION).version(VERSION);
+	program.name(CLI_NAME).description(DESCRIPTION).version(VERSION);
 
 	// Register CLI commands
 	atlassianProjectsCommands.register(program);
