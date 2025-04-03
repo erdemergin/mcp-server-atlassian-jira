@@ -18,85 +18,101 @@ const VERSION = '1.14.2';
 // Create a contextualized logger for this file
 const indexLogger = Logger.forContext('index.ts');
 
-// Log initialization
+// Log initialization at debug level
 indexLogger.debug('Jira MCP server module loaded');
 
 let serverInstance: McpServer | null = null;
 let transportInstance: SSEServerTransport | StdioServerTransport | null = null;
 
+/**
+ * Start the MCP server with the specified transport mode
+ *
+ * @param mode The transport mode to use (stdio or sse)
+ * @returns Promise that resolves to the server instance when started successfully
+ */
 export async function startServer(mode: 'stdio' | 'sse' = 'stdio') {
+	// Create method-level logger with more specific context
+	const serverLogger = Logger.forContext('index.ts', 'startServer');
+
 	// Load configuration
-	indexLogger.info('Starting MCP server initialization...');
+	serverLogger.info('Starting MCP server initialization...');
 	config.load();
-	indexLogger.info('Configuration loaded successfully');
+	serverLogger.info('Configuration loaded successfully');
 
 	// Enable debug logging if DEBUG is set to true
 	if (config.getBoolean('DEBUG')) {
-		indexLogger.debug('Debug mode enabled');
+		serverLogger.debug('Debug mode enabled');
 	}
 
 	// Log debug configuration settings at debug level
-	indexLogger.debug(`DEBUG environment variable: ${process.env.DEBUG}`);
-	indexLogger.debug(
+	serverLogger.debug(`DEBUG environment variable: ${process.env.DEBUG}`);
+	serverLogger.debug(
 		`ATLASSIAN_API_TOKEN exists: ${Boolean(process.env.ATLASSIAN_API_TOKEN)}`,
 	);
-	indexLogger.debug(`Config DEBUG value: ${config.get('DEBUG')}`);
+	serverLogger.debug(`Config DEBUG value: ${config.get('DEBUG')}`);
 
-	indexLogger.info(`Initializing Jira MCP server v${VERSION}`);
+	serverLogger.info(`Initializing Jira MCP server v${VERSION}`);
 	serverInstance = new McpServer({
 		name: '@aashari/mcp-atlassian-jira',
 		version: VERSION,
 	});
 
 	if (mode === 'stdio') {
-		indexLogger.info('Using STDIO transport for MCP communication');
+		serverLogger.info('Using STDIO transport for MCP communication');
 		transportInstance = new StdioServerTransport();
 	} else {
 		throw createUnexpectedError('SSE mode is not supported yet');
 	}
 
 	// Register tools
-	indexLogger.info('Registering MCP tools...');
+	serverLogger.info('Registering MCP tools...');
+
 	atlassianProjectsTools.register(serverInstance);
-	indexLogger.debug('Projects tools registered');
+	serverLogger.debug('Registered Projects tools');
 
 	atlassianIssuesTools.register(serverInstance);
-	indexLogger.debug('Issues tools registered');
+	serverLogger.debug('Registered Issues tools');
 
 	atlassianSearchTools.register(serverInstance);
-	indexLogger.debug('Search tools registered');
+	serverLogger.debug('Registered Search tools');
 
-	indexLogger.info('All tools registered successfully');
+	serverLogger.info('All tools registered successfully');
 
 	try {
-		indexLogger.info(`Connecting to ${mode.toUpperCase()} transport...`);
+		serverLogger.info(`Connecting to ${mode.toUpperCase()} transport...`);
 		await serverInstance.connect(transportInstance);
-		indexLogger.info(
+		serverLogger.info(
 			'MCP server started successfully and ready to process requests',
 		);
 		return serverInstance;
 	} catch (err) {
-		indexLogger.error(`Failed to start server`, err);
+		serverLogger.error(`Failed to start server`, err);
 		process.exit(1);
 	}
 }
 
-// Main entry point - this will run when executed directly
+/**
+ * Main entry point - this will run when executed directly
+ * Determines whether to run in CLI or server mode based on command-line arguments
+ */
 async function main() {
+	// Create method-level logger with more specific context
+	const mainLogger = Logger.forContext('index.ts', 'main');
+
 	// Load configuration
 	config.load();
 
 	// Check if arguments are provided (CLI mode)
 	if (process.argv.length > 2) {
 		// CLI mode: Pass arguments to CLI runner
-		indexLogger.info('Starting in CLI mode');
+		mainLogger.info('Starting in CLI mode');
 		await runCli(process.argv.slice(2));
-		indexLogger.info('CLI execution completed');
+		mainLogger.info('CLI execution completed');
 	} else {
 		// MCP Server mode: Start server with default STDIO
-		indexLogger.info('Starting in server mode');
+		mainLogger.info('Starting in server mode');
 		await startServer();
-		indexLogger.info('Server is now running');
+		mainLogger.info('Server is now running');
 	}
 }
 
