@@ -235,8 +235,8 @@ describe('Atlassian Issues Controller', () => {
 			expect(result).toBeDefined();
 			expect(typeof result.content).toBe('string');
 
-			// Check for description section
-			expect(result.content).toContain('## Description');
+			// Check for basic information section instead of description
+			expect(result.content).toContain('## Basic Information');
 
 			// Comments section might not be included if not requested or if there are no comments
 			// We'll just check that the response is properly formatted
