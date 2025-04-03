@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.14.4...v1.15.0) (2025-04-03)
+
+
+### Features
+
+* **logging:** add file logging with session ID to ~/.mcp/data/ ([4efe3a7](https://github.com/aashari/mcp-server-atlassian-jira/commit/4efe3a73510656d518bf987cf61585db05f194c8))
+
 ## [1.14.4](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.14.3...v1.14.4) (2025-04-03)
 
 
