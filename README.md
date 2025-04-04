@@ -16,7 +16,7 @@ This server implements MCP specifically for Jira Cloud, bridging your Jira data 
 
 - **Minimal Input, Maximum Output Philosophy**: Simple identifiers like `projectKeyOrId` and `issueIdOrKey` are all you need. Each tool returns comprehensive details without requiring extra flags.
 
-- **Complete Jira Context**: Provide your AI assistant with full visibility into projects, issues, comments, and development information like linked commits and pull requests.
+- **Complete Jira Context**: Provide your AI assistant with full visibility into projects, issues, comments, and all relevant metadata to understand your work context.
 
 - **Rich Development Information**: Get detailed insights into branches, commits, and pull requests linked to issues, creating a bridge between your issue tracking and code repositories.
 
@@ -234,20 +234,6 @@ mcp-atlassian-jira get-project --help
 mcp-atlassian-jira list-issues --help
 mcp-atlassian-jira search --help
 ```
-
----
-
-# Feature: Development Information Integration
-
-The `get-issue` command includes development information related to Jira issues, showing Git commits, branches, and pull requests associated with an issue. This helps track implementation progress and code changes directly through your AI assistant.
-
-Benefits:
-
-- **Code-Issue Traceability**: See which code changes implement a particular issue
-- **Implementation Status**: Track if work has started on an issue by seeing linked branches or commits
-- **Review Status**: Check if pull requests associated with an issue have been merged or are still open
-
-This integration requires that your Jira instance is configured with development information connections to repositories like GitHub, Bitbucket, or GitLab.
 
 ---
 
