@@ -65,13 +65,13 @@ export async function startServer(mode: 'stdio' | 'sse' = 'stdio') {
 	// Register tools
 	serverLogger.info('Registering MCP tools...');
 
-	atlassianProjectsTools.register(serverInstance);
+	atlassianProjectsTools.registerTools(serverInstance);
 	serverLogger.debug('Registered Projects tools');
 
-	atlassianIssuesTools.register(serverInstance);
+	atlassianIssuesTools.registerTools(serverInstance);
 	serverLogger.debug('Registered Issues tools');
 
-	atlassianSearchTools.register(serverInstance);
+	atlassianSearchTools.registerTools(serverInstance);
 	serverLogger.debug('Registered Search tools');
 
 	serverLogger.info('All tools registered successfully');

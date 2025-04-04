@@ -116,10 +116,10 @@ async function getIssue(
  *
  * @param {McpServer} server - The MCP server instance to register tools with
  */
-function register(server: McpServer) {
+function registerTools(server: McpServer) {
 	const methodLogger = Logger.forContext(
 		'tools/atlassian.issues.tool.ts',
-		'register',
+		'registerTools',
 	);
 	methodLogger.debug('Registering Atlassian Issues tools...');
 
@@ -195,4 +195,4 @@ function register(server: McpServer) {
 	methodLogger.debug('Successfully registered Atlassian Issues tools');
 }
 
-export default { register };
+export default { registerTools };

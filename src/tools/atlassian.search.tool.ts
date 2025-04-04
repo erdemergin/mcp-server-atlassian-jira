@@ -63,12 +63,12 @@ async function search(args: SearchToolArgsType, _extra: RequestHandlerExtra) {
  *
  * @param {McpServer} server - The MCP server instance to register tools with
  */
-function register(server: McpServer) {
+function registerTools(server: McpServer) {
 	const toolLogger = Logger.forContext(
 		'tools/atlassian.search.tool.ts',
-		'register',
+		'registerTools',
 	);
-	toolLogger.debug('Registering Atlassian Search tools...');
+	toolLogger.debug('Registering Atlassian Search tools');
 
 	// Register the search tool
 	server.tool(
@@ -128,4 +128,4 @@ function register(server: McpServer) {
 	toolLogger.debug('Successfully registered Atlassian Search tools');
 }
 
-export default { register };
+export default { registerTools };

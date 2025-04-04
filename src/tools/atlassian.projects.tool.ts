@@ -117,10 +117,10 @@ async function getProject(
  *
  * @param {McpServer} server - The MCP server instance to register tools with
  */
-function register(server: McpServer) {
+function registerTools(server: McpServer) {
 	const methodLogger = Logger.forContext(
 		'tools/atlassian.projects.tool.ts',
-		'register',
+		'registerTools',
 	);
 	methodLogger.debug('Registering Atlassian Projects tools...');
 
@@ -191,4 +191,4 @@ function register(server: McpServer) {
 	methodLogger.debug('Successfully registered Atlassian Projects tools');
 }
 
-export default { register };
+export default { registerTools };
