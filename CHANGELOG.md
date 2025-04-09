@@ -1,3 +1,10 @@
+## [1.16.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.16.1...v1.16.2) (2025-04-09)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies to latest versions ([7973e1e](https://github.com/aashari/mcp-server-atlassian-jira/commit/7973e1e54fa63ef3261e55987c2b1488120a6bf5))
+
 ## [1.16.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.16.0...v1.16.1) (2025-04-04)
 
 
