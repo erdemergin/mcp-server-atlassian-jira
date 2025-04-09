@@ -1,3 +1,12 @@
+## [1.16.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.16.0...v1.16.1) (2025-04-04)
+
+
+### Bug Fixes
+
+* align README.md structure with Bitbucket project template ([38fd285](https://github.com/aashari/mcp-server-atlassian-jira/commit/38fd285ef04de1f1795c3858c3183b7d2d7d2cc5))
+* improve README clarity and structure ([aa63c34](https://github.com/aashari/mcp-server-atlassian-jira/commit/aa63c34a208b093c7272dae627cb0e3423ccb193))
+* standardize tool registration function names to registerTools and remove unused file ([56e4f29](https://github.com/aashari/mcp-server-atlassian-jira/commit/56e4f29e5db3771ee88e3cae86d1ec2d81d8fd9d))
+
 # [1.16.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.15.0...v1.16.0) (2025-04-03)
 
 
