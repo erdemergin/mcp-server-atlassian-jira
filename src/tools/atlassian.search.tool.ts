@@ -1,13 +1,12 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Logger } from '../utils/logger.util.js';
-import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { formatErrorForMcpTool } from '../utils/error.util.js';
 import {
 	SearchToolArgsType,
 	SearchToolArgs,
 } from './atlassian.search.types.js';
 
-import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
+import atlassianSearchController from '../controllers/atlassian.search.controller.js';
 
 /**
  * MCP Tool: Search Jira
@@ -16,11 +15,10 @@ import atlassianIssuesController from '../controllers/atlassian.issues.controlle
  * Returns a formatted markdown response with search results.
  *
  * @param {SearchToolArgsType} args - Tool arguments for the search query
- * @param {RequestHandlerExtra} _extra - Extra request handler information (unused)
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted search results
  * @throws Will return error message if search fails
  */
-async function search(args: SearchToolArgsType, _extra: RequestHandlerExtra) {
+async function search(args: SearchToolArgsType) {
 	const toolLogger = Logger.forContext(
 		'tools/atlassian.search.tool.ts',
 		'search',
@@ -28,18 +26,14 @@ async function search(args: SearchToolArgsType, _extra: RequestHandlerExtra) {
 	toolLogger.debug('Searching Jira with JQL:', args);
 
 	try {
-		// Pass the search options to the issues controller
-		// The list method already implements JQL search
-		const message = await atlassianIssuesController.list({
+		// Pass the search options to the search controller
+		const message = await atlassianSearchController.search({
 			jql: args.jql,
 			limit: args.limit,
 			cursor: args.cursor,
 		});
 
-		toolLogger.debug(
-			'Successfully retrieved search results from controller',
-			message,
-		);
+		toolLogger.debug('Search completed successfully');
 
 		return {
 			content: [

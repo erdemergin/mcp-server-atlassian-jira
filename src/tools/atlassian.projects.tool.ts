@@ -1,6 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Logger } from '../utils/logger.util.js';
-import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { formatErrorForMcpTool } from '../utils/error.util.js';
 import {
 	ListProjectsToolArgs,
@@ -24,14 +23,10 @@ toolLogger.debug('Jira projects tool module initialized');
  * Returns a formatted markdown response with project details and pagination info.
  *
  * @param {ListProjectsToolArgsType} args - Tool arguments for filtering projects
- * @param {RequestHandlerExtra} _extra - Extra request handler information (unused)
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted projects list
  * @throws Will return error message if project listing fails
  */
-async function listProjects(
-	args: ListProjectsToolArgsType,
-	_extra: RequestHandlerExtra,
-) {
+async function listProjects(args: ListProjectsToolArgsType) {
 	const methodLogger = Logger.forContext(
 		'tools/atlassian.projects.tool.ts',
 		'listProjects',
@@ -70,14 +65,10 @@ async function listProjects(
  * Returns a formatted markdown response with project data.
  *
  * @param {GetProjectToolArgsType} args - Tool arguments containing the project ID/key
- * @param {RequestHandlerExtra} _extra - Extra request handler information (unused)
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted project details
  * @throws Will return error message if project retrieval fails
  */
-async function getProject(
-	args: GetProjectToolArgsType,
-	_extra: RequestHandlerExtra,
-) {
+async function getProject(args: GetProjectToolArgsType) {
 	const methodLogger = Logger.forContext(
 		'tools/atlassian.projects.tool.ts',
 		'getProject',

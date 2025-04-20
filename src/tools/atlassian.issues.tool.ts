@@ -1,6 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Logger } from '../utils/logger.util.js';
-import { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import { formatErrorForMcpTool } from '../utils/error.util.js';
 import {
 	ListIssuesToolArgs,
@@ -24,14 +23,10 @@ toolLogger.debug('Jira issues tool module initialized');
  * Returns a formatted markdown response with issue details and pagination info.
  *
  * @param {ListIssuesToolArgsType} args - Tool arguments for filtering issues
- * @param {RequestHandlerExtra} _extra - Extra request handler information (unused)
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted issues list
  * @throws Will return error message if issue listing fails
  */
-async function listIssues(
-	args: ListIssuesToolArgsType,
-	_extra: RequestHandlerExtra,
-) {
+async function listIssues(args: ListIssuesToolArgsType) {
 	const methodLogger = Logger.forContext(
 		'tools/atlassian.issues.tool.ts',
 		'listIssues',
@@ -69,14 +64,10 @@ async function listIssues(
  * Returns a formatted markdown response with issue data.
  *
  * @param {GetIssueToolArgsType} args - Tool arguments containing the issue ID/key
- * @param {RequestHandlerExtra} _extra - Extra request handler information (unused)
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted issue details
  * @throws Will return error message if issue retrieval fails
  */
-async function getIssue(
-	args: GetIssueToolArgsType,
-	_extra: RequestHandlerExtra,
-) {
+async function getIssue(args: GetIssueToolArgsType) {
 	const methodLogger = Logger.forContext(
 		'tools/atlassian.issues.tool.ts',
 		'getIssue',
