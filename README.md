@@ -106,7 +106,7 @@ This configuration launches the server automatically at runtime.
 
 This section covers the MCP tools available when using this server with an AI assistant. Note that MCP tools use `snake_case` for tool names and `camelCase` for parameters.
 
-## `list_projects`
+## `jira_list_projects`
 
 List available Jira projects with optional filtering and pagination.
 
@@ -124,7 +124,7 @@ _or:_
 
 ---
 
-## `get_project`
+## `jira_get_project`
 
 Get full details for a specific project, including components and versions.
 
@@ -142,7 +142,7 @@ _or:_
 
 ---
 
-## `list_issues`
+## `jira_list_issues`
 
 List issues matching a JQL (Jira Query Language) query with pagination.
 
@@ -160,7 +160,7 @@ _or:_
 
 ---
 
-## `get_issue`
+## `jira_get_issue`
 
 Get comprehensive details for a specific issue, including description, comments, and linked development information.
 
@@ -178,7 +178,7 @@ _or:_
 
 ---
 
-## `search`
+## `jira_search_issues`
 
 Search Jira content using JQL (Jira Query Language) for advanced filtering.
 
@@ -198,13 +198,13 @@ _or:_
 
 # Command-Line Interface (CLI)
 
-The CLI uses kebab-case for commands (e.g., `list-projects`) and options (e.g., `--project`).
+The CLI uses kebab-case for commands (e.g., `jira-list-projects`) and options (e.g., `--project-key-or-id`).
 
 ## Quick Use with `npx`
 
 ```bash
-npx -y @aashari/mcp-server-atlassian-jira list-projects
-npx -y @aashari/mcp-server-atlassian-jira get-issue --issue PROJ-123
+npx -y @aashari/mcp-server-atlassian-jira jira-list-projects
+npx -y @aashari/mcp-server-atlassian-jira jira-get-issue --issue-id-or-key PROJ-123
 ```
 
 ## Install Globally
@@ -216,7 +216,7 @@ npm install -g @aashari/mcp-server-atlassian-jira
 Then run directly:
 
 ```bash
-mcp-atlassian-jira list-projects
+mcp-atlassian-jira jira-list-projects
 ```
 
 ## Discover More CLI Options
@@ -230,9 +230,9 @@ mcp-atlassian-jira --help
 Or get detailed help for a specific command:
 
 ```bash
-mcp-atlassian-jira get-project --help
-mcp-atlassian-jira list-issues --help
-mcp-atlassian-jira search --help
+mcp-atlassian-jira jira-get-project --help
+mcp-atlassian-jira jira-list-issues --help
+mcp-atlassian-jira jira-search-issues --help
 ```
 
 ---

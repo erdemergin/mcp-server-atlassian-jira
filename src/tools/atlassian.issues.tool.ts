@@ -117,36 +117,7 @@ function registerTools(server: McpServer) {
 	// Register the list issues tool
 	server.tool(
 		'jira_list_issues',
-		`Search for Jira issues using JQL (Jira Query Language), with pagination.
-
-        PURPOSE: Find and explore issues across one or more projects using the powerful JQL syntax. Essential for locating specific issues or groups of issues based on criteria like project, status, assignee, text content, labels, dates, etc. Provides issue keys/IDs needed for the 'get_issue' tool.
-
-        WHEN TO USE:
-        - To find issues matching specific criteria (status, assignee, project, keywords, labels, priority, dates).
-        - To get an overview of issues in a project or filter.
-        - To find issue keys/IDs for use with the 'get_issue' tool.
-        - Requires formulating a valid JQL query (refer to Jira JQL documentation if unsure).
-
-        WHEN NOT TO USE:
-        - When you already know the specific issue key/ID (use 'get_issue').
-        - When you only need project information (use 'list_projects' or 'get_project').
-        - If the search is very broad (might hit limits or be slow; refine JQL).
-
-        RETURNS: Formatted list of issues matching the JQL query, including key, summary, type, status, priority, project, assignee, reporter, creation/update dates, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
-        
-        SORTING: By default, issues are sorted by updated date in descending order (most recently updated first). This behavior can be overridden by including an explicit ORDER BY clause in your JQL query.
-
-        EXAMPLES:
-        - Find open issues in project TEAM: { jql: "project = TEAM AND status = Open" }
-        - Find issues assigned to me: { jql: "assignee = currentUser() AND resolution = Unresolved" }
-        - Find high priority bugs updated recently: { jql: "type = Bug AND priority = High AND updated >= -7d" }
-        - Paginate results (get page 3, assuming limit 25): { jql: "project = TEAM", limit: 25, cursor: "50" }
-        - Simple issue retrieval with default sorting: { }  # Returns all accessible issues, sorted by most recently updated first
-
-        ERRORS:
-        - Invalid JQL: Check the syntax of your JQL query. Ensure field names and values are correct.
-        - Authentication failures: Verify Jira credentials.
-        - No results: The JQL query returned no matching issues, or you lack permission to view them.`,
+		`Searches for Jira issues using a JQL query (\`jql\`),\n\twith pagination support (\`limit\`, \`cursor\`).\n\n- Use this to find issues matching specific criteria (project, status, assignee, text, etc.).\n- Provides issue keys/IDs needed for \`jira_get_issue\`.\nReturns a formatted list of matching issues including key, summary, type, status, priority, project, and dates.\n**Note:** Requires valid JQL syntax. See Jira documentation for JQL details. Default sort is by last updated.`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);
@@ -154,31 +125,7 @@ function registerTools(server: McpServer) {
 	// Register the get issue details tool
 	server.tool(
 		'jira_get_issue',
-		`Get detailed information about a specific Jira issue using its ID or key. Requires 'issueIdOrKey'.
-
-        PURPOSE: Retrieves comprehensive details for a *known* issue, including its summary, description (in Markdown), status, priority, assignee, reporter, comments, attachments, linked issues, worklogs, and all standard fields. Also retrieves related development information like commits, branches, and pull requests if available.
-
-        WHEN TO USE:
-        - When you need the full content, comments, or metadata of a *specific* issue.
-        - When you need to see Git/Bitbucket commits, branches, or pull requests linked to the issue.
-        - After using 'list_issues' to identify the target issue key/ID.
-        - To get all context associated with an issue for analysis or summarization.
-        - Requires a known 'issueIdOrKey' (e.g., "PROJ-123" or "10001").
-
-        WHEN NOT TO USE:
-        - When you don't know the issue key/ID (use 'list_issues' with JQL first).
-        - When you only need a list of issues (use 'list_issues').
-        - When you need project-level information (use project tools).
-
-        RETURNS: Detailed issue information including key, summary, description (converted to Markdown), status, priority, assignee, reporter, dates, time tracking, attachments, comments (converted to Markdown), linked issues, worklogs, and related development information (commits, branches, pull requests). Fetches all available standard details by default.
-
-        EXAMPLES:
-        - Get issue by Key: { issueIdOrKey: "PROJ-123" }
-        - Get issue by ID: { issueIdOrKey: "10001" }
-
-        ERRORS:
-        - Issue not found: Verify the 'issueIdOrKey' is correct and exists.
-        - Permission errors: Ensure you have access to view the specified issue.`,
+		`Retrieves comprehensive details for a specific Jira issue using its key or ID (\`issueIdOrKey\`).\n- Includes full description (Markdown), status, priority, assignee, reporter, comments (Markdown), attachments, and linked issues.\n- Also fetches linked development information (commits, branches, PRs) if available.\nUse this after finding an issue key/ID to get its complete context.\nReturns detailed issue information formatted as Markdown.`,
 		GetIssueToolArgs.shape,
 		getIssue,
 	);

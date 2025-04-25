@@ -118,33 +118,7 @@ function registerTools(server: McpServer) {
 	// Register the list projects tool
 	server.tool(
 		'jira_list_projects',
-		`List Jira projects accessible to the authenticated user, with optional filtering by name/key and pagination.
-
-        PURPOSE: Discover available projects and retrieve their keys, names, and basic metadata. Essential for finding the correct project key needed as input for the 'get_project' tool or for filtering issues using JQL in the 'list_issues' tool (e.g., "project = KEY").
-
-        WHEN TO USE:
-        - To find the project key for a known project name.
-        - To explore all projects you have access to.
-        - To get a high-level overview before diving into specific projects or issues.
-        - When you don't know the exact key required by other tools.
-
-        WHEN NOT TO USE:
-        - When you already have the project key and need full details (use 'get_project').
-        - When you need to list *issues* (use 'list_issues').
-
-        RETURNS: Formatted list of projects including name, key, ID, type, style, lead, and URL. Includes pagination details if applicable (Jira uses offset-based pagination, so the 'cursor' represents the 'startAt' index).
-        
-        SORTING: By default, projects are sorted by 'lastIssueUpdatedTime', showing the most recently active projects first. This can be changed by providing a different value in the 'orderBy' parameter.
-
-        EXAMPLES:
-        - List all accessible projects (first page): {}
-        - Filter by name/key fragment: { name: "platform" }
-        - Paginate results (get next page starting from index 50): { limit: 50, cursor: "50" }
-        - Sort by key: { orderBy: "key" }
-
-        ERRORS:
-        - Authentication failures: Check Jira credentials.
-        - No projects found: You may not have access to any projects, or the name filter is too restrictive.`,
+		`Lists Jira projects accessible to the user, optionally filtering by name/key (\`name\`) or sorting (\`orderBy\`).\n- Use this to discover available projects and find project keys/IDs needed for other tools (like \`jira_get_project\` or \`jira_list_issues\`).\n- Supports pagination via \`limit\` and \`cursor\`.\nReturns a formatted list of projects including key, name, type, style, lead, and URL.\n**Note:** Default sort is by most recently updated issue time.`,
 		ListProjectsToolArgs.shape,
 		listProjects,
 	);
@@ -152,29 +126,7 @@ function registerTools(server: McpServer) {
 	// Register the get project details tool
 	server.tool(
 		'jira_get_project',
-		`Get detailed information about a specific Jira project using its key or ID. Requires 'projectKeyOrId'.
-
-        PURPOSE: Retrieves comprehensive metadata for a *known* project, including its full description, lead, components, versions, style, and links.
-
-        WHEN TO USE:
-        - When you need full details about a *specific* project and you know its key ('PROJ') or ID ('10001').
-        - After using 'list_projects' to identify the target project key or ID.
-        - To get project metadata, components, or versions before analyzing its issues.
-
-        WHEN NOT TO USE:
-        - When you don't know the project key or ID (use 'list_projects' first).
-        - When you only need a list of projects (use 'list_projects').
-        - When you need issue information (use issue tools).
-
-        RETURNS: Detailed project information including key, name, description, lead, components, versions, and links. Fetches all available details (components, versions) by default.
-
-        EXAMPLES:
-        - Get project by Key: { projectKeyOrId: "DEV" }
-        - Get project by ID: { projectKeyOrId: "10001" }
-
-        ERRORS:
-        - Project not found: Verify the 'projectKeyOrId' is correct and exists.
-        - Permission errors: Ensure you have access to view the specified project.`,
+		`Retrieves comprehensive details for a specific Jira project using its key or ID (\`projectKeyOrId\`).\n- Includes description, lead, components, versions, and other metadata.\nUse this after finding a project key/ID via \`jira_list_projects\` to get its full details.\nReturns detailed project information formatted as Markdown.`,
 		GetProjectToolArgs.shape,
 		getProject,
 	);
