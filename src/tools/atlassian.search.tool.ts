@@ -66,8 +66,8 @@ function registerTools(server: McpServer) {
 
 	// Register the search tool
 	server.tool(
-		'search',
-		`Search Jira content using JQL (Jira Query Language) for precise results.
+		'jira_search_issues',
+		`Search for Jira issues using JQL (Jira Query Language).
 
         PURPOSE: Performs advanced content searches across Jira using JQL queries, allowing for complex search patterns, issue filtering, and targeted results. This is the most powerful search tool for Jira, supporting complex filtering and sorting.
 

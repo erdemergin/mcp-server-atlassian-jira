@@ -117,7 +117,7 @@ function registerTools(server: McpServer) {
 
 	// Register the list projects tool
 	server.tool(
-		'list_projects',
+		'jira_list_projects',
 		`List Jira projects accessible to the authenticated user, with optional filtering by name/key and pagination.
 
         PURPOSE: Discover available projects and retrieve their keys, names, and basic metadata. Essential for finding the correct project key needed as input for the 'get_project' tool or for filtering issues using JQL in the 'list_issues' tool (e.g., "project = KEY").
@@ -151,7 +151,7 @@ function registerTools(server: McpServer) {
 
 	// Register the get project details tool
 	server.tool(
-		'get_project',
+		'jira_get_project',
 		`Get detailed information about a specific Jira project using its key or ID. Requires 'projectKeyOrId'.
 
         PURPOSE: Retrieves comprehensive metadata for a *known* project, including its full description, lead, components, versions, style, and links.

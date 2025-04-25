@@ -116,7 +116,7 @@ function registerTools(server: McpServer) {
 
 	// Register the list issues tool
 	server.tool(
-		'list_issues',
+		'jira_list_issues',
 		`Search for Jira issues using JQL (Jira Query Language), with pagination.
 
         PURPOSE: Find and explore issues across one or more projects using the powerful JQL syntax. Essential for locating specific issues or groups of issues based on criteria like project, status, assignee, text content, labels, dates, etc. Provides issue keys/IDs needed for the 'get_issue' tool.
@@ -153,7 +153,7 @@ function registerTools(server: McpServer) {
 
 	// Register the get issue details tool
 	server.tool(
-		'get_issue',
+		'jira_get_issue',
 		`Get detailed information about a specific Jira issue using its ID or key. Requires 'issueIdOrKey'.
 
         PURPOSE: Retrieves comprehensive details for a *known* issue, including its summary, description (in Markdown), status, priority, assignee, reporter, comments, attachments, linked issues, worklogs, and all standard fields. Also retrieves related development information like commits, branches, and pull requests if available.
