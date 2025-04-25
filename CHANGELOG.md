@@ -1,3 +1,15 @@
+# [1.17.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.16.4...v1.17.0) (2025-04-25)
+
+
+### Bug Fixes
+
+* unify tool names and descriptions for consistency ([760c0f8](https://github.com/aashari/mcp-server-atlassian-jira/commit/760c0f8e7faca6a4506145cf6606c3941817e50f))
+
+
+### Features
+
+* prefix Jira tool names with 'jira_' for uniqueness ([698d1db](https://github.com/aashari/mcp-server-atlassian-jira/commit/698d1dbcf88b671ec69032cce44e3c8278275d63))
+
 ## [1.16.4](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.16.3...v1.16.4) (2025-04-22)
 
 
