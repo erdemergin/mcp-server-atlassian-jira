@@ -129,7 +129,7 @@ async function list(
 		);
 
 		// Ensure pagination count is set to the actual number of issues retrieved
-		pagination.count = issuesCount;
+		// pagination.count = issuesCount; // Removed manual count setting
 		methodLogger.debug(`Next cursor: ${pagination.nextCursor}`);
 
 		// Format the issues data for display using the formatter

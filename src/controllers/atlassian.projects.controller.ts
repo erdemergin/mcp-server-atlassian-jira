@@ -87,7 +87,6 @@ async function list(
 		const pagination = extractPaginationInfo(
 			projectsData as unknown as Record<string, unknown>,
 			PaginationType.OFFSET,
-			'controllers/atlassian.projects.controller.ts@list',
 		);
 
 		// Format the projects data for display using the formatter

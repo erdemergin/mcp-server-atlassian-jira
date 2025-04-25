@@ -115,11 +115,17 @@ export function extractPaginationInfo<T extends Record<string, unknown>>(
 					'startAt' in data ||
 					'maxResults' in data ||
 					'total' in data ||
-					'values' in data;
+					'values' in data ||
+					'issues' in data;
 
 				if (hasOffsetProps) {
-					const offsetData = data as unknown as OffsetPaginationData;
-					count = offsetData.values?.length;
+					const offsetData =
+						data as unknown as OffsetPaginationData & {
+							issues?: unknown[];
+						};
+					// Check for 'issues' array first (Jira), then fallback to 'values'
+					count =
+						offsetData.issues?.length ?? offsetData.values?.length;
 
 					// Handle Jira's offset-based pagination
 					if (
