@@ -1,3 +1,15 @@
+# [1.18.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.17.0...v1.18.0) (2025-04-30)
+
+
+### Bug Fixes
+
+* Standardize MCP tool names and remove redundant search ([8095f29](https://github.com/aashari/mcp-server-atlassian-jira/commit/8095f29e38d3bf96761e2f12dcec1978d0df46ef))
+
+
+### Features
+
+* Support multiple keys for global config lookup ([e1f89f6](https://github.com/aashari/mcp-server-atlassian-jira/commit/e1f89f678fade4c286399141300a7c95b4b4bed9))
+
 # [1.17.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.16.4...v1.17.0) (2025-04-25)
 
 
