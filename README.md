@@ -182,13 +182,14 @@ _or:_
 
 # Command-Line Interface (CLI)
 
-The CLI uses kebab-case for commands (e.g., `jira-list-projects`) and options (e.g., `--project-key-or-id`).
+The CLI uses kebab-case for commands (e.g., `ls-projects`) and options (e.g., `--project-key-or-id`).
 
 ## Quick Use with `npx`
 
 ```bash
-npx -y @aashari/mcp-server-atlassian-jira jira-list-projects
-npx -y @aashari/mcp-server-atlassian-jira jira-get-issue --issue-id-or-key PROJ-123
+npx -y @aashari/mcp-server-atlassian-jira ls-projects
+npx -y @aashari/mcp-server-atlassian-jira get-issue --issue-id-or-key PROJ-123
+npx -y @aashari/mcp-server-atlassian-jira ls-issues --jql "project = DEV AND status = 'In Progress'"
 ```
 
 ## Install Globally
@@ -200,7 +201,8 @@ npm install -g @aashari/mcp-server-atlassian-jira
 Then run directly:
 
 ```bash
-mcp-atlassian-jira jira-list-projects
+mcp-atlassian-jira ls-projects
+mcp-atlassian-jira get-issue --issue-id-or-key PROJ-123
 ```
 
 ## Discover More CLI Options
@@ -214,8 +216,10 @@ mcp-atlassian-jira --help
 Or get detailed help for a specific command:
 
 ```bash
-mcp-atlassian-jira jira-get-project --help
-mcp-atlassian-jira jira-list-issues --help
+mcp-atlassian-jira ls-projects --help
+mcp-atlassian-jira get-project --help
+mcp-atlassian-jira ls-issues --help
+mcp-atlassian-jira get-issue --help
 ```
 
 ---

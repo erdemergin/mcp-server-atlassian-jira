@@ -32,9 +32,9 @@ describe('Atlassian Issues CLI Commands', () => {
 		}
 
 		try {
-			// Get a project key from the list-projects command
+			// Get a project key from the ls-projects command
 			const { stdout } = await CliTestUtil.runCommand([
-				'list-projects',
+				'ls-projects',
 				'--limit',
 				'1',
 			]);
@@ -65,7 +65,7 @@ describe('Atlassian Issues CLI Commands', () => {
 
 			// Get an issue from that project
 			const { stdout } = await CliTestUtil.runCommand([
-				'list-issues',
+				'ls-issues',
 				'--jql',
 				`project = ${projectKey}`,
 				'--limit',
@@ -81,15 +81,15 @@ describe('Atlassian Issues CLI Commands', () => {
 		}
 	};
 
-	describe('list-issues command', () => {
+	describe('ls-issues command', () => {
 		it('should list issues and return success exit code', async () => {
 			if (skipIfNoCredentials()) {
-				console.warn('Skipping list-issues test - no credentials');
+				console.warn('Skipping ls-issues test - no credentials');
 				return;
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-issues',
+				'ls-issues',
 			]);
 
 			expect(exitCode).toBe(0);
@@ -114,7 +114,7 @@ describe('Atlassian Issues CLI Commands', () => {
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-issues',
+				'ls-issues',
 				'--jql',
 				`project = ${projectKey}`,
 			]);
@@ -131,7 +131,7 @@ describe('Atlassian Issues CLI Commands', () => {
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-issues',
+				'ls-issues',
 				'--limit',
 				'2',
 			]);
@@ -152,7 +152,7 @@ describe('Atlassian Issues CLI Commands', () => {
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-issues',
+				'ls-issues',
 				'--limit',
 				'not-a-number',
 			]);
@@ -170,7 +170,7 @@ describe('Atlassian Issues CLI Commands', () => {
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-issues',
+				'ls-issues',
 				'--jql',
 				'invalidField = something',
 			]);

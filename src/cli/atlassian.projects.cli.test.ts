@@ -23,15 +23,15 @@ describe('Atlassian Projects CLI Commands', () => {
 		return false;
 	};
 
-	describe('list-projects command', () => {
+	describe('ls-projects command', () => {
 		it('should list projects and return success exit code', async () => {
 			if (skipIfNoCredentials()) {
-				console.warn('Skipping list-projects test - no credentials');
+				console.warn('Skipping ls-projects test - no credentials');
 				return;
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-projects',
+				'ls-projects',
 			]);
 
 			expect(exitCode).toBe(0);
@@ -50,7 +50,7 @@ describe('Atlassian Projects CLI Commands', () => {
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-projects',
+				'ls-projects',
 				'--limit',
 				'2',
 			]);
@@ -71,7 +71,7 @@ describe('Atlassian Projects CLI Commands', () => {
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-projects',
+				'ls-projects',
 				'--query',
 				'test',
 			]);
@@ -87,7 +87,7 @@ describe('Atlassian Projects CLI Commands', () => {
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-projects',
+				'ls-projects',
 				'--order-by',
 				'name',
 			]);
@@ -103,7 +103,7 @@ describe('Atlassian Projects CLI Commands', () => {
 			}
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
-				'list-projects',
+				'ls-projects',
 				'--limit',
 				'not-a-number',
 			]);
@@ -125,9 +125,9 @@ describe('Atlassian Projects CLI Commands', () => {
 			}
 
 			try {
-				// Get a project key from the list-projects command
+				// Get a project key from the ls-projects command
 				const { stdout } = await CliTestUtil.runCommand([
-					'list-projects',
+					'ls-projects',
 					'--limit',
 					'1',
 				]);

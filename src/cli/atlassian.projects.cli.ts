@@ -41,42 +41,31 @@ function register(program: Command): void {
  */
 function registerListProjectsCommand(program: Command): void {
 	program
-		.command('list-projects')
+		.command('ls-projects')
 		.description(
-			`List Jira projects with pagination and optional filtering.
-
-        PURPOSE: Browse all accessible Jira projects for discovery, exploration, and finding project keys/IDs.
-
-        Use Case: Get an overview of all Jira projects you have access to, with essential metadata including key, name, type, and lead. Useful for finding project keys needed for more specific operations.
-
-        Output: Formatted list of projects with key, name, type, and lead information. Includes pagination support for large project collections.
-        
-        Examples:
-  $ mcp-atlassian-jira list-projects --limit 10
-  $ mcp-atlassian-jira list-projects --name "Marketing" --limit 25 --cursor "25"
-  $ mcp-atlassian-jira list-projects --order-by "key"`,
+			'List Jira projects accessible to the user, with filtering, sorting, and pagination.',
 		)
 		.option(
 			'-l, --limit <number>',
-			'Maximum number of items to return (1-100)',
+			'Maximum number of items to return (1-100). Use this to control the response size. Useful for pagination or when you only need a few results.',
 			'25',
 		)
 		.option(
 			'-c, --cursor <string>',
-			'Pagination cursor for retrieving the next set of results',
+			'Pagination cursor for retrieving the next set of results. Use this to navigate through large result sets. The cursor value can be obtained from the pagination information in a previous response.',
 		)
 		.option(
 			'--name <name>',
-			'Filter projects by name or key (case-insensitive)',
+			'Filter projects by name or key (case-insensitive). Use this to find specific projects by their display name or project key.',
 		)
 		.option(
 			'--order-by <field>',
-			'Sort projects by field (e.g., key, name, lastIssueUpdatedTime)',
+			'Field to sort projects by (e.g., "name", "key", "lastIssueUpdatedTime"). Default is "lastIssueUpdatedTime", which shows the most recently active projects first.',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
 				'cli/atlassian.projects.cli.ts',
-				'list-projects',
+				'ls-projects',
 			);
 
 			try {
@@ -164,13 +153,11 @@ function registerGetProjectCommand(program: Command): void {
 	program
 		.command('get-project')
 		.description(
-			`Get detailed information about a specific Jira project using its key or ID.
-
-        PURPOSE: Retrieve comprehensive metadata for a *known* project, including its full description, lead, components, versions, style, and links.`,
+			'Get detailed information about a specific Jira project using its key or ID.',
 		)
 		.requiredOption(
 			'--project-key-or-id <keyOrId>',
-			'Key or numeric ID of the project to retrieve (e.g., "TEAM" or "10001")',
+			'The key or numeric ID of the Jira project to retrieve (e.g., "PROJ" or "10001"). This is required and must be a valid project key or ID from your Jira instance.',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(

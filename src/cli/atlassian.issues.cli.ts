@@ -41,41 +41,27 @@ function register(program: Command): void {
  */
 function registerListIssuesCommand(program: Command): void {
 	program
-		.command('list-issues')
+		.command('ls-issues')
 		.description(
-			`Search for Jira issues using JQL (Jira Query Language), with pagination.
-
-        PURPOSE: Find and explore issues across projects or within specific criteria using the powerful JQL syntax. Essential for finding issue keys/IDs for 'get-issue'.
-
-        Use Case: Use this for any issue search, from simple text searches to complex filtering based on project, status, assignee, priority, dates, labels, etc.
-
-        Output: Formatted list of issues matching the JQL query, including key, summary, type, status, priority, project, assignee, reporter, and dates. Includes pagination info.
-        
-        Sorting: By default, issues are sorted by updated date in descending order (most recently updated first). This behavior can be overridden by including an explicit ORDER BY clause in your JQL query.
-
-        Examples:
-  $ mcp-atlassian-jira list-issues --jql "project = TEAM AND status = 'In Progress' ORDER BY updated DESC"
-  $ mcp-atlassian-jira list-issues --limit 50 --jql "assignee = currentUser() AND resolution = Unresolved"
-  $ mcp-atlassian-jira list-issues --jql "text ~ 'performance issue'" --cursor "50"
-  $ mcp-atlassian-jira list-issues  # Returns all issues, sorted by most recently updated first`,
+			'Search for Jira issues using JQL (Jira Query Language), with pagination.',
 		)
 		.option(
 			'-l, --limit <number>',
-			'Maximum number of items to return (1-100)',
+			'Maximum number of items to return (1-100). Use this to control the response size. Useful for pagination or when you only need a few results.',
 			'25',
 		)
 		.option(
 			'-c, --cursor <string>',
-			'Pagination cursor for retrieving the next set of results',
+			'Pagination cursor for retrieving the next set of results. Use this to navigate through large result sets. The cursor value can be obtained from the pagination information in a previous response.',
 		)
 		.option(
 			'-q, --jql <jql>',
-			'Filter issues using Jira Query Language (JQL) syntax (e.g., "project = TEAM AND status = \'In Progress\'")',
+			'Filter issues using JQL syntax. Use this for complex queries like "project = TEAM AND status = \'In Progress\'" or "assignee = currentUser()". If omitted, returns issues according to your Jira default search.',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
 				'cli/atlassian.issues.cli.ts',
-				'list-issues',
+				'ls-issues',
 			);
 
 			try {
@@ -145,13 +131,11 @@ function registerGetIssueCommand(program: Command): void {
 	program
 		.command('get-issue')
 		.description(
-			`Get detailed information about a specific Jira issue using its ID or key.
-
-        PURPOSE: Retrieve comprehensive details for a *known* issue, including its summary, description, status, priority, assignee, reporter, comments, attachments, and all standard fields.`,
+			'Get detailed information about a specific Jira issue using its ID or key.',
 		)
 		.requiredOption(
 			'--issue-id-or-key <idOrKey>',
-			'ID or key of the issue to retrieve (e.g., "TEAM-123" or "10001")',
+			'The ID or key of the Jira issue to retrieve (e.g., "10001" or "PROJ-123"). This is required and must be a valid issue ID or key from your Jira instance.',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
