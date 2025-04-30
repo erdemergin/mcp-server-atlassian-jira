@@ -11,7 +11,6 @@ import { runCli } from './cli/index.js';
 // Import Jira-specific tools
 import atlassianProjectsTools from './tools/atlassian.projects.tool.js';
 import atlassianIssuesTools from './tools/atlassian.issues.tool.js';
-import atlassianSearchTools from './tools/atlassian.search.tool.js';
 
 // Create a contextualized logger for this file
 const indexLogger = Logger.forContext('index.ts');
@@ -70,9 +69,6 @@ export async function startServer(mode: 'stdio' | 'sse' = 'stdio') {
 
 	atlassianIssuesTools.registerTools(serverInstance);
 	serverLogger.debug('Registered Issues tools');
-
-	atlassianSearchTools.registerTools(serverInstance);
-	serverLogger.debug('Registered Search tools');
 
 	serverLogger.info('All tools registered successfully');
 

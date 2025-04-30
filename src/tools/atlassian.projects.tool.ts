@@ -117,7 +117,7 @@ function registerTools(server: McpServer) {
 
 	// Register the list projects tool
 	server.tool(
-		'jira_list_projects',
+		'jira_ls_projects',
 		`Lists Jira projects accessible to the user, optionally filtering by name/key (\`name\`) or sorting (\`orderBy\`).\n- Use this to discover available projects and find project keys/IDs needed for other tools (like \`jira_get_project\` or \`jira_list_issues\`).\n- Supports pagination via \`limit\` and \`cursor\`.\nReturns a formatted list of projects including key, name, type, style, lead, and URL.\n**Note:** Default sort is by most recently updated issue time.`,
 		ListProjectsToolArgs.shape,
 		listProjects,

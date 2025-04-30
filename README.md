@@ -106,7 +106,7 @@ This configuration launches the server automatically at runtime.
 
 This section covers the MCP tools available when using this server with an AI assistant. Note that MCP tools use `snake_case` for tool names and `camelCase` for parameters.
 
-## `jira_list_projects`
+## `jira_ls_projects`
 
 List available Jira projects with optional filtering and pagination.
 
@@ -142,7 +142,7 @@ _or:_
 
 ---
 
-## `jira_list_issues`
+## `jira_ls_issues`
 
 List issues matching a JQL (Jira Query Language) query with pagination.
 
@@ -175,24 +175,6 @@ _or:_
 ```
 
 > "Show me all details and linked commits for issue PROJ-123."
-
----
-
-## `jira_search_issues`
-
-Search Jira content using JQL (Jira Query Language) for advanced filtering.
-
-```json
-{ "jql": "text ~ 'login issue'" }
-```
-
-_or:_
-
-```json
-{ "jql": "project = PROJ AND priority = High AND created >= startOfMonth()" }
-```
-
-> "Search for high priority issues created this month in the PROJ project."
 
 ---
 
@@ -232,7 +214,6 @@ Or get detailed help for a specific command:
 ```bash
 mcp-atlassian-jira jira-get-project --help
 mcp-atlassian-jira jira-list-issues --help
-mcp-atlassian-jira jira-search-issues --help
 ```
 
 ---

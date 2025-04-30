@@ -116,7 +116,7 @@ function registerTools(server: McpServer) {
 
 	// Register the list issues tool
 	server.tool(
-		'jira_list_issues',
+		'jira_ls_issues',
 		`Searches for Jira issues using a JQL query (\`jql\`),\n\twith pagination support (\`limit\`, \`cursor\`).\n\n- Use this to find issues matching specific criteria (project, status, assignee, text, etc.).\n- Provides issue keys/IDs needed for \`jira_get_issue\`.\nReturns a formatted list of matching issues including key, summary, type, status, priority, project, and dates.\n**Note:** Requires valid JQL syntax. See Jira documentation for JQL details. Default sort is by last updated.`,
 		ListIssuesToolArgs.shape,
 		listIssues,
