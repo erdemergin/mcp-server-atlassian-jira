@@ -1,3 +1,11 @@
+# [1.19.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.18.2...v1.19.0) (2025-05-01)
+
+
+### Features
+
+* add dedicated filter parameters to jira_ls_issues tool ([a47be2c](https://github.com/aashari/mcp-server-atlassian-jira/commit/a47be2c365ca6ecda8ed6363bd1f2be4f0cb5e83))
+* add jira_ls_statuses tool and ls-statuses CLI command for Jira status discovery ([a2f598f](https://github.com/aashari/mcp-server-atlassian-jira/commit/a2f598fd38f0b1d6fa24f782f9b3d9b26ca350bb))
+
 ## [1.18.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.18.1...v1.18.2) (2025-05-01)
 
 
