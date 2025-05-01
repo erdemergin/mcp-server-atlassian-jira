@@ -1,3 +1,15 @@
+## [1.18.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.18.0...v1.18.1) (2025-04-30)
+
+
+### Bug Fixes
+
+* **cli:** Align command names and descriptions with tool definitions ([879f5ad](https://github.com/aashari/mcp-server-atlassian-jira/commit/879f5adce80546fb210fe2c24f420882f4c351dc))
+
+
+### Performance Improvements
+
+* Update dependencies ([bbbff45](https://github.com/aashari/mcp-server-atlassian-jira/commit/bbbff4568fb14de78427da577526c377b518fae6))
+
 # [1.18.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.17.0...v1.18.0) (2025-04-30)
 
 
