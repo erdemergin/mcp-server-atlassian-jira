@@ -53,20 +53,9 @@ function registerTools(server: McpServer) {
 
 	server.tool(
 		'jira_ls_statuses',
-		`**PURPOSE**: Discover available Jira status names and IDs for filtering issues.
-
-**WHEN TO USE**: Use this tool before filtering issues by status to ensure you're using valid status names.
-
-**RETURNS**: Markdown-formatted list of Jira statuses with names, IDs, categories, and descriptions.
-
-**EXAMPLES**:
-- \`{}\` - Lists all globally available statuses
-- \`{ "projectKeyOrId": "PROJ" }\` - Lists statuses relevant to the specified project
-
-**ERRORS**: 
-- "Not Found" if the specified project doesn't exist
-- "Authentication Required" if Atlassian credentials are missing or invalid
-- "Permission Denied" if you don't have access to the requested resources`,
+		`Lists available Jira statuses, either globally or for a specific project (\`projectKeyOrId\`).
+Use this to discover valid status names and IDs needed for filtering issues (e.g., in \`jira_ls_issues\`).
+Returns a formatted Markdown list of statuses including name, ID, description, and category (To Do, In Progress, Done).`,
 		ListStatusesToolArgs.shape,
 		handleListStatuses,
 	);
