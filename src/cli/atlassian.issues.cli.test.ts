@@ -197,7 +197,7 @@ describe('Atlassian Issues CLI Commands', () => {
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
 				'get-issue',
-				'--id',
+				'--issue-id-or-key',
 				issueKey,
 			]);
 
@@ -224,7 +224,7 @@ describe('Atlassian Issues CLI Commands', () => {
 
 			const { stdout, exitCode } = await CliTestUtil.runCommand([
 				'get-issue',
-				'--id',
+				'--issue-id-or-key',
 				invalidKey,
 			]);
 
@@ -248,7 +248,7 @@ describe('Atlassian Issues CLI Commands', () => {
 		it('should handle invalid issue ID', async () => {
 			const { exitCode, stderr } = await CliTestUtil.runCommand([
 				'get-issue',
-				'--id',
+				'--issue-id-or-key',
 				'invalid',
 			]);
 
