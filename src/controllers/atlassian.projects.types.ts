@@ -1,4 +1,4 @@
-import { PaginationOptions, EntityIdentifier } from '../types/common.types.js';
+import { EntityIdentifier } from '../types/common.types.js';
 
 /**
  * Project identifier for retrieving specific projects.
@@ -16,7 +16,17 @@ export interface ProjectIdentifier extends EntityIdentifier {
  * Options for listing Jira projects.
  * These options control filtering and pagination of project listings.
  */
-export interface ListProjectsOptions extends PaginationOptions {
+export interface ListProjectsOptions {
+	/**
+	 * Index of the first item to return (0-based offset).
+	 */
+	startAt?: number;
+
+	/**
+	 * Maximum number of items to return (1-100).
+	 */
+	limit?: number;
+
 	/**
 	 * Filter projects by name or key.
 	 * Performs a case-insensitive partial match on project name and key.

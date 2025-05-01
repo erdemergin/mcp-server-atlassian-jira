@@ -24,11 +24,33 @@ import {
 	DevInfoResponse,
 	DevInfoSummaryResponse,
 } from '../services/vendor.atlassian.issues.types.js';
+import { SearchIssuesParams } from '../services/vendor.atlassian.issues.types.js';
 
 /**
  * Controller for managing Jira issues.
  * Provides functionality for listing issues and retrieving issue details.
  */
+
+// Define default fields here (or import if defined elsewhere)
+const DEFAULT_ISSUE_FIELDS = [
+	'summary',
+	'description',
+	'status',
+	'issuetype',
+	'priority',
+	'project',
+	'assignee',
+	'reporter',
+	'creator',
+	'created',
+	'updated',
+	'timetracking',
+	'comment',
+	'attachment',
+	'worklog',
+	'issuelinks',
+	'labels',
+];
 
 // Create a contextualized logger for this file
 const controllerLogger = Logger.forContext(
@@ -53,7 +75,7 @@ async function list(
 		'controllers/atlassian.issues.controller.ts',
 		'list',
 	);
-	methodLogger.debug('Listing Jira issues...', options);
+	methodLogger.debug('Listing Jira issues (raw options received):', options);
 
 	try {
 		const credentials = getAtlassianCredentials();
@@ -66,8 +88,8 @@ async function list(
 		// Create a defaults object with proper typing
 		const defaults: Partial<ListIssuesOptions> = {
 			limit: DEFAULT_PAGE_SIZE,
-			jql: '',
-			cursor: '',
+			orderBy: 'updated DESC', // Jira default sort
+			startAt: 0, // Default startAt to 0
 		};
 
 		// Apply defaults
@@ -75,112 +97,87 @@ async function list(
 			options,
 			defaults,
 		);
+		methodLogger.debug(
+			'Listing Jira issues (merged options after defaults):',
+			mergedOptions,
+		);
 
-		// Construct JQL from individual parameters
+		// Revert to simpler JQL building logic, using statuses
 		const jqlParts: string[] = [];
-
-		// Add base JQL if provided (wrapped in parentheses for safety if combining)
 		if (mergedOptions.jql && mergedOptions.jql.trim() !== '') {
 			jqlParts.push(`(${mergedOptions.jql})`);
 		}
-
-		// Add project filter if provided
 		if (mergedOptions.projectKeyOrId) {
-			// Quote project key/ID if it might contain spaces (unlikely but safe)
-			jqlParts.push(`project = "${mergedOptions.projectKeyOrId}"`);
+			// No need to escape simple keys/IDs typically
+			jqlParts.push(`project = ${mergedOptions.projectKeyOrId}`);
 		}
-
-		// Add status filter if provided
-		if (mergedOptions.status && mergedOptions.status.length > 0) {
-			// Handle single vs multiple statuses, quote names
+		if (mergedOptions.statuses && mergedOptions.statuses.length > 0) {
 			const statusQuery =
-				mergedOptions.status.length === 1
-					? `status = "${mergedOptions.status[0]}"`
-					: `status IN (${mergedOptions.status.map((s) => `"${s}"`).join(', ')})`;
+				mergedOptions.statuses.length === 1
+					? `status = "${mergedOptions.statuses[0]}"` // Quote status names
+					: `status IN (${mergedOptions.statuses.map((s) => `"${s}"`).join(', ')})`;
 			jqlParts.push(statusQuery);
 		}
 
-		// Combine all parts with AND logic
 		let finalJql = jqlParts.join(' AND ');
 
-		// Handle sorting
 		if (mergedOptions.orderBy) {
-			// Append ORDER BY clause if not already present in the base JQL
 			if (!finalJql.toUpperCase().includes('ORDER BY')) {
 				finalJql += ` ORDER BY ${mergedOptions.orderBy}`;
 			} else {
-				// Log a warning if orderBy is provided but JQL already has it
 				methodLogger.warn(
 					'orderBy parameter ignored as provided JQL already contains ORDER BY clause.',
 				);
 			}
-		} else if (!finalJql.toUpperCase().includes('ORDER BY')) {
-			// Apply default sort if no explicit sort provided anywhere
+		} else if (
+			finalJql.trim() !== '' &&
+			!finalJql.toUpperCase().includes('ORDER BY')
+		) {
+			// Apply default sort only if some JQL exists and no order is specified
 			finalJql += ' ORDER BY updated DESC';
 		}
 
-		// If finalJql is empty (no filters provided), use the default sort
 		if (finalJql.trim() === '') {
+			// Default search if no criteria provided - maybe just order by updated?
 			finalJql = 'ORDER BY updated DESC';
 		}
 
-		methodLogger.debug('Constructed JQL:', { jql: finalJql });
+		methodLogger.debug(`Executing generated JQL: ${finalJql}`);
 
-		// Set default filters and hardcoded values
-		const filters = {
-			// Use the constructed JQL
+		const params: SearchIssuesParams = {
 			jql: finalJql,
-			// Always include all fields
-			fields: [
-				'summary',
-				'description',
-				'status',
-				'issuetype',
-				'priority',
-				'project',
-				'assignee',
-				'reporter',
-				'creator',
-				'created',
-				'updated',
-				'timetracking',
-				'comment',
-				'attachment',
-				'worklog',
-				'issuelinks',
-			],
-			// Pagination
 			maxResults: mergedOptions.limit,
-			startAt: mergedOptions.cursor
-				? parseInt(mergedOptions.cursor, 10)
-				: 0,
+			startAt: mergedOptions.startAt,
+			expand: ['renderedFields', 'names'],
+			fields: DEFAULT_ISSUE_FIELDS, // Use defined constant
 		};
 
-		methodLogger.debug('Using filters:', filters);
+		const issuesData = await atlassianIssuesService.search(params);
 
-		const issuesData = await atlassianIssuesService.search(filters);
-		// Log only the count of issues returned instead of the entire response
-		const issuesCount = issuesData.issues?.length || 0;
-		methodLogger.debug(`Retrieved ${issuesCount} issues`);
+		methodLogger.debug(
+			`Retrieved ${issuesData.issues.length} issues out of ${issuesData.total} total`,
+		);
 
-		// Extract pagination information using the utility
 		const pagination = extractPaginationInfo(
-			issuesData as unknown as Record<string, unknown>,
-			PaginationType.OFFSET,
+			issuesData as unknown as Record<string, unknown>, // Cast type
+			PaginationType.OFFSET, // Use OFFSET
 		);
 
-		// Ensure pagination count is set to the actual number of issues retrieved
-		// pagination.count = issuesCount; // Removed manual count setting
-		methodLogger.debug(`Next cursor: ${pagination.nextCursor}`);
+		// The formatter expects an object with issues and baseUrl
+		if (!credentials || !credentials.siteName) {
+			// Handle missing credentials/siteName - perhaps throw an error or default cautiously
+			throw new Error(
+				'Missing necessary credentials (siteName) to construct base URL.',
+			);
+		}
+		const baseUrl = `https://${credentials.siteName}.atlassian.net`; // Construct baseUrl from siteName
 
-		// Format the issues data for display using the formatter
-		const formattedIssues = formatIssuesList(
-			{
-				issues: issuesData.issues || [],
-				baseUrl: `https://${credentials.siteName}.atlassian.net`,
-			},
-			pagination,
-		);
+		const formatterInput = {
+			issues: issuesData.issues || [],
+			baseUrl: baseUrl,
+		};
+
+		const formattedIssues = formatIssuesList(formatterInput);
 
 		return {
 			content: formattedIssues,

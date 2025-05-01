@@ -64,9 +64,17 @@ describe('Atlassian Projects Controller', () => {
 
 			// If there's a next page, fetch it
 			if (result1.pagination?.hasMore && result1.pagination.nextCursor) {
+				// Parse the nextCursor (which is the next startAt value as a string)
+				const nextStartAt = parseInt(result1.pagination.nextCursor, 10);
+				if (isNaN(nextStartAt)) {
+					throw new Error(
+						`Invalid nextCursor format for startAt: ${result1.pagination.nextCursor}`,
+					);
+				}
 				const result2 = await atlassianProjectsController.list({
 					limit: 1,
-					cursor: result1.pagination.nextCursor, // Use cursor from previous response
+					// Pass the parsed number as startAt
+					startAt: nextStartAt,
 				});
 				expect(result2.pagination?.count).toBeLessThanOrEqual(1);
 				// Check if content is different (simple check)

@@ -1,4 +1,4 @@
-import { PaginationOptions, EntityIdentifier } from '../types/common.types.js';
+import { EntityIdentifier } from '../types/common.types.js';
 
 /**
  * Issue identifier for retrieving specific issues
@@ -13,7 +13,17 @@ export interface IssueIdentifier extends EntityIdentifier {
 /**
  * Options for listing Jira issues
  */
-export interface ListIssuesOptions extends PaginationOptions {
+export interface ListIssuesOptions {
+	/**
+	 * Index of the first item to return (0-based offset).
+	 */
+	startAt?: number;
+
+	/**
+	 * Maximum number of items to return (1-100).
+	 */
+	limit?: number;
+
 	/**
 	 * JQL query string to filter issues
 	 */
@@ -28,7 +38,7 @@ export interface ListIssuesOptions extends PaginationOptions {
 	 * Status names to filter issues by status
 	 * For multiple statuses, will construct "status IN (...)" JQL clause
 	 */
-	status?: string[];
+	statuses?: string[];
 
 	/**
 	 * Order by field and direction (e.g., "priority DESC", "created ASC")

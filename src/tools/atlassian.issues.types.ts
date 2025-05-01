@@ -13,11 +13,13 @@ const PaginationArgs = {
 			'Maximum number of items to return (1-100). Use this to control the response size. Useful for pagination or when you only need a few results.',
 		),
 
-	cursor: z
-		.string()
+	startAt: z
+		.number()
+		.int()
+		.nonnegative()
 		.optional()
 		.describe(
-			'Pagination cursor for retrieving the next set of results. Use this to navigate through large result sets. The cursor value can be obtained from the pagination information in a previous response.',
+			'Index of the first item to return (0-based offset). Use this for pagination instead of cursor, as Jira uses offset-based pagination.',
 		),
 };
 
@@ -49,7 +51,7 @@ const ListIssuesToolArgs = z.object({
 	/**
 	 * Status names to filter issues by
 	 */
-	status: z
+	statuses: z
 		.array(z.string())
 		.optional()
 		.describe(

@@ -60,10 +60,27 @@ export function applyDefaults<T extends object>(
 	options: Partial<T>,
 	defaults: Partial<T>,
 ): T {
-	return {
+	// Log input
+	console.log('applyDefaults - options:', JSON.stringify(options));
+	console.log('applyDefaults - defaults:', JSON.stringify(defaults));
+
+	// Filter out undefined values from the provided options
+	const definedOptions = Object.fromEntries(
+		Object.entries(options).filter(([_, value]) => value !== undefined),
+	);
+	console.log(
+		'applyDefaults - definedOptions:',
+		JSON.stringify(definedOptions),
+	);
+
+	// Merge defaults and defined options
+	const result = {
 		...defaults,
-		...Object.fromEntries(
-			Object.entries(options).filter(([_, value]) => value !== undefined),
-		),
-	} as T;
+		...definedOptions,
+	};
+
+	// Log final result
+	console.log('applyDefaults - result:', JSON.stringify(result));
+
+	return result as T;
 }

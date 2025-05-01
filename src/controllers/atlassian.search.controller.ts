@@ -13,6 +13,10 @@ export interface SearchOptions {
 	jql?: string;
 	limit?: number;
 	cursor?: string;
+	startAt?: number;
+	projectKeyOrId?: string;
+	statuses?: string[];
+	orderBy?: string;
 }
 
 /**
@@ -35,13 +39,20 @@ async function search(
 		const mergedOptions = applyDefaults<SearchOptions>(options, {
 			limit: DEFAULT_PAGE_SIZE,
 			jql: '',
+			startAt: 0,
+			projectKeyOrId: '',
+			statuses: [],
+			orderBy: '',
 		});
 
 		// Search issues using the issues controller
 		const result = await atlassianIssuesController.list({
 			jql: mergedOptions.jql,
 			limit: mergedOptions.limit,
-			cursor: mergedOptions.cursor,
+			startAt: mergedOptions.startAt,
+			projectKeyOrId: mergedOptions.projectKeyOrId,
+			statuses: mergedOptions.statuses,
+			orderBy: mergedOptions.orderBy,
 		});
 
 		// Format the search results

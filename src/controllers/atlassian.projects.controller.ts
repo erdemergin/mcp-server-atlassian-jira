@@ -20,6 +20,7 @@ import {
 	applyDefaults,
 	PROJECT_DEFAULTS,
 } from '../utils/defaults.util.js';
+import { ListProjectsParams } from '../services/vendor.atlassian.projects.types.js';
 
 /**
  * Controller for managing Jira projects.
@@ -46,14 +47,17 @@ async function list(
 		'controllers/atlassian.projects.controller.ts',
 		'list',
 	);
-	methodLogger.debug('Listing Jira projects...', options);
+	methodLogger.debug(
+		'Listing Jira projects (raw options received):',
+		options,
+	);
 
 	try {
 		// Create a defaults object with proper typing
 		const defaults: Partial<ListProjectsOptions> = {
 			limit: DEFAULT_PAGE_SIZE,
 			orderBy: 'lastIssueUpdatedTime',
-			cursor: '',
+			startAt: 0,
 		};
 
 		// Apply defaults
@@ -61,23 +65,22 @@ async function list(
 			options,
 			defaults,
 		);
+		methodLogger.debug(
+			'Listing Jira projects (merged options after defaults):',
+			mergedOptions,
+		);
 
 		// Map controller options to service parameters
-		const serviceParams = {
-			// Optional filters
-			query: mergedOptions.name,
-			// Always include expanded fields
-			expand: ['description', 'lead'],
-			// Default sorting by last update time if not specified
-			orderBy: mergedOptions.orderBy,
-			// Pagination with defaults
+		const params: ListProjectsParams = {
+			...(mergedOptions.name && { query: mergedOptions.name }),
+			...(mergedOptions.orderBy && { orderBy: mergedOptions.orderBy }),
 			maxResults: mergedOptions.limit,
-			startAt: mergedOptions.cursor
-				? parseInt(mergedOptions.cursor, 10)
-				: 0,
+			startAt: mergedOptions.startAt,
 		};
 
-		const projectsData = await atlassianProjectsService.list(serviceParams);
+		methodLogger.debug('Using service params:', params);
+
+		const projectsData = await atlassianProjectsService.list(params);
 		// Log only the count of projects returned instead of the entire response
 		methodLogger.debug(
 			`Retrieved ${projectsData.values?.length || 0} projects`,
@@ -90,7 +93,7 @@ async function list(
 		);
 
 		// Format the projects data for display using the formatter
-		const formattedProjects = formatProjectsList(projectsData, pagination);
+		const formattedProjects = formatProjectsList(projectsData);
 
 		return {
 			content: formattedProjects,

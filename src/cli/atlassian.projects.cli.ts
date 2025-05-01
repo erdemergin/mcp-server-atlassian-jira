@@ -51,8 +51,8 @@ function registerListProjectsCommand(program: Command): void {
 			'25',
 		)
 		.option(
-			'-c, --cursor <string>',
-			'Pagination cursor for retrieving the next set of results. Use this to navigate through large result sets. The cursor value can be obtained from the pagination information in a previous response.',
+			'--start-at <number>',
+			'Index of the first item to return (0-based offset). Use this for pagination.',
 		)
 		.option(
 			'--name <name>',
@@ -103,7 +103,9 @@ function registerListProjectsCommand(program: Command): void {
 					...(options.limit && {
 						limit: parseInt(options.limit, 10),
 					}),
-					...(options.cursor && { cursor: options.cursor }),
+					...(options.startAt !== undefined && {
+						startAt: parseInt(options.startAt, 10),
+					}),
 					...(options.orderBy && { orderBy: options.orderBy }),
 				};
 

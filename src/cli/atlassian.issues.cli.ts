@@ -51,19 +51,19 @@ function registerListIssuesCommand(program: Command): void {
 			'25',
 		)
 		.option(
-			'-c, --cursor <string>',
-			'Pagination cursor for retrieving the next set of results. Use this to navigate through large result sets. The cursor value can be obtained from the pagination information in a previous response.',
+			'-c, --start-at <number>',
+			'Index of the first item to return (0-based offset). Use this for Jira offset pagination.',
 		)
 		.option(
 			'-q, --jql <jql>',
 			'Filter issues using JQL syntax. Use this for complex queries like "project = TEAM AND status = \'In Progress\'" or "assignee = currentUser()". If omitted, returns issues according to your Jira default search.',
 		)
 		.option(
-			'-p, --project <keyOrId>',
+			'-p, --project-key-or-id <keyOrId>',
 			'Filter by a specific project key or ID.',
 		)
 		.option(
-			'-s, --status <status...>',
+			'-s, --statuses <statuses...>',
 			'Filter by one or more status names (repeatable).',
 		)
 		.option(
@@ -80,8 +80,9 @@ function registerListIssuesCommand(program: Command): void {
 				actionLogger.debug('Processing command options:', options);
 
 				// Validate limit if provided
+				let limit: number | undefined;
 				if (options.limit) {
-					const limit = parseInt(options.limit, 10);
+					limit = parseInt(options.limit, 10);
 					if (isNaN(limit) || limit <= 0) {
 						throw new Error(
 							'Invalid --limit value: Must be a positive integer.',
@@ -89,15 +90,26 @@ function registerListIssuesCommand(program: Command): void {
 					}
 				}
 
+				// Validate startAt if provided
+				let startAt: number | undefined;
+				if (options.startAt !== undefined) {
+					startAt = parseInt(options.startAt, 10);
+					if (isNaN(startAt) || startAt < 0) {
+						throw new Error(
+							'Invalid --start-at value: Must be a non-negative integer.',
+						);
+					}
+				}
+
 				const filterOptions: ListIssuesOptions = {
 					...(options.jql && { jql: options.jql }),
-					...(options.project && { projectKeyOrId: options.project }),
-					...(options.status && { status: options.status }),
-					...(options.orderBy && { orderBy: options.orderBy }),
-					...(options.limit && {
-						limit: parseInt(options.limit, 10),
+					...(options.projectKeyOrId && {
+						projectKeyOrId: options.projectKeyOrId,
 					}),
-					...(options.cursor && { cursor: options.cursor }),
+					...(options.statuses && { statuses: options.statuses }),
+					...(options.orderBy && { orderBy: options.orderBy }),
+					...(limit !== undefined && { limit: limit }),
+					...(startAt !== undefined && { startAt: startAt }),
 				};
 
 				actionLogger.debug(

@@ -7,8 +7,8 @@ import {
 	GetIssueToolArgs,
 	GetIssueToolArgsType,
 } from './atlassian.issues.types.js';
-
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
+import { ListIssuesOptions } from '../controllers/atlassian.issues.types.js';
 
 // Create a contextualized logger for this file
 const toolLogger = Logger.forContext('tools/atlassian.issues.tool.ts');
@@ -34,23 +34,27 @@ async function listIssues(args: ListIssuesToolArgsType) {
 	methodLogger.debug('Listing Jira issues with filters:', args);
 
 	try {
-		// Pass the options to the controller
-		const message = await atlassianIssuesController.list({
+		// Map tool args to controller options, using startAt and statuses
+		const options: ListIssuesOptions = {
 			jql: args.jql,
 			projectKeyOrId: args.projectKeyOrId,
-			status: args.status,
+			statuses: args.statuses,
 			orderBy: args.orderBy,
 			limit: args.limit,
-			cursor: args.cursor,
-		});
+			startAt: args.startAt,
+		};
 
-		methodLogger.debug('Successfully retrieved issues from controller');
+		methodLogger.debug('Calling controller with options:', options);
+
+		const result = await atlassianIssuesController.list(options);
+
+		methodLogger.debug('Successfully retrieved issues list');
 
 		return {
 			content: [
 				{
 					type: 'text' as const,
-					text: message.content,
+					text: result.content,
 				},
 			],
 		};

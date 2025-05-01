@@ -55,10 +55,18 @@ describe('Atlassian Search Controller', () => {
 
 			// If there's a next page, check it's different from the first
 			if (result1.pagination?.hasMore && result1.pagination.nextCursor) {
+				// Parse the nextCursor (which is the next startAt value as a string)
+				const nextStartAt = parseInt(result1.pagination.nextCursor, 10);
+				if (isNaN(nextStartAt)) {
+					throw new Error(
+						`Invalid nextCursor format: ${result1.pagination.nextCursor}`,
+					);
+				}
 				const result2 = await atlassianSearchController.search({
 					jql: 'created >= -90d',
 					limit: 2,
-					cursor: result1.pagination.nextCursor,
+					// Pass the parsed number as startAt
+					startAt: nextStartAt,
 				});
 				expect(result2.pagination?.count).toBeLessThanOrEqual(2);
 
