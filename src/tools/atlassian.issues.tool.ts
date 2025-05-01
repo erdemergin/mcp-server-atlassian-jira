@@ -120,21 +120,7 @@ function registerTools(server: McpServer) {
 	// Register the list issues tool
 	server.tool(
 		'jira_ls_issues',
-		`Searches for Jira issues with flexible filtering options.
-
-**FILTERING OPTIONS:**
-- \`jql\`: Full JQL query for complex filters (e.g. \`project = TEAM AND status = "In Progress"\`)
-- \`projectKeyOrId\`: Filter by project key/ID (e.g. \`"PROJ"\` or \`"10001"\`)
-- \`status\`: Filter by status name(s) (e.g. \`["To Do", "In Progress"]\`) - use \`jira_ls_statuses\` to discover valid names
-- \`orderBy\`: Sort results (e.g. \`"priority DESC"\`, \`"created ASC"\`)
-
-**PAGINATION:**
-- \`limit\`: Maximum items to return (1-100)
-- \`cursor\`: Pagination token from previous response
-
-All filter parameters are combined with AND logic. Default sort is by last updated date.
-
-Returns formatted list of matching issues with key, summary, type, status, priority, project, and dates.`,
+		`Searches for Jira issues using flexible criteria. You can provide a full JQL query via \`jql\` for complex filtering (e.g., \`project = TEAM AND status = "In Progress"\`), or use specific filters like \`projectKeyOrId\`, issue \`status\` (use \`jira_ls_statuses\` to find valid names), and sort results using \`orderBy\` (e.g., \`"priority DESC"\`). Filters are combined using AND logic. Supports pagination via \`limit\` and \`cursor\`. Returns a formatted list of matching issues including key, summary, type, status, priority, project, and dates. Default sort is by last updated date.`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);
