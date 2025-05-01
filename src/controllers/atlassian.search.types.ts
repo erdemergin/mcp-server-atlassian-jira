@@ -37,6 +37,12 @@ export interface SearchOptions {
 	 */
 	orderBy?: string;
 
+	/**
+	 * Legacy pagination parameter for backwards compatibility.
+	 * This should be used alongside startAt for Jira's offset-based pagination.
+	 */
+	cursor?: string;
+
 	// Limit is already inherited from PaginationOptions
 	// cursor should be ignored in favor of startAt for Jira
 }

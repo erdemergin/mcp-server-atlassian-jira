@@ -4,20 +4,7 @@ import { applyDefaults, DEFAULT_PAGE_SIZE } from '../utils/defaults.util.js';
 import { ControllerResponse } from '../types/common.types.js';
 
 import atlassianIssuesController from './atlassian.issues.controller.js';
-
-/**
- * Search options interface
- * Defines the parameters for searching Jira content
- */
-export interface SearchOptions {
-	jql?: string;
-	limit?: number;
-	cursor?: string;
-	startAt?: number;
-	projectKeyOrId?: string;
-	statuses?: string[];
-	orderBy?: string;
-}
+import { SearchOptions } from './atlassian.search.types.js';
 
 /**
  * Search for Jira issues using JQL
