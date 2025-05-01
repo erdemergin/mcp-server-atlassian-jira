@@ -46,7 +46,7 @@ describe('Atlassian Issues Controller', () => {
 			// Call the controller with pagination parameters
 			const result = await atlassianIssuesController.list({
 				limit: 10,
-				cursor: '0',
+				startAt: 0,
 			});
 
 			// Verify the response structure
