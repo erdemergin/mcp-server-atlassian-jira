@@ -4,6 +4,7 @@ import { VERSION, CLI_NAME } from '../utils/constants.util.js';
 
 import atlassianProjectsCommands from './atlassian.projects.cli.js';
 import atlassianIssuesCommands from './atlassian.issues.cli.js';
+import atlassianStatusesCommands from './atlassian.statuses.cli.js';
 
 // Package description
 const DESCRIPTION =
@@ -29,6 +30,9 @@ export async function runCli(args: string[]) {
 
 	atlassianIssuesCommands.register(program);
 	cliLogger.debug('Issues commands registered');
+
+	atlassianStatusesCommands.register(program);
+	cliLogger.debug('Statuses commands registered');
 
 	// Handle unknown commands
 	program.on('command:*', (operands) => {
