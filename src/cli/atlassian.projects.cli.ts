@@ -52,10 +52,10 @@ function registerListProjectsCommand(program: Command): void {
 		)
 		.option(
 			'--start-at <number>',
-			'Index of the first item to return (0-based offset). Use this for pagination.',
+			'Index of the first item to return (0-based offset, starts at 0). Note: Jira uses offset-based pagination with startAt instead of cursor-based pagination used in other servers.',
 		)
 		.option(
-			'--name <name>',
+			'--name <n>',
 			'Filter projects by name or key (case-insensitive). Use this to find specific projects by their display name or project key.',
 		)
 		.option(

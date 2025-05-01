@@ -52,7 +52,7 @@ function registerListIssuesCommand(program: Command): void {
 		)
 		.option(
 			'-c, --start-at <number>',
-			'Index of the first item to return (0-based offset). Use this for Jira offset pagination.',
+			'Index of the first item to return (0-based offset, starts at 0). Note: Jira uses offset-based pagination with startAt instead of cursor-based pagination used in other servers.',
 		)
 		.option(
 			'-q, --jql <jql>',

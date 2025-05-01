@@ -124,7 +124,7 @@ function registerTools(server: McpServer) {
 	// Register the list issues tool
 	server.tool(
 		'jira_ls_issues',
-		`Searches for Jira issues using flexible criteria. You can provide a full JQL query via \`jql\` for complex filtering (e.g., \`project = TEAM AND status = "In Progress"\`), or use specific filters like \`projectKeyOrId\`, issue \`status\` (use \`jira_ls_statuses\` to find valid names), and sort results using \`orderBy\` (e.g., \`"priority DESC"\`). Filters are combined using AND logic. Supports pagination via \`limit\` and \`cursor\`. Returns a formatted list of matching issues including key, summary, type, status, priority, project, and dates. Default sort is by last updated date.`,
+		`Searches for Jira issues using flexible filtering criteria. You can provide a full JQL query via \`jql\` for complex filtering, or use specific filters like \`projectKeyOrId\` and \`statuses\`. Sort results using \`orderBy\` (e.g., "priority DESC"). Supports pagination via \`limit\` and \`startAt\`. Returns a formatted list of matching issues including key, summary, type, status, priority, and project. Default sort is by last updated date.`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);
@@ -132,7 +132,7 @@ function registerTools(server: McpServer) {
 	// Register the get issue details tool
 	server.tool(
 		'jira_get_issue',
-		`Retrieves comprehensive details for a specific Jira issue using its key or ID (\`issueIdOrKey\`).\n- Includes full description (Markdown), status, priority, assignee, reporter, comments (Markdown), attachments, and linked issues.\n- Also fetches linked development information (commits, branches, PRs) if available.\nUse this after finding an issue key/ID to get its complete context.\nReturns detailed issue information formatted as Markdown.`,
+		`Retrieves comprehensive details for a specific Jira issue identified by \`issueIdOrKey\`. Returns the issue's description, status, priority, assignee, reporter, comments, attachments, and linked issues as formatted Markdown. Also includes linked development information (commits, branches, PRs) when available. Use this after finding an issue key to get its complete context.`,
 		GetIssueToolArgs.shape,
 		getIssue,
 	);

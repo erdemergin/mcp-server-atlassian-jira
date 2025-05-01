@@ -44,6 +44,9 @@ export const ISSUE_DEFAULTS = {
 	INCLUDE_TRANSITIONS: false,
 };
 
+import { Logger } from './logger.util.js';
+const logger = Logger.forContext('utils/defaults.util.ts');
+
 /**
  * Apply default values to options object.
  * This utility ensures that default values are consistently applied.
@@ -60,18 +63,17 @@ export function applyDefaults<T extends object>(
 	options: Partial<T>,
 	defaults: Partial<T>,
 ): T {
+	const methodLogger = logger.forMethod('applyDefaults');
+
 	// Log input
-	console.log('applyDefaults - options:', JSON.stringify(options));
-	console.log('applyDefaults - defaults:', JSON.stringify(defaults));
+	methodLogger.debug('Options:', options);
+	methodLogger.debug('Defaults:', defaults);
 
 	// Filter out undefined values from the provided options
 	const definedOptions = Object.fromEntries(
 		Object.entries(options).filter(([_, value]) => value !== undefined),
 	);
-	console.log(
-		'applyDefaults - definedOptions:',
-		JSON.stringify(definedOptions),
-	);
+	methodLogger.debug('Defined options:', definedOptions);
 
 	// Merge defaults and defined options
 	const result = {
@@ -80,7 +82,7 @@ export function applyDefaults<T extends object>(
 	};
 
 	// Log final result
-	console.log('applyDefaults - result:', JSON.stringify(result));
+	methodLogger.debug('Result:', result);
 
 	return result as T;
 }
