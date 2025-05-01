@@ -37,6 +37,36 @@ const ListIssuesToolArgs = z.object({
 		),
 
 	/**
+	 * Project key or ID to filter issues by
+	 */
+	projectKeyOrId: z
+		.string()
+		.optional()
+		.describe(
+			'Filter issues by a specific project key or ID (e.g., "PROJ" or "10001"). Will be combined with other filters using AND logic.',
+		),
+
+	/**
+	 * Status names to filter issues by
+	 */
+	status: z
+		.array(z.string())
+		.optional()
+		.describe(
+			'Filter issues by specific status names (e.g., ["To Do", "In Progress"]). Requires exact names; use jira_ls_statuses to discover. Will be combined with other filters using AND logic.',
+		),
+
+	/**
+	 * Sorting order for issues
+	 */
+	orderBy: z
+		.string()
+		.optional()
+		.describe(
+			'Specify the sorting order using JQL ORDER BY clause syntax (e.g., "priority DESC", "created ASC"). Overrides default sort (updated DESC).',
+		),
+
+	/**
 	 * Maximum number of issues to return and pagination
 	 */
 	...PaginationArgs,

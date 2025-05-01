@@ -76,19 +76,60 @@ async function list(
 			defaults,
 		);
 
-		// Set default JQL to sort by updated date if not provided
-		let jql = mergedOptions.jql;
-		if (!jql) {
-			jql = 'ORDER BY updated DESC';
-		} else if (!jql.toUpperCase().includes('ORDER BY')) {
-			// Append default sorting to existing JQL if it doesn't include ORDER BY
-			jql += ' ORDER BY updated DESC';
+		// Construct JQL from individual parameters
+		const jqlParts: string[] = [];
+
+		// Add base JQL if provided (wrapped in parentheses for safety if combining)
+		if (mergedOptions.jql && mergedOptions.jql.trim() !== '') {
+			jqlParts.push(`(${mergedOptions.jql})`);
 		}
+
+		// Add project filter if provided
+		if (mergedOptions.projectKeyOrId) {
+			// Quote project key/ID if it might contain spaces (unlikely but safe)
+			jqlParts.push(`project = "${mergedOptions.projectKeyOrId}"`);
+		}
+
+		// Add status filter if provided
+		if (mergedOptions.status && mergedOptions.status.length > 0) {
+			// Handle single vs multiple statuses, quote names
+			const statusQuery =
+				mergedOptions.status.length === 1
+					? `status = "${mergedOptions.status[0]}"`
+					: `status IN (${mergedOptions.status.map((s) => `"${s}"`).join(', ')})`;
+			jqlParts.push(statusQuery);
+		}
+
+		// Combine all parts with AND logic
+		let finalJql = jqlParts.join(' AND ');
+
+		// Handle sorting
+		if (mergedOptions.orderBy) {
+			// Append ORDER BY clause if not already present in the base JQL
+			if (!finalJql.toUpperCase().includes('ORDER BY')) {
+				finalJql += ` ORDER BY ${mergedOptions.orderBy}`;
+			} else {
+				// Log a warning if orderBy is provided but JQL already has it
+				methodLogger.warn(
+					'orderBy parameter ignored as provided JQL already contains ORDER BY clause.',
+				);
+			}
+		} else if (!finalJql.toUpperCase().includes('ORDER BY')) {
+			// Apply default sort if no explicit sort provided anywhere
+			finalJql += ' ORDER BY updated DESC';
+		}
+
+		// If finalJql is empty (no filters provided), use the default sort
+		if (finalJql.trim() === '') {
+			finalJql = 'ORDER BY updated DESC';
+		}
+
+		methodLogger.debug('Constructed JQL:', { jql: finalJql });
 
 		// Set default filters and hardcoded values
 		const filters = {
-			// Optional filters with defaults
-			jql: jql,
+			// Use the constructed JQL
+			jql: finalJql,
 			// Always include all fields
 			fields: [
 				'summary',

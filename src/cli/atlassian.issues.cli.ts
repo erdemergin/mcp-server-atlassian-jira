@@ -58,6 +58,18 @@ function registerListIssuesCommand(program: Command): void {
 			'-q, --jql <jql>',
 			'Filter issues using JQL syntax. Use this for complex queries like "project = TEAM AND status = \'In Progress\'" or "assignee = currentUser()". If omitted, returns issues according to your Jira default search.',
 		)
+		.option(
+			'-p, --project <keyOrId>',
+			'Filter by a specific project key or ID.',
+		)
+		.option(
+			'-s, --status <status...>',
+			'Filter by one or more status names (repeatable).',
+		)
+		.option(
+			'-o, --order-by <field>',
+			'JQL ORDER BY clause (e.g., "priority DESC").',
+		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
 				'cli/atlassian.issues.cli.ts',
@@ -79,6 +91,9 @@ function registerListIssuesCommand(program: Command): void {
 
 				const filterOptions: ListIssuesOptions = {
 					...(options.jql && { jql: options.jql }),
+					...(options.project && { projectKeyOrId: options.project }),
+					...(options.status && { status: options.status }),
+					...(options.orderBy && { orderBy: options.orderBy }),
 					...(options.limit && {
 						limit: parseInt(options.limit, 10),
 					}),

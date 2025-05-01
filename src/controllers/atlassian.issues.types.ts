@@ -18,6 +18,23 @@ export interface ListIssuesOptions extends PaginationOptions {
 	 * JQL query string to filter issues
 	 */
 	jql?: string;
+
+	/**
+	 * Project key or ID to filter issues by project
+	 */
+	projectKeyOrId?: string;
+
+	/**
+	 * Status names to filter issues by status
+	 * For multiple statuses, will construct "status IN (...)" JQL clause
+	 */
+	status?: string[];
+
+	/**
+	 * Order by field and direction (e.g., "priority DESC", "created ASC")
+	 * Will be appended to JQL as "ORDER BY" clause if not already present
+	 */
+	orderBy?: string;
 }
 
 /**
