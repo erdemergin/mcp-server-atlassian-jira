@@ -9,7 +9,7 @@
  * Current application version
  * This should match the version in package.json
  */
-export const VERSION = '1.14.2';
+export const VERSION = '1.18.2';
 
 /**
  * Package name with scope
