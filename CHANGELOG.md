@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.18.1...v1.18.2) (2025-05-01)
+
+
+### Bug Fixes
+
+* manually set version to 1.18.2 ([b3fae52](https://github.com/aashari/mcp-server-atlassian-jira/commit/b3fae52c6e9a83e35be66d5514645f12e8907e53))
+
 ## [1.18.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.18.0...v1.18.1) (2025-05-01)
 
 
