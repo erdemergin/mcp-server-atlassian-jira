@@ -2,6 +2,7 @@ import {
 	Issue,
 	IssueComment,
 	IssueLink,
+	LinkedIssueInfo,
 	DevInfoResponse,
 	DevInfoSummaryResponse,
 	DevInfoCommit,
@@ -286,28 +287,72 @@ export function formatIssueDetails(issueData: Issue): string {
 		}
 	}
 
-	// Issue Links
+	// Issue Links (Revised Logic)
 	if (issueData.fields.issuelinks && issueData.fields.issuelinks.length > 0) {
 		lines.push('');
-		lines.push(formatHeading('Issue Links', 2));
+		lines.push(formatHeading('Linked Issues', 2));
 
-		const issueLinks = issueData.fields.issuelinks;
-		issueLinks.forEach((link: IssueLink) => {
-			const relatedIssue = link.outwardIssue || link.inwardIssue;
-			if (relatedIssue) {
-				const linkType = link.outwardIssue
-					? link.type.outward
-					: link.type.inward;
-				const relatedIssueUrl = relatedIssue.self.replace(
-					'/rest/api/3/issue/',
-					'/browse/',
-				);
+		// Group links by relationship type
+		const groupedLinks: Record<string, IssueLink[]> = {};
+		issueData.fields.issuelinks.forEach((link) => {
+			let relationship = '';
+			let targetIssue: LinkedIssueInfo | undefined;
 
-				lines.push(
-					`- ${linkType} ${formatUrl(relatedIssueUrl, relatedIssue.key)}: ${(relatedIssue.fields as { summary?: string })?.summary || 'No summary'}`,
-				);
+			if (link.inwardIssue) {
+				relationship = link.type.inward; // e.g., "is blocked by"
+				targetIssue = link.inwardIssue;
+			} else if (link.outwardIssue) {
+				relationship = link.type.outward; // e.g., "blocks"
+				targetIssue = link.outwardIssue;
+			}
+
+			if (relationship && targetIssue) {
+				if (!groupedLinks[relationship]) {
+					groupedLinks[relationship] = [];
+				}
+				// Store the original link object, we need both inward/outward later
+				groupedLinks[relationship].push(link);
 			}
 		});
+
+		// Format grouped links
+		for (const relationship in groupedLinks) {
+			if (
+				Object.prototype.hasOwnProperty.call(groupedLinks, relationship)
+			) {
+				lines.push('');
+				lines.push(formatHeading(relationship, 3)); // Use relationship as subheading
+
+				const linksList: Record<string, unknown> = {};
+				groupedLinks[relationship].forEach((link) => {
+					// Explicitly type targetIssueInfo
+					const targetIssueInfo: LinkedIssueInfo | undefined =
+						link.inwardIssue || link.outwardIssue;
+					if (targetIssueInfo) {
+						const targetIssueUrl = targetIssueInfo.self.replace(
+							'/rest/api/3/issue/',
+							'/browse/',
+						);
+						// Try to use summary, fall back to Key + Status if not available
+						const displayTitle = targetIssueInfo.fields.summary
+							? targetIssueInfo.fields.summary
+							: targetIssueInfo.fields.status?.name
+								? `${targetIssueInfo.key} (${targetIssueInfo.fields.status.name})`
+								: targetIssueInfo.key;
+
+						linksList[targetIssueInfo.key] = {
+							url: targetIssueUrl,
+							title: displayTitle,
+						};
+					}
+				});
+				lines.push(formatBulletList(linksList, (key) => key)); // Key is the issue key
+			}
+		}
+	} else {
+		// Optional: Add a line if no links are present
+		// lines.push('');
+		// lines.push('No linked issues found.');
 	}
 
 	// Links section

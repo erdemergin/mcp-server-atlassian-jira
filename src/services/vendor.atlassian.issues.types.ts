@@ -22,27 +22,27 @@ export interface IssueLinkType {
 }
 
 /**
+ * Represents the minimal information about a linked issue provided within an IssueLink.
+ */
+export interface LinkedIssueInfo {
+	id: string;
+	key: string;
+	self: string;
+	fields: {
+		summary?: string; // Make summary optional as it might not always be present
+		status: IssueStatus;
+		// Add other fields if needed and available in the API response for links
+	};
+}
+
+/**
  * Issue link
  */
 export interface IssueLink {
 	id: string;
 	type: IssueLinkType;
-	inwardIssue?: {
-		id: string;
-		key: string;
-		self: string;
-		fields: {
-			status: IssueStatus;
-		};
-	};
-	outwardIssue?: {
-		id: string;
-		key: string;
-		self: string;
-		fields: {
-			status: IssueStatus;
-		};
-	};
+	inwardIssue?: LinkedIssueInfo; // Use the new minimal type
+	outwardIssue?: LinkedIssueInfo; // Use the new minimal type
 }
 
 /**
