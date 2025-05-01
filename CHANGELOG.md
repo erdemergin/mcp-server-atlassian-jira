@@ -1,3 +1,20 @@
+# [1.20.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.19.0...v1.20.0) (2025-05-01)
+
+
+### Bug Fixes
+
+* align Jira pagination and status naming ([fbc80fd](https://github.com/aashari/mcp-server-atlassian-jira/commit/fbc80fdcfc246169430d6e9dd92f5e921639f8cf))
+* align jira_ls_statuses tool description with concise style ([a8a7e74](https://github.com/aashari/mcp-server-atlassian-jira/commit/a8a7e748076c1b6eaf9431ddd976b4dc8dca3c33))
+* align pagination parameter in issues controller test with implementation ([0214939](https://github.com/aashari/mcp-server-atlassian-jira/commit/02149394935b04a5460cc00de3a58e3c584e11e2))
+* consolidate duplicate SearchOptions interface definitions ([4e34f44](https://github.com/aashari/mcp-server-atlassian-jira/commit/4e34f4468ae260093b66400fdc0864b7bedd5589))
+* remove unused formatRelativeTime function for cleaner codebase ([8fad22f](https://github.com/aashari/mcp-server-atlassian-jira/commit/8fad22fbe49a6dcd9f53b18ad5568230d81124f0))
+* replace console.log with logger.debug and improve documentation clarity ([42f1a62](https://github.com/aashari/mcp-server-atlassian-jira/commit/42f1a624f58f620467a66a69b9e5487eb85ed6ae))
+
+
+### Features
+
+* improve Jira issue link formatting for clarity ([e636778](https://github.com/aashari/mcp-server-atlassian-jira/commit/e6367780de8b09d41007a0305be55af6f5e9f2c7))
+
 # [1.19.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.18.2...v1.19.0) (2025-05-01)
 
 
