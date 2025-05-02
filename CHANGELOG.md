@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.21.0...v1.22.0) (2025-05-02)
+
+
+### Features
+
+* Standardize controller pagination return ([efd0e32](https://github.com/aashari/mcp-server-atlassian-jira/commit/efd0e32303c2c85b912f33d95e3e5e324541843e))
+
 # [1.21.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.20.2...v1.21.0) (2025-05-02)
 
 
