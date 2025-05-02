@@ -1,3 +1,10 @@
+## [1.20.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.20.1...v1.20.2) (2025-05-02)
+
+
+### Bug Fixes
+
+* correct jira_ls_projects tool description for pagination (startAt) ([c16e9bd](https://github.com/aashari/mcp-server-atlassian-jira/commit/c16e9bde078e5f21a01719d4df82608cab096712))
+
 ## [1.20.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.20.0...v1.20.1) (2025-05-02)
 
 
