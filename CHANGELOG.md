@@ -1,3 +1,10 @@
+## [1.22.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.22.0...v1.22.1) (2025-05-02)
+
+
+### Bug Fixes
+
+* trigger release ([afb6675](https://github.com/aashari/mcp-server-atlassian-jira/commit/afb6675680b1b102aec86fcafa56304b87338053))
+
 # [1.22.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.21.0...v1.22.0) (2025-05-02)
 
 
