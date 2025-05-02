@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.20.2...v1.21.0) (2025-05-02)
+
+
+### Features
+
+* Standardize pagination output in tool content text ([6a96b31](https://github.com/aashari/mcp-server-atlassian-jira/commit/6a96b31decabfae67616f9c9482c6ee722388428))
+
 ## [1.20.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.20.1...v1.20.2) (2025-05-02)
 
 
