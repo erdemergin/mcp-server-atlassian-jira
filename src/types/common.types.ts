@@ -26,6 +26,12 @@ export interface ResponsePagination {
 	 * This helps clients track how many items they've received.
 	 */
 	count?: number;
+
+	/**
+	 * The total number of items available.
+	 * This helps clients track the total number of items in the dataset.
+	 */
+	total?: number;
 }
 
 /**

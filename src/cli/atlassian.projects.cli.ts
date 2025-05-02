@@ -137,6 +137,7 @@ function registerListProjectsCommand(program: Command): void {
 								displayCount,
 								result.pagination.hasMore,
 								result.pagination.nextCursor,
+								result.pagination.total,
 							),
 					);
 				}

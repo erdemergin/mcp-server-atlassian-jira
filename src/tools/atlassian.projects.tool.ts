@@ -24,7 +24,7 @@ toolLogger.debug('Jira projects tool module initialized');
  * Returns a formatted markdown response with project details and pagination info.
  *
  * @param {ListProjectsToolArgsType} args - Tool arguments for filtering projects
- * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted projects list
+ * @returns {Promise<{ content: Array<{ type: 'text', text: string }>, metadata: { pagination: { startAt: number, limit: number, total: number } } }>} MCP response with formatted projects list
  * @throws Will return error message if project listing fails
  */
 async function listProjects(args: ListProjectsToolArgsType) {

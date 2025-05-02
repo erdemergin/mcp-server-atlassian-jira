@@ -15,6 +15,7 @@ import {
 	formatProjectsList,
 	formatProjectDetails,
 } from './atlassian.projects.formatter.js';
+import { formatPagination } from '../utils/formatter.util.js';
 import {
 	DEFAULT_PAGE_SIZE,
 	applyDefaults,
@@ -95,9 +96,25 @@ async function list(
 		// Format the projects data for display using the formatter
 		const formattedProjects = formatProjectsList(projectsData);
 
+		// Format the pagination info
+		const formattedPagination =
+			pagination.count !== undefined // Only format if count exists
+				? formatPagination(
+						pagination.count,
+						pagination.hasMore,
+						pagination.nextCursor,
+						pagination.total,
+					)
+				: '';
+
+		// Combine content and pagination string
+		const combinedContent = formattedPagination
+			? `${formattedProjects}\n\n${formattedPagination}`
+			: formattedProjects;
+
 		return {
-			content: formattedProjects,
-			pagination,
+			content: combinedContent, // Return combined string
+			pagination, // Keep pagination object for potential internal/CLI use if needed, but content is primary
 		};
 	} catch (error) {
 		// Use the standardized error handler

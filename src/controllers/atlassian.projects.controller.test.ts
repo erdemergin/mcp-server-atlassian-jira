@@ -149,7 +149,7 @@ describe('Atlassian Projects Controller', () => {
 
 			// Should show no projects found message
 			expect(result.content).toBe(
-				'No Jira projects found matching your criteria.',
+				'No Jira projects found matching your criteria.\n\n*Showing 0 of 0 total items.*',
 			);
 
 			// Should have pagination but with count 0 and hasMore false

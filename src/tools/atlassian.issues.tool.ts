@@ -23,7 +23,7 @@ toolLogger.debug('Jira issues tool module initialized');
  * Returns a formatted markdown response with issue details and pagination info.
  *
  * @param {ListIssuesToolArgsType} args - Tool arguments for filtering issues
- * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted issues list
+ * @returns {Promise<{ content: Array<{ type: 'text', text: string }>, metadata: { pagination: { startAt: number, limit: number, total: number } } }>} MCP response with formatted issues list
  * @throws Will return error message if issue listing fails
  */
 async function listIssues(args: ListIssuesToolArgsType) {

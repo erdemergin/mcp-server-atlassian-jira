@@ -76,6 +76,8 @@ export interface ResponsePagination {
 	hasMore: boolean;
 	/** Count of items in the current batch */
 	count?: number;
+	/** Total count of items (if applicable) */
+	total?: number;
 }
 
 /**
@@ -143,6 +145,12 @@ export function extractPaginationInfo<T extends Record<string, unknown>>(
 						hasMore = true;
 						nextCursor = offsetData.nextPage;
 					}
+					const total =
+						typeof offsetData.total === 'number'
+							? offsetData.total
+							: undefined;
+					// Return object needs to include total
+					return { nextCursor, hasMore, count, total };
 				}
 				break;
 			}
@@ -214,15 +222,25 @@ export function extractPaginationInfo<T extends Record<string, unknown>>(
 			methodLogger.debug(`${source} Next cursor: ${nextCursor}`);
 		}
 
+		// This return statement needs modification or removal if all paths above return
+		// Ensure the final return includes total if logic reaches here (though OFFSET path returns earlier)
+		const finalTotal =
+			type === PaginationType.OFFSET &&
+			'total' in data &&
+			typeof data.total === 'number'
+				? data.total
+				: undefined;
 		return {
 			nextCursor,
 			hasMore,
 			count,
+			total: finalTotal, // Add total here as well for robustness
 		};
 	} catch (error) {
 		methodLogger.warn(
 			`${source} Error extracting pagination information: ${error instanceof Error ? error.message : String(error)}`,
 		);
+		// Ensure return shape matches ResponsePagination even on error (total will be undefined)
 		return { hasMore: false };
 	}
 }
