@@ -26,17 +26,34 @@ describe('Atlassian Issues Controller', () => {
 			// Call the controller
 			const result = await atlassianIssuesController.list();
 
-			// Verify the response structure
+			// Check the structure and types
 			expect(result).toBeDefined();
+			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
-			expect(result.content).toContain('# Jira Issues');
+			expect(result).toHaveProperty('pagination');
 
-			// Check if pagination is handled correctly
-			if (result.pagination) {
-				expect(typeof result.pagination.hasMore).toBe('boolean');
-				if (result.pagination.hasMore) {
-					expect(result.pagination.nextCursor).toBeDefined();
-				}
+			// Check pagination object structure and basic types
+			expect(result.pagination).toBeDefined();
+			expect(result.pagination).toHaveProperty('hasMore');
+			expect(typeof result.pagination?.hasMore).toBe('boolean');
+			expect(result.pagination).toHaveProperty('count');
+			expect(typeof result.pagination?.count).toBe('number');
+			expect(result.pagination).toHaveProperty('total');
+			expect(typeof result.pagination?.total).toBe('number');
+			if (result.pagination?.hasMore) {
+				expect(result.pagination).toHaveProperty('nextCursor');
+				expect(typeof result.pagination?.nextCursor).toBe('string');
+			}
+
+			// Check that content does NOT contain pagination string
+			expect(result.content).not.toContain('Showing');
+			expect(result.content).not.toContain('Next StartAt');
+			expect(result.content).not.toContain(`total issues`);
+
+			// Check basic markdown content - check for expected formatting from live data
+			if (result.content !== 'No issues found matching your criteria.') {
+				expect(result.content).toContain('# Jira Issues');
+				expect(result.content).toMatch(/## [A-Z]+-\d+:/m);
 			}
 		}, 30000);
 
@@ -111,14 +128,17 @@ describe('Atlassian Issues Controller', () => {
 			expect(result).toBeDefined();
 			expect(typeof result.content).toBe('string');
 
-			// Check for appropriate message for no results
-			expect(result.content).toContain('No issues found');
-
-			// Pagination should indicate no more results
+			// Check for appropriate message for no results (actual formatter output)
+			expect(result.content).toBe('No issues found.');
 			expect(result.pagination).toBeDefined();
-			expect(result.pagination).toHaveProperty('count', 0);
-			expect(result.pagination).toHaveProperty('hasMore', false);
+			expect(result.pagination?.hasMore).toBe(false);
+			expect(result.pagination?.count).toBe(0);
+			expect(result.pagination?.total).toBe(0);
 			expect(result.pagination?.nextCursor).toBeUndefined();
+
+			// Check that content does NOT contain pagination string
+			expect(result.content).not.toContain('Showing');
+			expect(result.content).not.toContain('Next StartAt');
 		}, 30000);
 
 		it('should handle error for invalid JQL', async () => {

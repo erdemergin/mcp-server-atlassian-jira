@@ -24,34 +24,40 @@ describe('Atlassian Projects Controller', () => {
 
 			const result = await atlassianProjectsController.list();
 
-			// Verify the ControllerResponse structure
+			// Verify structure and type
+			expect(result).toBeDefined();
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
 			expect(result).toHaveProperty('pagination');
 
-			// Basic Markdown content checks
-			if (
-				result.content !==
-				'No Jira projects found matching your criteria.'
-			) {
-				expect(result.content).toMatch(/^# Jira Projects/m); // Main heading
-				expect(result.content).toMatch(/^## \d+\. /m); // Numbered list item heading
-				expect(result.content).toContain('**ID**:');
-				expect(result.content).toContain('**Key**:');
-				expect(result.content).toContain('**Type**:');
-			}
-
-			// Verify pagination structure
+			// Check pagination object structure and basic types
 			expect(result.pagination).toBeDefined();
 			expect(result.pagination).toHaveProperty('hasMore');
 			expect(typeof result.pagination?.hasMore).toBe('boolean');
-			expect(result.pagination).toHaveProperty('count'); // Should have count from service
-			// nextCursor might be undefined if hasMore is false
+			expect(result.pagination).toHaveProperty('count');
+			expect(typeof result.pagination?.count).toBe('number');
+			expect(result.pagination).toHaveProperty('total');
+			expect(typeof result.pagination?.total).toBe('number');
 			if (result.pagination?.hasMore) {
 				expect(result.pagination).toHaveProperty('nextCursor');
 				expect(typeof result.pagination?.nextCursor).toBe('string');
 			}
-		}, 30000); // Increased timeout
+
+			// Check that content does NOT contain pagination string anymore
+			expect(result.content).not.toContain('Showing');
+			expect(result.content).not.toContain('Next StartAt');
+			expect(result.content).not.toContain(`total items`);
+
+			// Basic Markdown content checks - check for expected formatting from live data
+			if (
+				result.content !==
+				'No Jira projects found matching your criteria.'
+			) {
+				expect(result.content).toMatch(/^# Jira Projects/m); // Check for main heading
+				expect(result.content).toContain('**Key**:'); // Check for key elements
+				expect(result.content).toMatch(/^## \d+\. .+$/m); // Check for project heading format instead
+			}
+		}, 30000);
 
 		it('should handle pagination options (limit/cursor)', async () => {
 			if (skipIfNoCredentials()) return;
@@ -147,16 +153,21 @@ describe('Atlassian Projects Controller', () => {
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
 
-			// Should show no projects found message
+			// Should show no projects found message (actual formatter output for empty)
 			expect(result.content).toBe(
-				'No Jira projects found matching your criteria.\n\n*Showing 0 of 0 total items.*',
+				'No Jira projects found matching your criteria.',
 			);
 
 			// Should have pagination but with count 0 and hasMore false
 			expect(result.pagination).toBeDefined();
-			expect(result.pagination).toHaveProperty('count', 0);
-			expect(result.pagination).toHaveProperty('hasMore', false);
+			expect(result.pagination?.count).toBe(0);
+			expect(result.pagination?.hasMore).toBe(false);
+			expect(result.pagination?.total).toBe(0);
 			expect(result.pagination?.nextCursor).toBeUndefined();
+
+			// Check that content does NOT contain pagination string
+			expect(result.content).not.toContain('Showing');
+			expect(result.content).not.toContain('Next StartAt');
 		}, 30000);
 
 		it('should handle various filtering combinations', async () => {
@@ -205,6 +216,31 @@ describe('Atlassian Projects Controller', () => {
 			if (result.pagination?.count === 1) {
 				expect(result.content).toContain(`**Key**: ${projectKey}`);
 			}
+		}, 30000);
+
+		it('should return an empty list when no projects match', async () => {
+			// Skip if no creds
+			if (skipIfNoCredentials()) return;
+
+			// Use a name guaranteed not to match
+			const uniqueName = `NONEXISTENT_${Date.now()}`;
+			const result = await atlassianProjectsController.list({
+				name: uniqueName,
+				limit: 10,
+			});
+
+			expect(result.content).toBe(
+				'No Jira projects found matching your criteria.',
+			); // Check actual empty message
+			expect(result.pagination).toBeDefined();
+			expect(result.pagination?.hasMore).toBe(false);
+			expect(result.pagination?.count).toBe(0);
+			expect(result.pagination?.total).toBe(0);
+			expect(result.pagination?.nextCursor).toBeUndefined();
+
+			// Check that content does NOT contain pagination string anymore
+			expect(result.content).not.toContain('Showing');
+			expect(result.content).not.toContain('Next StartAt');
 		}, 30000);
 	});
 
