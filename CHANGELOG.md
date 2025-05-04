@@ -1,3 +1,10 @@
+## [1.26.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.1...v1.26.2) (2025-05-04)
+
+
+### Bug Fixes
+
+* apply formatting and linting fixes ([1a65454](https://github.com/aashari/mcp-server-atlassian-jira/commit/1a6545447c19353a585bb7b00c870db1e9e52a28))
+
 ## [1.26.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.0...v1.26.1) (2025-05-04)
 
 
