@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.25.1...v1.26.0) (2025-05-04)
+
+
+### Features
+
+* **errors:** Display specific API error messages for JQL errors ([c6167bb](https://github.com/aashari/mcp-server-atlassian-jira/commit/c6167bbfd247da772fa8cf9fd9dca4f1fbf70639))
+
 ## [1.25.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.25.0...v1.25.1) (2025-05-04)
 
 
