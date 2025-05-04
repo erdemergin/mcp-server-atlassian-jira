@@ -1,3 +1,10 @@
+## [1.22.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.22.1...v1.22.2) (2025-05-04)
+
+
+### Bug Fixes
+
+* Clean up unused exports and improve direct imports ([c0ff758](https://github.com/aashari/mcp-server-atlassian-jira/commit/c0ff7581694bc1736e60cdb628e0169147dfde3d))
+
 ## [1.22.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.22.0...v1.22.1) (2025-05-02)
 
 
