@@ -76,7 +76,7 @@ async function listStatuses(
 			// Pagination is not typically supported/needed for status lists
 		};
 	} catch (error) {
-		return handleControllerError(error, {
+		throw handleControllerError(error, {
 			entityType: 'Statuses',
 			operation: 'listing',
 			source: 'controllers/atlassian.statuses.controller.ts@listStatuses',

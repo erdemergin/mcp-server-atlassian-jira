@@ -10,6 +10,7 @@ import {
 	formatBulletList,
 	formatSeparator,
 	formatNumberedList,
+	formatDate,
 } from '../utils/formatter.util.js';
 
 // Add interfaces for the types we previously imported
@@ -145,31 +146,29 @@ interface IssuesData {
 /**
  * Format a list of issues for display
  * @param issuesData - Raw issues data from the API
- * @param pagination - Pagination information including count and next cursor
  * @returns Formatted string with issues information in markdown format
  */
-export function formatIssuesList(
-	issuesData: IssuesData,
-	pagination?: {
-		startAt?: number;
-		limit?: number;
-		total?: number;
-		hasMore: boolean;
-		count?: number;
-	},
-): string {
+export function formatIssuesList(issuesData: IssuesData): string {
 	const { issues } = issuesData;
 
 	if (!issues || issues.length === 0) {
-		return 'No issues found.';
+		return (
+			'No issues found.' +
+			'\n\n' +
+			formatSeparator() +
+			'\n' +
+			`*Information retrieved at: ${formatDate(new Date())}*`
+		);
 	}
 
 	const lines: string[] = [formatHeading('Jira Issues', 1), ''];
 
 	const formattedIssues = formatNumberedList(issues, (issue) => {
-		const lines: string[] = [];
+		const itemLines: string[] = [];
 
-		lines.push(formatHeading(`${issue.key}: ${issue.fields.summary}`, 2));
+		itemLines.push(
+			formatHeading(`${issue.key}: ${issue.fields.summary}`, 2),
+		);
 
 		const properties: Record<string, unknown> = {
 			Key: issue.key,
@@ -180,48 +179,23 @@ export function formatIssuesList(
 			Project: issue.fields.project?.name,
 			Assignee: issue.fields.assignee?.displayName,
 			Reporter: issue.fields.reporter?.displayName,
-			'Created On': issue.fields.created,
-			'Updated On': issue.fields.updated,
+			'Created On': formatDate(issue.fields.created),
+			'Updated On': formatDate(issue.fields.updated),
 			URL: {
 				url: `${issuesData.baseUrl}/browse/${issue.key}`,
 				title: issue.key,
 			},
 		};
 
-		lines.push(formatBulletList(properties));
+		itemLines.push(formatBulletList(properties));
 
-		return lines.join('\n');
+		return itemLines.join('\n');
 	});
 
 	lines.push(formattedIssues);
 
-	// --- Footer --- (Add standard footer with pagination)
-	const footerLines: string[] = [];
-	footerLines.push('---');
-
-	const displayedCount = pagination?.count ?? issues.length;
-	if (pagination?.total !== undefined) {
-		footerLines.push(
-			`*Showing ${displayedCount} of ${pagination.total} issues*`,
-		);
-	}
-	const potentiallyMore =
-		pagination?.hasMore ??
-		(pagination?.limit &&
-			pagination?.startAt !== undefined &&
-			displayedCount >= pagination.limit);
-
-	if (potentiallyMore) {
-		const nextStartAt =
-			(pagination?.startAt ?? 0) + (pagination?.limit ?? displayedCount);
-		footerLines.push(`*Use --start-at ${nextStartAt} to view more.*`);
-	}
-
-	footerLines.push(
-		`*Information retrieved at: ${new Date().toLocaleString()}*`,
-	);
-
-	lines.push(...footerLines);
+	lines.push('\n\n' + formatSeparator());
+	lines.push(`*Information retrieved at: ${formatDate(new Date())}*`);
 
 	return lines.join('\n');
 }
@@ -338,8 +312,8 @@ export function formatIssueDetails(issueData: Issue): string {
 	lines.push(formatHeading('Dates', 2));
 
 	const dateProperties: Record<string, unknown> = {
-		Created: issueData.fields.created,
-		Updated: issueData.fields.updated,
+		Created: formatDate(issueData.fields.created),
+		Updated: formatDate(issueData.fields.updated),
 	};
 
 	lines.push(formatBulletList(dateProperties, (key) => key));
@@ -375,7 +349,7 @@ export function formatIssueDetails(issueData: Issue): string {
 			const attachmentProperties: Record<string, unknown> = {
 				'Content Type': attachment.mimeType,
 				Size: formatFileSize(attachment.size),
-				'Created At': attachment.created,
+				'Created At': formatDate(attachment.created),
 				Author: attachment.author?.displayName,
 			};
 
@@ -405,7 +379,7 @@ export function formatIssueDetails(issueData: Issue): string {
 			comments.forEach((comment: IssueComment, index: number) => {
 				lines.push(
 					formatHeading(
-						`${comment.author?.displayName || 'Anonymous'} - ${new Date(comment.created).toLocaleString()}`,
+						`${comment.author?.displayName || 'Anonymous'} - ${formatDate(comment.created)}`,
 						3,
 					),
 				);
@@ -500,11 +474,14 @@ export function formatIssueDetails(issueData: Issue): string {
 	lines.push(formatHeading('Links', 2));
 	lines.push(`- ${formatUrl(issueUrl, 'Open in Jira')}`);
 
-	// Footer
-	lines.push('');
-	lines.push(formatSeparator());
-	lines.push(`*Information retrieved at: ${new Date().toLocaleString()}*`);
-	lines.push(`*To view this issue in Jira, visit: ${issueUrl}*`);
+	// Add standard footer with timestamp
+	lines.push('\n\n' + formatSeparator());
+	lines.push(`*Information retrieved at: ${formatDate(new Date())}*`);
+
+	// Optionally keep the direct link
+	if (issueUrl) {
+		lines.push(`*View this issue in Jira: ${issueUrl}*`);
+	}
 
 	return lines.join('\n');
 }
@@ -563,23 +540,33 @@ export function formatDevelopmentInfo(
 		const summaryProps: Record<string, unknown> = {};
 
 		if (summary.repository?.overall?.count) {
-			const lastUpdated =
-				summary.repository.overall.lastUpdated || 'Unknown';
+			const lastUpdated = summary.repository.overall.lastUpdated;
+			const formattedDateStr =
+				lastUpdated !== undefined && lastUpdated !== null
+					? formatDate(new Date(lastUpdated))
+					: 'Unknown';
 			summaryProps['Repositories'] =
-				`${summary.repository.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? new Date(lastUpdated).toLocaleString() : 'Unknown'})`;
+				`${summary.repository.overall.count} (Last updated: ${formattedDateStr})`;
 		}
 
 		if (summary.branch?.overall?.count) {
-			const lastUpdated = summary.branch.overall.lastUpdated || 'Unknown';
+			const lastUpdated = summary.branch.overall.lastUpdated;
+			const formattedDateStr =
+				lastUpdated !== undefined && lastUpdated !== null
+					? formatDate(new Date(lastUpdated))
+					: 'Unknown';
 			summaryProps['Branches'] =
-				`${summary.branch.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? new Date(lastUpdated).toLocaleString() : 'Unknown'})`;
+				`${summary.branch.overall.count} (Last updated: ${formattedDateStr})`;
 		}
 
 		if (summary.pullrequest?.overall?.count) {
-			const lastUpdated =
-				summary.pullrequest.overall.lastUpdated || 'Unknown';
+			const lastUpdated = summary.pullrequest.overall.lastUpdated;
+			const formattedDateStr =
+				lastUpdated !== undefined && lastUpdated !== null
+					? formatDate(new Date(lastUpdated))
+					: 'Unknown';
 			summaryProps['Pull Requests'] =
-				`${summary.pullrequest.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? new Date(lastUpdated).toLocaleString() : 'Unknown'}, Status: ${summary.pullrequest.overall.state || 'Unknown'})`;
+				`${summary.pullrequest.overall.count} (Last updated: ${formattedDateStr}, Status: ${summary.pullrequest.overall.state || 'Unknown'})`;
 		}
 
 		lines.push(formatBulletList(summaryProps));
@@ -603,11 +590,11 @@ export function formatDevelopmentInfo(
 									`${index + 1}. **${commit.displayId}** - ${commit.message.split('\n')[0]}`,
 								);
 								lines.push(
-									`   Author: ${commit.author?.name || 'Unknown'}, Date: ${new Date(commit.authorTimestamp).toLocaleString()}`,
+									`   Author: ${commit.author?.name || 'Unknown'}, Date: ${formatDate(commit.authorTimestamp)}`,
 								);
 								if (commit.url) {
 									lines.push(
-										`   ${formatUrl('View Commit', commit.url)}`,
+										`   ${formatUrl(commit.url, 'View Commit')}`,
 									);
 								}
 								if (index < repo.commits!.length - 1) {
@@ -641,12 +628,12 @@ export function formatDevelopmentInfo(
 							`**Last Commit**: ${branch.lastCommit.displayId} - ${branch.lastCommit.message.split('\n')[0]}`,
 						);
 						lines.push(
-							`**Author**: ${branch.lastCommit.author?.name || 'Unknown'}, **Date**: ${new Date(branch.lastCommit.authorTimestamp).toLocaleString()}`,
+							`**Author**: ${branch.lastCommit.author?.name || 'Unknown'}, **Date**: ${formatDate(branch.lastCommit.authorTimestamp)}`,
 						);
 					}
 
 					if (branch.url) {
-						lines.push(`${formatUrl('View Branch', branch.url)}`);
+						lines.push(`${formatUrl(branch.url, 'View Branch')}`);
 					}
 
 					lines.push('');
@@ -697,11 +684,11 @@ export function formatDevelopmentInfo(
 					}
 
 					lines.push(
-						`**Last Updated**: ${new Date(pr.lastUpdate).toLocaleString()}`,
+						`**Last Updated**: ${formatDate(pr.lastUpdate)}`,
 					);
 
 					if (pr.url) {
-						lines.push(`${formatUrl('View Pull Request', pr.url)}`);
+						lines.push(`${formatUrl(pr.url, 'View Pull Request')}`);
 					}
 
 					lines.push('');

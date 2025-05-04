@@ -3,6 +3,7 @@ import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import { ListProjectsToolArgsType } from '../tools/atlassian.projects.types.js';
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
+import { formatPagination } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira projects.
@@ -109,8 +110,14 @@ function registerListProjectsCommand(program: Command): void {
 
 				actionLogger.debug('Successfully retrieved projects');
 
-				// Print the main content (which now includes the footer)
+				// Print the main content (already includes timestamp footer from formatter)
 				console.log(result.content);
+
+				// Conditionally print the standardized pagination footer
+				if (result.pagination) {
+					// Use the updated formatPagination which takes the object
+					console.log('\n' + formatPagination(result.pagination));
+				}
 			} catch (error) {
 				handleCliError(error);
 			}
@@ -154,7 +161,10 @@ function registerGetProjectCommand(program: Command): void {
 					projectKeyOrId: options.projectKeyOrId,
 				});
 
+				// Print the main content (already includes timestamp footer from formatter)
 				console.log(result.content);
+
+				// No separate CLI pagination footer needed for 'get' commands
 			} catch (error) {
 				handleCliError(error);
 			}

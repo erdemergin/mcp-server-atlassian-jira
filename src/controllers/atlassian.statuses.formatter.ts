@@ -1,5 +1,10 @@
 import { Logger } from '../utils/logger.util.js';
-import { formatHeading, formatBulletList } from '../utils/formatter.util.js';
+import {
+	formatHeading,
+	formatBulletList,
+	formatSeparator,
+	formatDate,
+} from '../utils/formatter.util.js';
 import { JiraStatusDetail } from '../services/vendor.atlassian.statuses.types.js';
 
 const formatterLogger = Logger.forContext(
@@ -24,13 +29,19 @@ export function formatStatusesList(
 
 	if (!statuses || statuses.length === 0) {
 		const context = projectKeyOrId ? ` for project ${projectKeyOrId}` : '';
-		return `No statuses found${context}.`;
+		return (
+			`No statuses found${context}.` +
+			'\n\n' +
+			formatSeparator() +
+			'\n' +
+			`*Information retrieved at: ${formatDate(new Date())}*`
+		);
 	}
 
 	const heading = projectKeyOrId
 		? `Statuses for Project ${projectKeyOrId}`
 		: 'Available Jira Statuses';
-	const lines: string[] = [formatHeading(heading, 2), ''];
+	const lines: string[] = [formatHeading(heading, 1), ''];
 
 	statuses.forEach((status) => {
 		const statusDetails = {
@@ -48,8 +59,9 @@ export function formatStatusesList(
 		lines.pop();
 	}
 
-	// --- Footer --- (Add standard footer)
-	const footer = `\n\n---\n*Information retrieved at: ${new Date().toLocaleString()}*`;
+	// Add standard footer with timestamp
+	lines.push('\n\n' + formatSeparator());
+	lines.push(`*Information retrieved at: ${formatDate(new Date())}*`);
 
-	return lines.join('\n') + footer;
+	return lines.join('\n');
 }

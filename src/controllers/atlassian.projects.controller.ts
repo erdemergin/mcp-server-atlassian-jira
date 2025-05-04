@@ -90,18 +90,19 @@ async function list(
 		const pagination = extractPaginationInfo(
 			projectsData as unknown as Record<string, unknown>,
 			PaginationType.OFFSET,
+			'Project',
 		);
 
 		// Format the projects data for display using the formatter
 		const formattedProjects = formatProjectsList(projectsData);
 
 		return {
-			content: formattedProjects, // Return content ONLY
-			pagination, // Return structured pagination object
+			content: formattedProjects,
+			pagination,
 		};
 	} catch (error) {
-		// Use the standardized error handler
-		handleControllerError(error, {
+		// Use throw instead of return
+		throw handleControllerError(error, {
 			entityType: 'Projects',
 			operation: 'listing',
 			source: 'controllers/atlassian.projects.controller.ts@list',
@@ -159,8 +160,8 @@ async function get(
 			content: formattedProject,
 		};
 	} catch (error) {
-		// Use the standardized error handler
-		handleControllerError(error, {
+		// Use throw instead of return
+		throw handleControllerError(error, {
 			entityType: 'Project',
 			entityId: identifier,
 			operation: 'retrieving',

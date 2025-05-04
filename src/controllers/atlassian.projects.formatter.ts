@@ -8,6 +8,7 @@ import {
 	formatHeading,
 	formatBulletList,
 	formatSeparator,
+	formatDate,
 } from '../utils/formatter.util.js';
 
 /**
@@ -27,27 +28,23 @@ type ProjectWithExpanded = Project & {
 /**
  * Format a list of projects for display
  * @param projectsData - Raw projects data from the API
- * @param pagination - Pagination information (startAt, limit, total, hasMore) - Now used for footer hints
  * @returns Formatted string with projects information in markdown format
  */
-export function formatProjectsList(
-	projectsData: ProjectsResponse,
-	pagination?: {
-		startAt?: number;
-		limit?: number;
-		total?: number;
-		hasMore: boolean;
-		count?: number;
-	},
-): string {
+export function formatProjectsList(projectsData: ProjectsResponse): string {
 	if (!projectsData.values || projectsData.values.length === 0) {
-		return 'No Jira projects found matching your criteria.';
+		return (
+			'No Jira projects found matching your criteria.' +
+			'\n\n' +
+			formatSeparator() +
+			'\n' +
+			`*Information retrieved at: ${formatDate(new Date())}*`
+		);
 	}
 
 	const lines: string[] = [formatHeading('Jira Projects', 1), ''];
 
 	// Use a standard list format instead of map
-	let formattedList = '';
+	let listContent = '';
 	projectsData.values.forEach((project, index) => {
 		// Safely cast project to include expanded fields
 		const expandedProject = project as ProjectWithExpanded;
@@ -58,7 +55,7 @@ export function formatProjectsList(
 			'/browse/',
 		);
 
-		formattedList +=
+		listContent +=
 			formatHeading(`${index + 1}. ${project.name}`, 2) + '\n\n';
 
 		// Basic properties
@@ -79,49 +76,24 @@ export function formatProjectsList(
 		}
 
 		// Format as bullet list
-		formattedList += formatBulletList(properties, (key) => key) + '\n\n';
+		listContent += formatBulletList(properties, (key) => key) + '\n\n';
 
 		// Separator is now handled within the loop
 		if (index < projectsData.values.length - 1) {
-			formattedList += formatSeparator() + '\n\n';
+			listContent += formatSeparator() + '\n\n';
 		}
 
 		// Avatar if available
 		if (project.avatarUrls && project.avatarUrls['48x48']) {
-			formattedList += `![${project.name} Avatar](${project.avatarUrls['48x48']})\n\n`;
+			listContent += `![${project.name} Avatar](${project.avatarUrls['48x48']})\n\n`;
 		}
 	});
 
-	lines.push(formattedList);
+	lines.push(listContent);
 
-	// --- Footer --- (Revised Footer)
-	const footerLines: string[] = [];
-	footerLines.push('---');
-
-	const displayedCount = pagination?.count ?? projectsData.values.length;
-	if (pagination?.total !== undefined) {
-		footerLines.push(
-			`*Showing ${displayedCount} of ${pagination.total} projects*`,
-		);
-	}
-	// Check hasMore using limit and startAt if total isn't precise or available
-	const potentiallyMore =
-		pagination?.hasMore ??
-		(pagination?.limit &&
-			pagination?.startAt !== undefined &&
-			displayedCount >= pagination.limit);
-
-	if (potentiallyMore) {
-		const nextStartAt =
-			(pagination?.startAt ?? 0) + (pagination?.limit ?? displayedCount);
-		footerLines.push(`*Use --start-at ${nextStartAt} to view more.*`);
-	}
-
-	footerLines.push(
-		`*Information retrieved at: ${new Date().toLocaleString()}*`,
-	); // Use toLocaleString
-
-	lines.push(...footerLines); // Add footer lines
+	// Add standard footer with timestamp
+	lines.push('\n\n' + formatSeparator());
+	lines.push(`*Information retrieved at: ${formatDate(new Date())}*`);
 
 	return lines.join('\n');
 }
@@ -151,7 +123,7 @@ export function formatProjectDetails(projectData: ProjectDetailed): string {
 		ID: projectData.id,
 		Key: projectData.key,
 		Style: projectData.style || 'Not specified',
-		Simplified: projectData.simplified,
+		Simplified: projectData.simplified ? 'Yes' : 'No',
 	};
 
 	lines.push(formatBulletList(basicProperties, (key) => key));
@@ -170,7 +142,7 @@ export function formatProjectDetails(projectData: ProjectDetailed): string {
 
 		const leadProperties: Record<string, unknown> = {
 			Name: projectData.lead.displayName,
-			Active: projectData.lead.active,
+			Active: projectData.lead.active ? 'Yes' : 'No',
 		};
 
 		lines.push(formatBulletList(leadProperties, (key) => key));
@@ -215,10 +187,14 @@ export function formatProjectDetails(projectData: ProjectDetailed): string {
 			}
 
 			const versionProperties: Record<string, unknown> = {
-				Released: version.released,
-				Archived: version.archived,
-				'Release Date': version.releaseDate,
-				'Start Date': version.startDate,
+				Released: version.released ? 'Yes' : 'No',
+				Archived: version.archived ? 'Yes' : 'No',
+				'Release Date': version.releaseDate
+					? formatDate(version.releaseDate)
+					: 'N/A',
+				'Start Date': version.startDate
+					? formatDate(version.startDate)
+					: 'N/A',
 			};
 
 			lines.push(formatBulletList(versionProperties, (key) => key));
@@ -240,11 +216,14 @@ export function formatProjectDetails(projectData: ProjectDetailed): string {
 
 	lines.push(links.join('\n'));
 
-	// Add timestamp for when this information was retrieved
-	lines.push('');
-	lines.push(formatSeparator());
-	lines.push(`*Information retrieved at: ${new Date().toLocaleString()}*`); // Use toLocaleString
-	lines.push(`*To view this project in Jira, visit: ${projectUrl}*`);
+	// Add standard footer with timestamp
+	lines.push('\n\n' + formatSeparator());
+	lines.push(`*Information retrieved at: ${formatDate(new Date())}*`);
+
+	// Optionally keep the direct link
+	if (projectUrl) {
+		lines.push(`*View this project in Jira: ${projectUrl}*`);
+	}
 
 	return lines.join('\n');
 }

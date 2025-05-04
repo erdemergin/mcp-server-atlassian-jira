@@ -1,5 +1,8 @@
 // Test comment to verify edit functionality
 
+import { Logger } from './logger.util.js';
+import { ResponsePagination } from '../types/common.types.js';
+
 /**
  * Markdown formatting utilities
  */
@@ -138,4 +141,75 @@ export function formatNumberedList<T>(
 	return items
 		.map((item, index) => formatter(item, index))
 		.join('\n\n' + formatSeparator() + '\n\n');
+}
+
+/**
+ * Format a date in a standardized way: YYYY-MM-DD HH:MM:SS UTC
+ * @param dateInput - ISO date string, Date object, or timestamp number
+ * @returns Formatted date string
+ */
+export function formatDate(dateInput?: string | Date | number): string {
+	if (dateInput === undefined || dateInput === null) {
+		return 'Not available';
+	}
+
+	try {
+		// Create Date object correctly from string, Date, or number (timestamp)
+		const date =
+			dateInput instanceof Date ? dateInput : new Date(dateInput);
+
+		// Check if the date is valid after creation
+		if (isNaN(date.getTime())) {
+			return 'Invalid date input';
+		}
+
+		// Format: YYYY-MM-DD HH:MM:SS UTC
+		return date
+			.toISOString()
+			.replace('T', ' ')
+			.replace(/\.\d+Z$/, ' UTC');
+	} catch {
+		return 'Invalid date';
+	}
+}
+
+/**
+ * Format pagination information in a standardized way for CLI output.
+ * Includes separator, item counts, availability message, next page instructions, and timestamp.
+ * @param pagination - The ResponsePagination object containing pagination details.
+ * @returns Formatted pagination footer string for CLI.
+ */
+export function formatPagination(pagination: ResponsePagination): string {
+	const methodLogger = Logger.forContext(
+		'utils/formatter.util.ts',
+		'formatPagination',
+	);
+	const parts: string[] = [formatSeparator()]; // Start with separator
+
+	const { count = 0, hasMore, nextCursor, total } = pagination;
+
+	// Showing count and potentially total
+	if (total !== undefined && total >= 0) {
+		parts.push(`*Showing ${count} of ${total} total items.*`);
+	} else if (count >= 0) {
+		parts.push(`*Showing ${count} item${count !== 1 ? 's' : ''}.*`);
+	}
+
+	// More results availability
+	if (hasMore) {
+		parts.push('More results are available.');
+	}
+
+	// Prompt for the next action (using next startAt value for Jira)
+	if (hasMore && nextCursor) {
+		// nextCursor holds the next startAt value for OFFSET pagination
+		parts.push(`*Use --start-at ${nextCursor} to view more.*`);
+	}
+
+	// Add standard timestamp
+	parts.push(`*Information retrieved at: ${formatDate(new Date())}*`);
+
+	const result = parts.join('\n').trim(); // Join with newline
+	methodLogger.debug(`Formatted pagination footer: ${result}`);
+	return result;
 }

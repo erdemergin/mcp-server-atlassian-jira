@@ -55,7 +55,8 @@ function registerTools(server: McpServer) {
 		'jira_ls_statuses',
 		`Lists available Jira statuses, either globally or for a specific project (\`projectKeyOrId\`).
 Use this to discover valid status names and IDs needed for filtering issues (e.g., in \`jira_ls_issues\`).
-Returns a formatted Markdown list of statuses including name, ID, description, and category (To Do, In Progress, Done).`,
+Returns a formatted Markdown list of statuses including name, ID, description, and category (To Do, In Progress, Done).
+Requires Jira credentials to be configured.`,
 		ListStatusesToolArgs.shape,
 		handleListStatuses,
 	);

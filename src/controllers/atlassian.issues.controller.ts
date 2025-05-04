@@ -158,8 +158,9 @@ async function list(
 		);
 
 		const pagination = extractPaginationInfo(
-			issuesData as unknown as Record<string, unknown>, // Cast type
-			PaginationType.OFFSET, // Use OFFSET
+			issuesData as unknown as Record<string, unknown>,
+			PaginationType.OFFSET,
+			'Issue',
 		);
 
 		// The formatter expects an object with issues and baseUrl
@@ -183,8 +184,7 @@ async function list(
 			pagination,
 		};
 	} catch (error) {
-		// Use the standardized error handler
-		return handleControllerError(error, {
+		throw handleControllerError(error, {
 			entityType: 'Issues',
 			operation: 'listing',
 			source: 'controllers/atlassian.issues.controller.ts@list',
@@ -314,8 +314,7 @@ async function get(
 			content: combinedContent,
 		};
 	} catch (error) {
-		// Use the standardized error handler
-		return handleControllerError(error, {
+		throw handleControllerError(error, {
 			entityType: 'Issue',
 			entityId: identifier,
 			operation: 'retrieving',

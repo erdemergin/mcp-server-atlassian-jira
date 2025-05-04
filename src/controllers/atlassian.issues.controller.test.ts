@@ -2,6 +2,7 @@ import atlassianIssuesController from './atlassian.issues.controller.js';
 import { config } from '../utils/config.util.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { McpError } from '../utils/error.util.js';
+import { formatSeparator, formatDate } from '../utils/formatter.util.js';
 
 describe('Atlassian Issues Controller', () => {
 	// Load configuration and check for credentials before running tests
@@ -129,7 +130,12 @@ describe('Atlassian Issues Controller', () => {
 			expect(typeof result.content).toBe('string');
 
 			// Check for appropriate message for no results (actual formatter output)
-			expect(result.content).toBe('No issues found.');
+			expect(result.content).toBe(
+				'No issues found.\n\n' +
+					formatSeparator() +
+					'\n' +
+					`*Information retrieved at: ${formatDate(new Date())}*`,
+			);
 			expect(result.pagination).toBeDefined();
 			expect(result.pagination?.hasMore).toBe(false);
 			expect(result.pagination?.count).toBe(0);

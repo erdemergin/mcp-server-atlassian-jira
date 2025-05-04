@@ -2,6 +2,7 @@ import atlassianProjectsController from './atlassian.projects.controller.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { config } from '../utils/config.util.js';
 import { McpError } from '../utils/error.util.js'; // Import McpError
+import { formatSeparator, formatDate } from '../utils/formatter.util.js'; // Add imports
 
 describe('Atlassian Projects Controller', () => {
 	// Load configuration and check for credentials before all tests
@@ -153,14 +154,15 @@ describe('Atlassian Projects Controller', () => {
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
 
-			// Should show no projects found message (actual formatter output for empty)
+			// Check specific empty result message including the standard footer
 			expect(result.content).toBe(
-				'No Jira projects found matching your criteria.',
+				'No Jira projects found matching your criteria.\n\n' +
+					formatSeparator() +
+					'\n' +
+					`*Information retrieved at: ${formatDate(new Date())}*`,
 			);
-
-			// Should have pagination but with count 0 and hasMore false
-			expect(result.pagination).toBeDefined();
-			expect(result.pagination?.count).toBe(0);
+			// Verify pagination properties for empty result
+			expect(result.pagination).toHaveProperty('count', 0);
 			expect(result.pagination?.hasMore).toBe(false);
 			expect(result.pagination?.total).toBe(0);
 			expect(result.pagination?.nextCursor).toBeUndefined();
@@ -230,7 +232,10 @@ describe('Atlassian Projects Controller', () => {
 			});
 
 			expect(result.content).toBe(
-				'No Jira projects found matching your criteria.',
+				'No Jira projects found matching your criteria.\n\n' +
+					formatSeparator() +
+					'\n' +
+					`*Information retrieved at: ${formatDate(new Date())}*`,
 			); // Check actual empty message
 			expect(result.pagination).toBeDefined();
 			expect(result.pagination?.hasMore).toBe(false);

@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import atlassianStatusesController from '../controllers/atlassian.statuses.controller.js';
-import { formatHeading } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira statuses.
@@ -73,15 +72,10 @@ function registerListStatusesCommand(program: Command): void {
 
 				actionLogger.debug('Successfully retrieved statuses');
 
-				// Print heading
-				const heading = options.projectKeyOrId
-					? `Statuses for Project ${options.projectKeyOrId}`
-					: 'Available Jira Statuses';
-				console.log(formatHeading(heading, 1));
-				console.log();
-
-				// Print the main content
+				// Print the main content (already includes header and timestamp footer from formatter)
 				console.log(result.content);
+
+				// No pagination footer needed for statuses
 			} catch (error) {
 				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
