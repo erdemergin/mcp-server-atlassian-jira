@@ -24,26 +24,6 @@ export const PROJECT_DEFAULTS = {
 	INCLUDE_VERSIONS: true,
 };
 
-/**
- * Default values for issue operations
- */
-export const ISSUE_DEFAULTS = {
-	/**
-	 * Whether to include issue fields by default
-	 */
-	INCLUDE_FIELDS: true,
-
-	/**
-	 * Whether to include issue changelog by default
-	 */
-	INCLUDE_CHANGELOG: false,
-
-	/**
-	 * Whether to include issue transitions by default
-	 */
-	INCLUDE_TRANSITIONS: false,
-};
-
 import { Logger } from './logger.util.js';
 const logger = Logger.forContext('utils/defaults.util.ts');
 

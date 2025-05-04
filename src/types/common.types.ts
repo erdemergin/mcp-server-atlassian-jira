@@ -35,25 +35,6 @@ export interface ResponsePagination {
 }
 
 /**
- * Common pagination options for API requests.
- * These options control how many results are returned and which page is retrieved.
- */
-export interface PaginationOptions {
-	/**
-	 * Maximum number of results to return per page.
-	 * Valid range: 1-100
-	 * If not specified, the default page size (typically 25) will be used.
-	 */
-	limit?: number;
-
-	/**
-	 * Pagination cursor for retrieving a specific page of results.
-	 * Obtain this value from the previous response's pagination information.
-	 */
-	cursor?: string;
-}
-
-/**
  * Base interface for entity identifiers.
  * Used to standardize parameter patterns across controllers.
  * Each entity-specific identifier should extend this interface.

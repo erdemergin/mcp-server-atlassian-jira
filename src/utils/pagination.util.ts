@@ -59,14 +59,6 @@ export interface PagePaginationData {
 }
 
 /**
- * Union type for all pagination data types
- */
-export type PaginationData =
-	| OffsetPaginationData
-	| CursorPaginationData
-	| PagePaginationData;
-
-/**
  * Response pagination information
  */
 export interface ResponsePagination {
