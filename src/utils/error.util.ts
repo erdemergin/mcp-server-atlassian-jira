@@ -98,45 +98,6 @@ export function ensureMcpError(error: unknown): McpError {
 }
 
 /**
- * Helper to find the actual API error body potentially nested in McpErrors
- * Tries to parse the innermost originalError if it's a string.
- */
-function getApiErrorBody(error: unknown): Record<string, unknown> | null {
-	if (error instanceof McpError) {
-		let potentialBody: unknown = null;
-		// Check if nested McpError contains the API body info
-		if (error.originalError instanceof McpError) {
-			potentialBody = error.originalError.originalError;
-		}
-		// Check if the direct originalError has the API body info
-		else if (error.type === ErrorType.API_ERROR) {
-			potentialBody = error.originalError;
-		}
-
-		// Check if the potential body is an object already
-		if (potentialBody && typeof potentialBody === 'object') {
-			return potentialBody as Record<string, unknown>;
-		}
-		// Check if the potential body is a string that needs parsing
-		else if (potentialBody && typeof potentialBody === 'string') {
-			try {
-				const parsedBody = JSON.parse(potentialBody);
-				if (parsedBody && typeof parsedBody === 'object') {
-					return parsedBody as Record<string, unknown>;
-				}
-			} catch {
-				// Ignore parsing errors, return null below
-				Logger.forContext(
-					'utils/error.util.ts',
-					'getApiErrorBody',
-				).warn('Failed to parse originalError string as JSON');
-			}
-		}
-	}
-	return null;
-}
-
-/**
  * Format error for MCP tool response
  */
 export function formatErrorForMcpTool(error: unknown): {
@@ -150,32 +111,11 @@ export function formatErrorForMcpTool(error: unknown): {
 
 	methodLogger.error(`${mcpError.type} error`, mcpError);
 
-	let errorMessage = `Error: ${mcpError.message}`;
-	const apiErrorBody = getApiErrorBody(mcpError);
-
-	// Attempt to extract specific API error messages for JQL errors
-	if (
-		mcpError.statusCode === 400 &&
-		apiErrorBody &&
-		'errorMessages' in apiErrorBody &&
-		Array.isArray(apiErrorBody.errorMessages) &&
-		apiErrorBody.errorMessages.length > 0
-	) {
-		try {
-			const apiMessages = apiErrorBody.errorMessages
-				.map((msg) => String(msg))
-				.join('\n');
-			errorMessage = `Error: Invalid JQL Query.\n${apiMessages}`;
-		} catch {
-			methodLogger.warn('Could not parse specific API error messages');
-		}
-	}
-
 	return {
 		content: [
 			{
 				type: 'text' as const,
-				text: errorMessage,
+				text: `Error: ${mcpError.message}`,
 			},
 		],
 	};
@@ -252,49 +192,6 @@ export function handleCliError(error: unknown, source?: string): never {
 	});
 
 	// Display user-friendly message to console
-	let cliErrorMessage = `Error: ${mcpError.message}`;
-	let cliApiErrorBody = getApiErrorBody(mcpError);
-
-	// Check if the original API error details are nested or direct
-	if (mcpError.originalError instanceof McpError) {
-		if (
-			mcpError.originalError.type === ErrorType.API_ERROR &&
-			mcpError.originalError.originalError &&
-			typeof mcpError.originalError.originalError === 'object'
-		) {
-			cliApiErrorBody = mcpError.originalError.originalError as Record<
-				string,
-				unknown
-			>;
-		}
-	} else if (
-		mcpError.type === ErrorType.API_ERROR &&
-		mcpError.originalError &&
-		typeof mcpError.originalError === 'object'
-	) {
-		cliApiErrorBody = mcpError.originalError as Record<string, unknown>;
-	}
-
-	// Attempt to extract specific API error messages for JQL errors
-	if (
-		mcpError.statusCode === 400 &&
-		cliApiErrorBody &&
-		'errorMessages' in cliApiErrorBody &&
-		Array.isArray(cliApiErrorBody.errorMessages) &&
-		cliApiErrorBody.errorMessages.length > 0
-	) {
-		try {
-			const apiMessages = cliApiErrorBody.errorMessages
-				.map((msg) => String(msg))
-				.join('\n');
-			cliErrorMessage = `Error: Invalid JQL Query (Status 400).\n${apiMessages}`;
-		} catch {
-			methodLogger.warn(
-				'Could not parse specific API error messages for CLI',
-			);
-		}
-	}
-
-	console.error(cliErrorMessage);
+	console.error(`Error: ${mcpError.message}`);
 	process.exit(1);
 }
