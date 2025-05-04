@@ -8,9 +8,9 @@ import {
 } from '../utils/pagination.util.js';
 import { ControllerResponse } from '../types/common.types.js';
 import {
-	ListProjectsOptions,
-	ProjectIdentifier,
-} from './atlassian.projects.types.js';
+	GetProjectToolArgsType,
+	ListProjectsToolArgsType,
+} from '../tools/atlassian.projects.types.js';
 import {
 	formatProjectsList,
 	formatProjectDetails,
@@ -41,7 +41,7 @@ controllerLogger.debug('Jira projects controller initialized');
  * @returns Formatted list of projects with pagination information
  */
 async function list(
-	options: ListProjectsOptions = {},
+	options: ListProjectsToolArgsType = {},
 ): Promise<ControllerResponse> {
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.projects.controller.ts',
@@ -54,14 +54,14 @@ async function list(
 
 	try {
 		// Create a defaults object with proper typing
-		const defaults: Partial<ListProjectsOptions> = {
+		const defaults: Partial<ListProjectsToolArgsType> = {
 			limit: DEFAULT_PAGE_SIZE,
 			orderBy: 'lastIssueUpdatedTime',
 			startAt: 0,
 		};
 
 		// Apply defaults
-		const mergedOptions = applyDefaults<ListProjectsOptions>(
+		const mergedOptions = applyDefaults<ListProjectsToolArgsType>(
 			options,
 			defaults,
 		);
@@ -115,7 +115,9 @@ async function list(
  * @param identifier - The project identifier
  * @returns Formatted project details
  */
-async function get(identifier: ProjectIdentifier): Promise<ControllerResponse> {
+async function get(
+	identifier: GetProjectToolArgsType,
+): Promise<ControllerResponse> {
 	const { projectKeyOrId } = identifier;
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.projects.controller.ts',

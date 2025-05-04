@@ -2,18 +2,18 @@ import { Logger } from '../utils/logger.util.js';
 import { handleControllerError } from '../utils/error-handler.util.js';
 import { applyDefaults, DEFAULT_PAGE_SIZE } from '../utils/defaults.util.js';
 import { ControllerResponse } from '../types/common.types.js';
+import { ListIssuesToolArgsType } from '../tools/atlassian.issues.types.js';
 
 import atlassianIssuesController from './atlassian.issues.controller.js';
-import { SearchOptions } from './atlassian.search.types.js';
 
 /**
  * Search for Jira issues using JQL
  *
- * @param {SearchOptions} options - Options for the search
+ * @param {ListIssuesToolArgsType} options - Options for the search
  * @returns {Promise<ControllerResponse>} Formatted search results in Markdown
  */
 async function search(
-	options: SearchOptions = {},
+	options: ListIssuesToolArgsType = {},
 ): Promise<ControllerResponse> {
 	const controllerLogger = Logger.forContext(
 		'controllers/atlassian.search.controller.ts',
@@ -23,7 +23,7 @@ async function search(
 
 	try {
 		// Apply defaults to options
-		const mergedOptions = applyDefaults<SearchOptions>(options, {
+		const mergedOptions = applyDefaults<ListIssuesToolArgsType>(options, {
 			limit: DEFAULT_PAGE_SIZE,
 			jql: '',
 			startAt: 0,

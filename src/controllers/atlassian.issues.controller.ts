@@ -10,10 +10,9 @@ import {
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { ControllerResponse } from '../types/common.types.js';
 import {
-	ListIssuesOptions,
-	GetIssueOptions,
-	IssueIdentifier,
-} from './atlassian.issues.types.js';
+	GetIssueToolArgsType,
+	ListIssuesToolArgsType,
+} from '../tools/atlassian.issues.types.js';
 import {
 	formatIssuesList,
 	formatIssueDetails,
@@ -69,7 +68,7 @@ controllerLogger.debug('Jira issues controller initialized');
  * @returns Promise with formatted issue list content and pagination information
  */
 async function list(
-	options: ListIssuesOptions = {},
+	options: ListIssuesToolArgsType = {},
 ): Promise<ControllerResponse> {
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.issues.controller.ts',
@@ -86,14 +85,14 @@ async function list(
 		}
 
 		// Create a defaults object with proper typing
-		const defaults: Partial<ListIssuesOptions> = {
+		const defaults: Partial<ListIssuesToolArgsType> = {
 			limit: DEFAULT_PAGE_SIZE,
 			orderBy: 'updated DESC', // Jira default sort
 			startAt: 0, // Default startAt to 0
 		};
 
 		// Apply defaults
-		const mergedOptions = applyDefaults<ListIssuesOptions>(
+		const mergedOptions = applyDefaults<ListIssuesToolArgsType>(
 			options,
 			defaults,
 		);
@@ -195,16 +194,12 @@ async function list(
 }
 
 /**
- * Get details of a specific Jira issue
- * @param identifier - Object containing the ID or key of the issue to retrieve
- * @param identifier.issueIdOrKey - The ID or key of the issue (e.g., "PROJ-123" or "10001")
- * @param _options - Options for retrieving the issue (currently not used, but maintained for future extensibility)
- * @returns Promise with formatted issue details content
- * @throws Error if issue retrieval fails
+ * Get a single Jira issue by ID or key
+ * @param identifier Issue identifier (ID or key)
+ * @returns Detailed issue information formatted as Markdown
  */
 async function get(
-	identifier: IssueIdentifier,
-	_options: GetIssueOptions = {},
+	identifier: GetIssueToolArgsType,
 ): Promise<ControllerResponse> {
 	const { issueIdOrKey } = identifier;
 	const methodLogger = Logger.forContext(
@@ -214,9 +209,9 @@ async function get(
 
 	methodLogger.debug(`Getting Jira issue with ID/key: ${issueIdOrKey}...`);
 
-	// Validate issue ID format
+	// Validate issue ID/key format
 	if (!issueIdOrKey || issueIdOrKey === 'invalid') {
-		throw createApiError('Invalid issue ID', 400);
+		throw createApiError('Invalid issue ID or key', 400);
 	}
 
 	try {

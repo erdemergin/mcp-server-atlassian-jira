@@ -1,9 +1,9 @@
 import atlassianStatusesService from '../services/vendor.atlassian.statuses.service.js';
 import { Logger } from '../utils/logger.util.js';
 import { handleControllerError } from '../utils/error-handler.util.js';
-import { ControllerResponse } from '../types/common.types.js';
-import { ListStatusesOptions } from './atlassian.statuses.types.js';
+import { ListStatusesToolArgsType } from '../tools/atlassian.statuses.types.js';
 import { formatStatusesList } from './atlassian.statuses.formatter.js';
+import { ControllerResponse } from '../types/common.types.js';
 import {
 	JiraStatusDetail,
 	JiraGlobalStatusesResponse,
@@ -21,11 +21,11 @@ controllerLogger.debug('Jira statuses controller initialized');
  * Handles fetching statuses either globally or for a specific project,
  * processing the potentially different API responses, and formatting the result.
  *
- * @param {ListStatusesOptions} options - Options including optional projectKeyOrId.
+ * @param {ListStatusesToolArgsType} options - Options including optional projectKeyOrId.
  * @returns {Promise<ControllerResponse>} Formatted list of statuses.
  */
 async function listStatuses(
-	options: ListStatusesOptions = {},
+	options: ListStatusesToolArgsType = {},
 ): Promise<ControllerResponse> {
 	const methodLogger = controllerLogger.forMethod('listStatuses');
 	methodLogger.debug('Listing Jira statuses...', options);

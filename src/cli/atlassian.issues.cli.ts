@@ -1,8 +1,8 @@
 import { Command } from 'commander';
 import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
+import { ListIssuesToolArgsType } from '../tools/atlassian.issues.types.js';
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
-import { ListIssuesOptions } from '../controllers/atlassian.issues.types.js';
 import { formatHeading, formatPagination } from '../utils/formatter.util.js';
 
 /**
@@ -101,7 +101,7 @@ function registerListIssuesCommand(program: Command): void {
 					}
 				}
 
-				const filterOptions: ListIssuesOptions = {
+				const filterOptions: ListIssuesToolArgsType = {
 					...(options.jql && { jql: options.jql }),
 					...(options.projectKeyOrId && {
 						projectKeyOrId: options.projectKeyOrId,

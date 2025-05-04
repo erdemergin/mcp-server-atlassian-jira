@@ -1,9 +1,9 @@
 import { Command } from 'commander';
 import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
+import { ListProjectsToolArgsType } from '../tools/atlassian.projects.types.js';
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
-import { ListProjectsOptions } from '../controllers/atlassian.projects.types.js';
-import { formatHeading, formatPagination } from '../utils/formatter.util.js';
+import { formatPagination } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira projects.
@@ -43,24 +43,24 @@ function registerListProjectsCommand(program: Command): void {
 	program
 		.command('ls-projects')
 		.description(
-			'List Jira projects accessible to the user, with filtering, sorting, and pagination.',
+			'List Jira projects with optional filtering and pagination.',
+		)
+		.option(
+			'-n, --name <name>',
+			'Filter projects by name (case-insensitive partial match).',
 		)
 		.option(
 			'-l, --limit <number>',
-			'Maximum number of items to return (1-100). Use this to control the response size. Useful for pagination or when you only need a few results.',
+			'Maximum number of items to return (1-100). Default is 25.',
 			'25',
 		)
 		.option(
-			'--start-at <number>',
-			'Index of the first item to return (0-based offset, starts at 0). Note: Jira uses offset-based pagination with startAt instead of cursor-based pagination used in other servers.',
+			'-s, --start-at <number>',
+			"Index of the first item to return (0-based offset, starts at 0). Used for pagination with Jira's offset-based pagination.",
 		)
 		.option(
-			'--name <n>',
-			'Filter projects by name or key (case-insensitive). Use this to find specific projects by their display name or project key.',
-		)
-		.option(
-			'--order-by <field>',
-			'Field to sort projects by (e.g., "name", "key", "lastIssueUpdatedTime"). Default is "lastIssueUpdatedTime", which shows the most recently active projects first.',
+			'-o, --order-by <field>',
+			'Sort field, can be "name", "key", "id", or "lastIssueUpdatedTime" (default).',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
@@ -72,8 +72,9 @@ function registerListProjectsCommand(program: Command): void {
 				actionLogger.debug('Processing command options:', options);
 
 				// Validate limit if provided
+				let limit: number | undefined;
 				if (options.limit) {
-					const limit = parseInt(options.limit, 10);
+					limit = parseInt(options.limit, 10);
 					if (isNaN(limit) || limit <= 0) {
 						throw new Error(
 							'Invalid --limit value: Must be a positive integer.',
@@ -81,32 +82,22 @@ function registerListProjectsCommand(program: Command): void {
 					}
 				}
 
-				// Validate sort if provided - only allow valid sort fields
-				if (
-					options.orderBy &&
-					!['key', 'name', '-key', '-name'].includes(options.orderBy)
-				) {
-					throw new Error(
-						'Invalid --order-by value: Must be one of: key, name, -key, -name.',
-					);
+				// Validate startAt if provided
+				let startAt: number | undefined;
+				if (options.startAt !== undefined) {
+					startAt = parseInt(options.startAt, 10);
+					if (isNaN(startAt) || startAt < 0) {
+						throw new Error(
+							'Invalid --start-at value: Must be a non-negative integer.',
+						);
+					}
 				}
 
-				// Validate name value format if provided
-				if (options.name && typeof options.name !== 'string') {
-					throw new Error(
-						'Invalid --name value: Must be a valid search string.',
-					);
-				}
-
-				const filterOptions: ListProjectsOptions = {
+				const filterOptions: ListProjectsToolArgsType = {
 					...(options.name && { name: options.name }),
-					...(options.limit && {
-						limit: parseInt(options.limit, 10),
-					}),
-					...(options.startAt !== undefined && {
-						startAt: parseInt(options.startAt, 10),
-					}),
 					...(options.orderBy && { orderBy: options.orderBy }),
+					...(limit !== undefined && { limit: limit }),
+					...(startAt !== undefined && { startAt: startAt }),
 				};
 
 				actionLogger.debug(
@@ -120,15 +111,11 @@ function registerListProjectsCommand(program: Command): void {
 				actionLogger.debug('Successfully retrieved projects');
 
 				// Print the main content
-				console.log(formatHeading('Projects', 2));
 				console.log(result.content);
 
 				// Print pagination information if available
 				if (result.pagination) {
-					// Use the actual number of items displayed rather than potentially zero count
-					// The count comes from the controller - it should be the number of items in the current batch
-					// We extract this from the controller response.
-					// If the response has no items but has more results, show 0 but indicate more are available
+					// This follows the same pattern as the issues CLI
 					const displayCount = result.pagination.count ?? 0;
 
 					console.log(
@@ -142,7 +129,6 @@ function registerListProjectsCommand(program: Command): void {
 					);
 				}
 			} catch (error) {
-				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
 			}
 		});
@@ -155,12 +141,10 @@ function registerListProjectsCommand(program: Command): void {
 function registerGetProjectCommand(program: Command): void {
 	program
 		.command('get-project')
-		.description(
-			'Get detailed information about a specific Jira project using its key or ID.',
-		)
+		.description('Get detailed information about a specific Jira project.')
 		.requiredOption(
-			'--project-key-or-id <keyOrId>',
-			'The key or numeric ID of the Jira project to retrieve (e.g., "PROJ" or "10001"). This is required and must be a valid project key or ID from your Jira instance.',
+			'--project-key-or-id <projectKeyOrId>',
+			'The key or ID of the project to retrieve. This is required and must be a valid project key or numeric ID from your Jira instance.',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
@@ -176,11 +160,11 @@ function registerGetProjectCommand(program: Command): void {
 					!options.projectKeyOrId ||
 					options.projectKeyOrId.trim() === ''
 				) {
-					throw new Error('Project key or ID must not be empty.');
+					throw new Error('Project key or ID cannot be empty.');
 				}
 
 				actionLogger.debug(
-					`Fetching project: ${options.projectKeyOrId}`,
+					`Fetching project details: ${options.projectKeyOrId}`,
 				);
 
 				const result = await atlassianProjectsController.get({

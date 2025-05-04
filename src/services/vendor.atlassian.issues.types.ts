@@ -1,250 +1,279 @@
 /**
  * Types for Atlassian Jira Issues API
  */
-import { ContentRepresentation } from './vendor.atlassian.types.js';
+import { z } from 'zod';
 
 /**
- * Issue status
+ * Issue status schema
  */
-export interface IssueStatus {
-	iconUrl: string;
-	name: string;
-}
+const IssueStatusSchema = z.object({
+	iconUrl: z.string(),
+	name: z.string(),
+});
 
 /**
- * Issue link type
+ * Issue link type schema
  */
-export interface IssueLinkType {
-	id: string;
-	inward: string;
-	name: string;
-	outward: string;
-}
+const IssueLinkTypeSchema = z.object({
+	id: z.string(),
+	inward: z.string(),
+	name: z.string(),
+	outward: z.string(),
+});
 
 /**
  * Represents the minimal information about a linked issue provided within an IssueLink.
  */
-export interface LinkedIssueInfo {
-	id: string;
-	key: string;
-	self: string;
-	fields: {
-		summary?: string; // Make summary optional as it might not always be present
-		status: IssueStatus;
-		// Add other fields if needed and available in the API response for links
-	};
-}
+const LinkedIssueInfoSchema = z.object({
+	id: z.string(),
+	key: z.string(),
+	self: z.string(),
+	fields: z
+		.object({
+			summary: z.string().optional(),
+			status: IssueStatusSchema,
+		})
+		.passthrough(), // Allow additional fields
+});
 
 /**
- * Issue link
+ * Issue link schema
  */
-export interface IssueLink {
-	id: string;
-	type: IssueLinkType;
-	inwardIssue?: LinkedIssueInfo; // Use the new minimal type
-	outwardIssue?: LinkedIssueInfo; // Use the new minimal type
-}
+const IssueLinkSchema = z.object({
+	id: z.string(),
+	type: IssueLinkTypeSchema,
+	inwardIssue: LinkedIssueInfoSchema.optional(),
+	outwardIssue: LinkedIssueInfoSchema.optional(),
+});
 
 /**
- * Issue attachment
+ * Issue attachment schema
  */
-export interface IssueAttachment {
-	id: string;
-	self: string;
-	filename: string;
-	author: {
-		accountId: string;
-		accountType?: string;
-		active: boolean;
-		displayName: string;
-		self: string;
-		avatarUrls?: Record<string, string>;
-	};
-	created: string;
-	size: number;
-	mimeType: string;
-	content: string;
-	thumbnail?: string;
-}
+const IssueAttachmentSchema = z.object({
+	id: z.string(),
+	self: z.string(),
+	filename: z.string(),
+	author: z.object({
+		accountId: z.string(),
+		accountType: z.string().optional(),
+		active: z.boolean(),
+		displayName: z.string(),
+		self: z.string(),
+		avatarUrls: z.record(z.string()).optional(),
+	}),
+	created: z.string(),
+	size: z.number(),
+	mimeType: z.string(),
+	content: z.string(),
+	thumbnail: z.string().optional(),
+});
 
 /**
- * Issue comment
+ * Issue comment schema
  */
-export interface IssueComment {
-	id: string;
-	self: string;
-	author: {
-		accountId: string;
-		active: boolean;
-		displayName: string;
-		self: string;
-	};
-	body: string | ContentRepresentation;
-	created: string;
-	updated: string;
-	updateAuthor: {
-		accountId: string;
-		active: boolean;
-		displayName: string;
-		self: string;
-	};
-	visibility?: {
-		identifier: string;
-		type: string;
-		value: string;
-	};
-}
+const IssueCommentSchema = z.object({
+	id: z.string(),
+	self: z.string(),
+	author: z.object({
+		accountId: z.string(),
+		active: z.boolean(),
+		displayName: z.string(),
+		self: z.string(),
+	}),
+	body: z.union([z.string(), z.any()]), // ContentRepresentation
+	created: z.string(),
+	updated: z.string(),
+	updateAuthor: z.object({
+		accountId: z.string(),
+		active: z.boolean(),
+		displayName: z.string(),
+		self: z.string(),
+	}),
+	visibility: z
+		.object({
+			identifier: z.string(),
+			type: z.string(),
+			value: z.string(),
+		})
+		.optional(),
+});
 
 /**
- * Issue worklog
+ * Issue worklog schema
  */
-export interface IssueWorklog {
-	id: string;
-	self: string;
-	author: {
-		accountId: string;
-		active: boolean;
-		displayName: string;
-		self: string;
-	};
-	comment: string | ContentRepresentation;
-	created: string;
-	updated: string;
-	issueId: string;
-	started: string;
-	timeSpent: string;
-	timeSpentSeconds: number;
-	updateAuthor: {
-		accountId: string;
-		active: boolean;
-		displayName: string;
-		self: string;
-	};
-	visibility?: {
-		identifier: string;
-		type: string;
-		value: string;
-	};
-}
+const IssueWorklogSchema = z.object({
+	id: z.string(),
+	self: z.string(),
+	author: z.object({
+		accountId: z.string(),
+		active: z.boolean(),
+		displayName: z.string(),
+		self: z.string(),
+	}),
+	comment: z.union([z.string(), z.any()]), // ContentRepresentation
+	created: z.string(),
+	updated: z.string(),
+	issueId: z.string(),
+	started: z.string(),
+	timeSpent: z.string(),
+	timeSpentSeconds: z.number(),
+	updateAuthor: z.object({
+		accountId: z.string(),
+		active: z.boolean(),
+		displayName: z.string(),
+		self: z.string(),
+	}),
+	visibility: z
+		.object({
+			identifier: z.string(),
+			type: z.string(),
+			value: z.string(),
+		})
+		.optional(),
+});
 
 /**
- * Issue time tracking
+ * Issue time tracking schema
  */
-export interface IssueTimeTracking {
-	originalEstimate?: string;
-	originalEstimateSeconds?: number;
-	remainingEstimate?: string;
-	remainingEstimateSeconds?: number;
-	timeSpent?: string;
-	timeSpentSeconds?: number;
-}
+const IssueTimeTrackingSchema = z.object({
+	originalEstimate: z.string().optional(),
+	originalEstimateSeconds: z.number().optional(),
+	remainingEstimate: z.string().optional(),
+	remainingEstimateSeconds: z.number().optional(),
+	timeSpent: z.string().optional(),
+	timeSpentSeconds: z.number().optional(),
+});
 
 /**
- * Issue watcher
+ * Issue watcher schema
  */
-export interface IssueWatcher {
-	isWatching: boolean;
-	self: string;
-	watchCount: number;
-}
+const IssueWatcherSchema = z.object({
+	isWatching: z.boolean(),
+	self: z.string(),
+	watchCount: z.number(),
+});
 
 /**
- * Issue fields
+ * Issue fields schema
  */
-export interface IssueFields {
-	watcher?: IssueWatcher;
-	attachment?: IssueAttachment[];
-	description?: string | ContentRepresentation;
-	project: {
-		id: string;
-		key: string;
-		name: string;
-		self: string;
-		avatarUrls: Record<string, string>;
-		simplified: boolean;
-		insight?: {
-			lastIssueUpdateTime: string;
-			totalIssueCount: number;
-		};
-		projectCategory?: {
-			id: string;
-			name: string;
-			description?: string;
-			self: string;
-		};
-	};
-	comment?: IssueComment[];
-	issuelinks?: IssueLink[];
-	worklog?: IssueWorklog[];
-	updated?: string | number;
-	timetracking?: IssueTimeTracking;
-	summary?: string;
-	status?: IssueStatus;
-	assignee?: {
-		accountId: string;
-		active: boolean;
-		displayName: string;
-		self: string;
-		avatarUrls?: Record<string, string>;
-	};
-	priority?: {
-		id: string;
-		name: string;
-		iconUrl: string;
-		self: string;
-	};
-	issuetype?: {
-		id: string;
-		name: string;
-		description: string;
-		iconUrl: string;
-		self: string;
-		subtask: boolean;
-		avatarId?: number;
-		hierarchyLevel?: number;
-	};
-	creator?: {
-		accountId: string;
-		active: boolean;
-		displayName: string;
-		self: string;
-		avatarUrls?: Record<string, string>;
-	};
-	reporter?: {
-		accountId: string;
-		active: boolean;
-		displayName: string;
-		self: string;
-		avatarUrls?: Record<string, string>;
-	};
-	created?: string;
-	labels?: string[];
-	components?: {
-		id: string;
-		name: string;
-		self: string;
-	}[];
-	fixVersions?: {
-		id: string;
-		name: string;
-		self: string;
-		released: boolean;
-		archived: boolean;
-		releaseDate?: string;
-	}[];
-	[key: string]: unknown; // For custom fields
-}
+const IssueFieldsSchema = z
+	.object({
+		watcher: IssueWatcherSchema.optional(),
+		attachment: z.array(IssueAttachmentSchema).optional(),
+		description: z.union([z.string(), z.any()]).optional(), // ContentRepresentation
+		project: z.object({
+			id: z.string(),
+			key: z.string(),
+			name: z.string(),
+			self: z.string(),
+			avatarUrls: z.record(z.string()),
+			simplified: z.boolean(),
+			insight: z
+				.object({
+					lastIssueUpdateTime: z.string(),
+					totalIssueCount: z.number(),
+				})
+				.optional(),
+			projectCategory: z
+				.object({
+					id: z.string(),
+					name: z.string(),
+					description: z.string().optional(),
+					self: z.string(),
+				})
+				.optional(),
+		}),
+		comment: z.array(IssueCommentSchema).optional(),
+		issuelinks: z.array(IssueLinkSchema).optional(),
+		worklog: z.array(IssueWorklogSchema).optional(),
+		updated: z.union([z.string(), z.number()]).optional(),
+		timetracking: IssueTimeTrackingSchema.optional(),
+		summary: z.string().optional(),
+		status: IssueStatusSchema.optional(),
+		assignee: z
+			.object({
+				accountId: z.string(),
+				active: z.boolean(),
+				displayName: z.string(),
+				self: z.string(),
+				avatarUrls: z.record(z.string()).optional(),
+			})
+			.optional(),
+		priority: z
+			.object({
+				id: z.string(),
+				name: z.string(),
+				iconUrl: z.string(),
+				self: z.string(),
+			})
+			.optional(),
+		issuetype: z
+			.object({
+				id: z.string(),
+				name: z.string(),
+				description: z.string(),
+				iconUrl: z.string(),
+				self: z.string(),
+				subtask: z.boolean(),
+				avatarId: z.number().optional(),
+				hierarchyLevel: z.number().optional(),
+			})
+			.optional(),
+		creator: z
+			.object({
+				accountId: z.string(),
+				active: z.boolean(),
+				displayName: z.string(),
+				self: z.string(),
+				avatarUrls: z.record(z.string()).optional(),
+			})
+			.optional(),
+		reporter: z
+			.object({
+				accountId: z.string(),
+				active: z.boolean(),
+				displayName: z.string(),
+				self: z.string(),
+				avatarUrls: z.record(z.string()).optional(),
+			})
+			.optional(),
+		created: z.string().optional(),
+		labels: z.array(z.string()).optional(),
+		components: z
+			.array(
+				z.object({
+					id: z.string(),
+					name: z.string(),
+					self: z.string(),
+				}),
+			)
+			.optional(),
+		fixVersions: z
+			.array(
+				z.object({
+					id: z.string(),
+					name: z.string(),
+					self: z.string(),
+					released: z.boolean(),
+					archived: z.boolean(),
+					releaseDate: z.string().optional(),
+				}),
+			)
+			.optional(),
+	})
+	.passthrough(); // Allow additional fields for custom fields
 
 /**
  * Issue object returned from the API
  */
-export interface Issue {
-	id: string;
-	key: string;
-	self: string;
-	expand?: string;
-	fields: IssueFields;
-}
+const IssueSchema = z.object({
+	id: z.string(),
+	key: z.string(),
+	self: z.string(),
+	expand: z.string().optional(),
+	fields: IssueFieldsSchema,
+});
+export type Issue = z.infer<typeof IssueSchema>;
 
 /**
  * Parameters for searching issues
@@ -276,148 +305,187 @@ export interface GetIssueByIdParams {
 /**
  * API response for searching issues
  */
-export interface IssuesResponse {
-	expand?: string;
-	startAt: number;
-	maxResults: number;
-	total: number;
-	issues: Issue[];
-	warningMessages?: string[];
-	names?: Record<string, string>;
-	schema?: Record<string, unknown>;
-	nextPageToken?: string;
-}
+const IssuesResponseSchema = z.object({
+	expand: z.string().optional(),
+	startAt: z.number(),
+	maxResults: z.number(),
+	total: z.number(),
+	issues: z.array(IssueSchema),
+	warningMessages: z.array(z.string()).optional(),
+	names: z.record(z.string()).optional(),
+	schema: z.record(z.unknown()).optional(),
+	nextPageToken: z.string().optional(),
+});
+export type IssuesResponse = z.infer<typeof IssuesResponseSchema>;
 
 /**
  * Development information for issues
  */
-export interface DevInfoCommit {
-	id: string;
-	displayId: string;
-	message: string;
-	author?: {
-		name: string;
-		avatar?: string;
-	};
-	authorTimestamp: string;
-	url: string;
-	fileCount: number;
-	merge: boolean;
-	files: Array<unknown>;
-}
+const DevInfoCommitSchema = z.object({
+	id: z.string(),
+	displayId: z.string(),
+	message: z.string(),
+	author: z
+		.object({
+			name: z.string(),
+			avatar: z.string().optional(),
+		})
+		.optional(),
+	authorTimestamp: z.string(),
+	url: z.string(),
+	fileCount: z.number(),
+	merge: z.boolean(),
+	files: z.array(z.unknown()),
+});
 
-export interface DevInfoRepository {
-	id: string;
-	name: string;
-	avatar: string;
-	url: string;
-	commits?: DevInfoCommit[];
-}
+const DevInfoRepositorySchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	avatar: z.string(),
+	url: z.string(),
+	commits: z.array(DevInfoCommitSchema).optional(),
+});
 
-export interface DevInfoBranch {
-	name: string;
-	url: string;
-	createPullRequestUrl: string;
-	repository?: {
-		id: string;
-		name: string;
-		avatar: string;
-		url: string;
-	};
-	lastCommit?: DevInfoCommit;
-}
+const DevInfoBranchSchema = z.object({
+	name: z.string(),
+	url: z.string(),
+	createPullRequestUrl: z.string(),
+	repository: z
+		.object({
+			id: z.string(),
+			name: z.string(),
+			avatar: z.string(),
+			url: z.string(),
+		})
+		.optional(),
+	lastCommit: DevInfoCommitSchema.optional(),
+});
 
-export interface DevInfoReviewer {
-	name: string;
-	avatar?: string;
-	approved: boolean;
-}
+const DevInfoReviewerSchema = z.object({
+	name: z.string(),
+	avatar: z.string().optional(),
+	approved: z.boolean(),
+});
 
-export interface DevInfoPullRequest {
-	id: string;
-	name: string;
-	commentCount: number;
-	source?: {
-		branch: string;
-		url: string;
-	};
-	destination?: {
-		branch: string;
-		url: string;
-	};
-	reviewers?: DevInfoReviewer[];
-	status: string;
-	url: string;
-	lastUpdate: string;
-	repositoryId: string;
-	repositoryName: string;
-	repositoryUrl: string;
-	repositoryAvatarUrl: string;
-	author?: {
-		name: string;
-		avatar?: string;
-	};
-}
+const DevInfoPullRequestSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	commentCount: z.number(),
+	source: z
+		.object({
+			branch: z.string(),
+			url: z.string(),
+		})
+		.optional(),
+	destination: z
+		.object({
+			branch: z.string(),
+			url: z.string(),
+		})
+		.optional(),
+	reviewers: z.array(DevInfoReviewerSchema).optional(),
+	status: z.string(),
+	url: z.string(),
+	lastUpdate: z.string(),
+	repositoryId: z.string(),
+	repositoryName: z.string(),
+	repositoryUrl: z.string(),
+	repositoryAvatarUrl: z.string(),
+	author: z
+		.object({
+			name: z.string(),
+			avatar: z.string().optional(),
+		})
+		.optional(),
+});
 
-export interface DevInfoInstance {
-	singleInstance: boolean;
-	baseUrl: string;
-	name: string;
-	typeName: string;
-	id: string;
-	type: string;
-}
+const DevInfoInstanceSchema = z.object({
+	singleInstance: z.boolean(),
+	baseUrl: z.string(),
+	name: z.string(),
+	typeName: z.string(),
+	id: z.string(),
+	type: z.string(),
+});
 
-export interface DevInfoDetail {
-	repositories?: DevInfoRepository[];
-	branches?: DevInfoBranch[];
-	pullRequests?: DevInfoPullRequest[];
-	_instance?: DevInfoInstance;
-}
+const DevInfoDetailSchema = z.object({
+	repositories: z.array(DevInfoRepositorySchema).optional(),
+	branches: z.array(DevInfoBranchSchema).optional(),
+	pullRequests: z.array(DevInfoPullRequestSchema).optional(),
+	_instance: DevInfoInstanceSchema.optional(),
+});
 
-export interface DevInfoResponse {
-	errors: string[];
-	detail: DevInfoDetail[];
-}
+const DevInfoResponseSchema = z.object({
+	errors: z.array(z.string()),
+	detail: z.array(DevInfoDetailSchema),
+});
+export type DevInfoResponse = z.infer<typeof DevInfoResponseSchema>;
 
-export interface DevInfoSummaryRepository {
-	count: number;
-	lastUpdated: string | null;
-	dataType: string;
-}
+const DevInfoSummaryRepositorySchema = z.object({
+	count: z.number(),
+	lastUpdated: z.string().nullable(),
+	dataType: z.string(),
+});
 
-export interface DevInfoSummaryPullRequest {
-	count: number;
-	lastUpdated: string | null;
-	stateCount: number;
-	state: string | null;
-	dataType: string;
-	open: boolean;
-}
+const DevInfoSummaryPullRequestSchema = z.object({
+	count: z.number(),
+	lastUpdated: z.string().nullable(),
+	stateCount: z.number(),
+	state: z.string().nullable(),
+	dataType: z.string(),
+	open: z.boolean(),
+});
 
-export interface DevInfoSummaryBranch {
-	count: number;
-	lastUpdated: string | null;
-	dataType: string;
-}
+const DevInfoSummaryBranchSchema = z.object({
+	count: z.number(),
+	lastUpdated: z.string().nullable(),
+	dataType: z.string(),
+});
 
-export interface DevInfoSummaryData {
-	pullrequest: {
-		overall: DevInfoSummaryPullRequest;
-		byInstanceType: Record<string, { count: number; name: string }>;
-	};
-	repository: {
-		overall: DevInfoSummaryRepository;
-		byInstanceType: Record<string, { count: number; name: string }>;
-	};
-	branch: {
-		overall: DevInfoSummaryBranch;
-		byInstanceType: Record<string, { count: number; name: string }>;
-	};
-}
+const DevInfoSummaryDataSchema = z.object({
+	pullrequest: z.object({
+		overall: DevInfoSummaryPullRequestSchema,
+		byInstanceType: z.record(
+			z.object({
+				count: z.number(),
+				name: z.string(),
+			}),
+		),
+	}),
+	repository: z.object({
+		overall: DevInfoSummaryRepositorySchema,
+		byInstanceType: z.record(
+			z.object({
+				count: z.number(),
+				name: z.string(),
+			}),
+		),
+	}),
+	branch: z.object({
+		overall: DevInfoSummaryBranchSchema,
+		byInstanceType: z.record(
+			z.object({
+				count: z.number(),
+				name: z.string(),
+			}),
+		),
+	}),
+});
 
-export interface DevInfoSummaryResponse {
-	errors: string[];
-	configErrors: string[];
-	summary: DevInfoSummaryData;
-}
+const DevInfoSummaryResponseSchema = z.object({
+	errors: z.array(z.string()),
+	configErrors: z.array(z.string()),
+	summary: DevInfoSummaryDataSchema,
+});
+export type DevInfoSummaryResponse = z.infer<
+	typeof DevInfoSummaryResponseSchema
+>;
+
+// Export schemas needed by the service implementation
+export {
+	IssueSchema,
+	IssueFieldsSchema,
+	IssuesResponseSchema,
+	DevInfoResponseSchema,
+	DevInfoSummaryResponseSchema,
+};

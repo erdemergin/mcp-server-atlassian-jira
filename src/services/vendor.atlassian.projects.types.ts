@@ -1,111 +1,117 @@
 /**
  * Types for Atlassian Jira Projects API
  */
-import {
-	ContentProperty,
-	OptionalFieldMeta,
-	OptionalFieldLinks,
-} from './vendor.atlassian.types.js';
+import { z } from 'zod';
 
 /**
  * Project style enum
  */
-export type ProjectStyle = 'classic' | 'next-gen';
+const ProjectStyleSchema = z.enum(['classic', 'next-gen']);
 
 /**
  * Project avatar URLs
  */
-export interface ProjectAvatarUrls {
-	'16x16': string;
-	'24x24': string;
-	'32x32': string;
-	'48x48': string;
-}
+const ProjectAvatarUrlsSchema = z.object({
+	'16x16': z.string().url(),
+	'24x24': z.string().url(),
+	'32x32': z.string().url(),
+	'48x48': z.string().url(),
+});
 
 /**
  * Project insight information
  */
-export interface ProjectInsight {
-	lastIssueUpdateTime: string;
-	totalIssueCount: number;
-}
+const ProjectInsightSchema = z.object({
+	lastIssueUpdateTime: z.string(),
+	totalIssueCount: z.number(),
+});
 
 /**
  * Project category
  */
-export interface ProjectCategory {
-	id: string;
-	name: string;
-	description?: string;
-	self: string;
-}
+const ProjectCategorySchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	self: z.string().url(),
+});
 
 /**
  * Project object returned from the API
  */
-export interface Project {
-	id: string;
-	key: string;
-	name: string;
-	self: string;
-	simplified: boolean;
-	style: ProjectStyle;
-	avatarUrls: ProjectAvatarUrls;
-	insight?: ProjectInsight;
-	projectCategory?: ProjectCategory;
-}
-
-/**
- * Extended project object with optional fields
- */
-export interface ProjectDetailed extends Project {
-	description?: string;
-	lead?: {
-		id: string;
-		displayName: string;
-		active: boolean;
-	};
-	components: ProjectComponent[];
-	versions: ProjectVersion[];
-	properties?: {
-		results: ContentProperty[];
-		meta: OptionalFieldMeta;
-		_links: OptionalFieldLinks;
-	};
-}
+const ProjectSchema = z.object({
+	id: z.string(),
+	key: z.string(),
+	name: z.string(),
+	self: z.string().url(),
+	simplified: z.boolean(),
+	style: ProjectStyleSchema,
+	avatarUrls: ProjectAvatarUrlsSchema,
+	insight: ProjectInsightSchema.optional(),
+	projectCategory: ProjectCategorySchema.optional(),
+});
+export type Project = z.infer<typeof ProjectSchema>;
 
 /**
  * Project component
  */
-export interface ProjectComponent {
-	id: string;
-	name: string;
-	description?: string;
-	lead?: {
-		id: string;
-		displayName: string;
-	};
-	assigneeType?: string;
-	assignee?: {
-		id: string;
-		displayName: string;
-	};
-	self: string;
-}
+const ProjectComponentSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	lead: z
+		.object({
+			id: z.string(),
+			displayName: z.string(),
+		})
+		.optional(),
+	assigneeType: z.string().optional(),
+	assignee: z
+		.object({
+			id: z.string(),
+			displayName: z.string(),
+		})
+		.optional(),
+	self: z.string().url(),
+});
 
 /**
  * Project version
  */
-export interface ProjectVersion {
-	id: string;
-	name: string;
-	description?: string;
-	archived: boolean;
-	released: boolean;
-	releaseDate?: string;
-	startDate?: string;
-	self: string;
-}
+const ProjectVersionSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	description: z.string().optional(),
+	archived: z.boolean(),
+	released: z.boolean(),
+	releaseDate: z.string().optional(),
+	startDate: z.string().optional(),
+	self: z.string().url(),
+});
+
+/**
+ * Extended project object with optional fields
+ */
+const ProjectDetailedSchema = ProjectSchema.extend({
+	description: z.string().optional(),
+	lead: z
+		.object({
+			id: z.string(),
+			displayName: z.string(),
+			active: z.boolean(),
+		})
+		.optional(),
+	components: z.array(ProjectComponentSchema),
+	versions: z.array(ProjectVersionSchema),
+	properties: z
+		.object({
+			results: z.array(z.any()),
+			meta: z.any().optional(),
+			_links: z.any().optional(),
+		})
+		.optional(),
+});
+export type ProjectDetailed = z.infer<typeof ProjectDetailedSchema>;
 
 /**
  * Parameters for listing projects
@@ -137,12 +143,16 @@ export interface GetProjectByIdParams {
 /**
  * API response for listing projects
  */
-export interface ProjectsResponse {
-	isLast: boolean;
-	maxResults: number;
-	nextPage?: string;
-	self: string;
-	startAt: number;
-	total: number;
-	values: Project[];
-}
+const ProjectsResponseSchema = z.object({
+	isLast: z.boolean(),
+	maxResults: z.number(),
+	nextPage: z.string().optional(),
+	self: z.string().url(),
+	startAt: z.number(),
+	total: z.number(),
+	values: z.array(ProjectSchema),
+});
+export type ProjectsResponse = z.infer<typeof ProjectsResponseSchema>;
+
+// Export schemas needed by the service implementation
+export { ProjectSchema, ProjectDetailedSchema, ProjectsResponseSchema };

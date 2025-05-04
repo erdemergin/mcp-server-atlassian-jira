@@ -1,14 +1,7 @@
 import {
 	Issue,
-	IssueComment,
-	IssueLink,
-	LinkedIssueInfo,
 	DevInfoResponse,
 	DevInfoSummaryResponse,
-	DevInfoCommit,
-	DevInfoBranch,
-	DevInfoPullRequest,
-	DevInfoRepository,
 } from '../services/vendor.atlassian.issues.types.js';
 import { adfToMarkdown } from '../utils/adf.util.js';
 import {
@@ -19,6 +12,126 @@ import {
 	formatSeparator,
 	formatNumberedList,
 } from '../utils/formatter.util.js';
+
+// Add interfaces for the types we previously imported
+interface DevInfoCommit {
+	id: string;
+	displayId: string;
+	message: string;
+	author?: {
+		name: string;
+		avatar?: string;
+	};
+	authorTimestamp: string;
+	url: string;
+	fileCount: number;
+	merge: boolean;
+	files: Array<unknown>;
+}
+
+interface DevInfoRepository {
+	id: string;
+	name: string;
+	avatar: string;
+	url: string;
+	commits?: DevInfoCommit[];
+}
+
+interface DevInfoBranch {
+	name: string;
+	url: string;
+	createPullRequestUrl: string;
+	repository?: {
+		id: string;
+		name: string;
+		avatar: string;
+		url: string;
+	};
+	lastCommit?: DevInfoCommit;
+}
+
+interface DevInfoPullRequest {
+	id: string;
+	name: string;
+	commentCount: number;
+	source?: {
+		branch: string;
+		url: string;
+	};
+	destination?: {
+		branch: string;
+		url: string;
+	};
+	reviewers?: {
+		name: string;
+		avatar?: string;
+		approved: boolean;
+	}[];
+	status: string;
+	url: string;
+	lastUpdate: string;
+	repositoryId: string;
+	repositoryName: string;
+	repositoryUrl: string;
+	repositoryAvatarUrl: string;
+	author?: {
+		name: string;
+		avatar?: string;
+	};
+}
+
+// Define the IssueComment interface locally
+interface IssueComment {
+	id: string;
+	self: string;
+	author?: {
+		accountId: string;
+		active: boolean;
+		displayName: string;
+		self: string;
+	};
+	body?: string | unknown; // ContentRepresentation
+	created: string;
+	updated: string;
+	updateAuthor?: {
+		accountId: string;
+		active: boolean;
+		displayName: string;
+		self: string;
+	};
+	visibility?: {
+		identifier: string;
+		type: string;
+		value: string;
+	};
+}
+
+// Define the LinkedIssueInfo interface locally
+interface LinkedIssueInfo {
+	id: string;
+	key: string;
+	self: string;
+	fields: {
+		summary?: string;
+		status: {
+			iconUrl: string;
+			name: string;
+		};
+	};
+}
+
+// Define the IssueLink interface locally
+interface IssueLink {
+	id: string;
+	type: {
+		id: string;
+		inward: string;
+		name: string;
+		outward: string;
+	};
+	inwardIssue?: LinkedIssueInfo;
+	outwardIssue?: LinkedIssueInfo;
+}
 
 // Add this interface definition at the top of the file, after the imports
 interface CommentContainer {

@@ -216,15 +216,10 @@ describe('Atlassian Issues Controller', () => {
 				return;
 			}
 
-			// Call the controller with optional fields
-			const result = await atlassianIssuesController.get(
-				{ issueIdOrKey: issueKey },
-				{
-					includeComments: true,
-					includeAttachments: true,
-					includeWorklog: true,
-				},
-			);
+			// Call the controller with the issue key
+			const result = await atlassianIssuesController.get({
+				issueIdOrKey: issueKey,
+			});
 
 			// Verify the optional sections
 			expect(result).toBeDefined();
@@ -246,10 +241,9 @@ describe('Atlassian Issues Controller', () => {
 			}
 
 			// Get issue with description and comments
-			const result = await atlassianIssuesController.get(
-				{ issueIdOrKey: issueKey },
-				{ includeComments: true },
-			);
+			const result = await atlassianIssuesController.get({
+				issueIdOrKey: issueKey,
+			});
 
 			// Verify the content structure
 			expect(result).toBeDefined();

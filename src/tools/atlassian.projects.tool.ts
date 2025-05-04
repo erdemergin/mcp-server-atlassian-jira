@@ -9,7 +9,6 @@ import {
 } from './atlassian.projects.types.js';
 
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
-import { ListProjectsOptions } from '../controllers/atlassian.projects.types.js';
 
 // Create a contextualized logger for this file
 const toolLogger = Logger.forContext('tools/atlassian.projects.tool.ts');
@@ -35,7 +34,7 @@ async function listProjects(args: ListProjectsToolArgsType) {
 	methodLogger.debug('Listing Jira projects with filters:', args);
 
 	try {
-		const options: ListProjectsOptions = {
+		const options: ListProjectsToolArgsType = {
 			name: args.name,
 			limit: args.limit,
 			startAt: args.startAt,

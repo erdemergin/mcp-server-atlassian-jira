@@ -8,7 +8,6 @@ import {
 	GetIssueToolArgsType,
 } from './atlassian.issues.types.js';
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
-import { ListIssuesOptions } from '../controllers/atlassian.issues.types.js';
 
 // Create a contextualized logger for this file
 const toolLogger = Logger.forContext('tools/atlassian.issues.tool.ts');
@@ -35,7 +34,7 @@ async function listIssues(args: ListIssuesToolArgsType) {
 
 	try {
 		// Map tool args to controller options, using startAt and statuses
-		const options: ListIssuesOptions = {
+		const options: ListIssuesToolArgsType = {
 			jql: args.jql,
 			projectKeyOrId: args.projectKeyOrId,
 			statuses: args.statuses,

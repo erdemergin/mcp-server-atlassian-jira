@@ -1,4 +1,9 @@
 /**
+ * Types for Atlassian Jira Statuses API
+ */
+import { z } from 'zod';
+
+/**
  * Represents the status category information returned by Jira API.
  */
 export interface JiraStatusCategory {
@@ -49,3 +54,57 @@ export interface ListStatusesParams {
 	projectKeyOrId?: string;
 	// Add pagination params if needed
 }
+
+/**
+ * Zod schema for JiraStatusCategory
+ */
+const JiraStatusCategorySchema = z.object({
+	self: z.string().url(),
+	id: z.number(),
+	key: z.string(),
+	colorName: z.string(),
+	name: z.string(),
+});
+
+/**
+ * Zod schema for JiraStatusDetail
+ */
+const JiraStatusDetailSchema = z.object({
+	self: z.string().url(),
+	description: z.string().optional(),
+	iconUrl: z.string().optional(),
+	name: z.string(),
+	id: z.string(), // Status IDs are strings (numeric but represented as string)
+	statusCategory: JiraStatusCategorySchema,
+});
+
+/**
+ * Zod schema for JiraProjectStatusByIssueType
+ */
+const JiraProjectStatusByIssueTypeSchema = z.object({
+	self: z.string().url().optional(),
+	id: z.string(),
+	name: z.string(),
+	statuses: z.array(JiraStatusDetailSchema),
+});
+
+/**
+ * Zod schema for JiraProjectStatusesResponse
+ */
+const JiraProjectStatusesResponseSchema = z.array(
+	JiraProjectStatusByIssueTypeSchema,
+);
+
+/**
+ * Zod schema for JiraGlobalStatusesResponse
+ */
+const JiraGlobalStatusesResponseSchema = z.array(JiraStatusDetailSchema);
+
+// Export schemas
+export {
+	JiraStatusCategorySchema,
+	JiraStatusDetailSchema,
+	JiraProjectStatusByIssueTypeSchema,
+	JiraProjectStatusesResponseSchema,
+	JiraGlobalStatusesResponseSchema,
+};

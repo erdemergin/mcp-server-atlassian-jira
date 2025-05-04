@@ -35,19 +35,6 @@ export interface ResponsePagination {
 }
 
 /**
- * Base interface for entity identifiers.
- * Used to standardize parameter patterns across controllers.
- * Each entity-specific identifier should extend this interface.
- */
-export interface EntityIdentifier {
-	/**
-	 * Allows for dynamic keys with string values.
-	 * Entity-specific identifiers will add strongly-typed properties.
-	 */
-	[key: string]: string;
-}
-
-/**
  * Common response structure for controller operations.
  * All controller methods should return this structure.
  */
