@@ -111,11 +111,52 @@ export function formatErrorForMcpTool(error: unknown): {
 
 	methodLogger.error(`${mcpError.type} error`, mcpError);
 
+	let errorMessage = `Error: ${mcpError.message}`;
+	let apiErrorDetails: Record<string, unknown> | null = null;
+
+	// Check if the original API error details are nested or direct
+	if (mcpError.originalError instanceof McpError) {
+		if (
+			mcpError.originalError.type === ErrorType.API_ERROR &&
+			mcpError.originalError.originalError &&
+			typeof mcpError.originalError.originalError === 'object'
+		) {
+			apiErrorDetails = mcpError.originalError.originalError as Record<
+				string,
+				unknown
+			>;
+		}
+	} else if (
+		mcpError.type === ErrorType.API_ERROR &&
+		mcpError.originalError &&
+		typeof mcpError.originalError === 'object'
+	) {
+		apiErrorDetails = mcpError.originalError as Record<string, unknown>;
+	}
+
+	// Attempt to extract specific API error messages for JQL errors
+	if (
+		mcpError.statusCode === 400 &&
+		apiErrorDetails &&
+		'errorMessages' in apiErrorDetails &&
+		Array.isArray(apiErrorDetails.errorMessages) &&
+		apiErrorDetails.errorMessages.length > 0
+	) {
+		try {
+			const apiMessages = apiErrorDetails.errorMessages
+				.map((msg) => String(msg))
+				.join('\n');
+			errorMessage = `Error: Invalid JQL Query.\n${apiMessages}`;
+		} catch {
+			methodLogger.warn('Could not parse specific API error messages');
+		}
+	}
+
 	return {
 		content: [
 			{
 				type: 'text' as const,
-				text: `Error: ${mcpError.message}`,
+				text: errorMessage,
 			},
 		],
 	};
@@ -192,6 +233,48 @@ export function handleCliError(error: unknown, source?: string): never {
 	});
 
 	// Display user-friendly message to console
-	console.error(`Error: ${mcpError.message}`);
+	let cliErrorMessage = `Error: ${mcpError.message}`;
+	let cliApiErrorDetails: Record<string, unknown> | null = null;
+
+	// Check nesting for CLI error details as well
+	if (mcpError.originalError instanceof McpError) {
+		if (
+			mcpError.originalError.type === ErrorType.API_ERROR &&
+			mcpError.originalError.originalError &&
+			typeof mcpError.originalError.originalError === 'object'
+		) {
+			cliApiErrorDetails = mcpError.originalError.originalError as Record<
+				string,
+				unknown
+			>;
+		}
+	} else if (
+		mcpError.type === ErrorType.API_ERROR &&
+		mcpError.originalError &&
+		typeof mcpError.originalError === 'object'
+	) {
+		cliApiErrorDetails = mcpError.originalError as Record<string, unknown>;
+	}
+
+	if (
+		mcpError.statusCode === 400 &&
+		cliApiErrorDetails &&
+		'errorMessages' in cliApiErrorDetails &&
+		Array.isArray(cliApiErrorDetails.errorMessages) &&
+		cliApiErrorDetails.errorMessages.length > 0
+	) {
+		try {
+			const apiMessages = cliApiErrorDetails.errorMessages
+				.map((msg) => String(msg))
+				.join('\n');
+			cliErrorMessage = `Error: Invalid JQL Query (Status 400).\n${apiMessages}`;
+		} catch {
+			methodLogger.warn(
+				'Could not parse specific API error messages for CLI',
+			);
+		}
+	}
+
+	console.error(cliErrorMessage);
 	process.exit(1);
 }
