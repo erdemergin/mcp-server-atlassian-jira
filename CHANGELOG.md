@@ -1,3 +1,15 @@
+# [1.23.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.22.3...v1.23.0) (2025-05-04)
+
+
+### Bug Fixes
+
+* update Zod schemas to correctly validate Jira API responses ([279f971](https://github.com/aashari/mcp-server-atlassian-jira/commit/279f9715e22fd7a83e9d745135ab13ceb402e8e5))
+
+
+### Features
+
+* implement API response validation with Zod schemas and cleanup unused code ([a691eba](https://github.com/aashari/mcp-server-atlassian-jira/commit/a691eba13f42e77cc68e3b3589cf33e039d655ce))
+
 ## [1.22.3](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.22.2...v1.22.3) (2025-05-04)
 
 
