@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.23.0...v1.24.0) (2025-05-04)
+
+
+### Features
+
+* standardize CLI output format with header/context/footer ([582046e](https://github.com/aashari/mcp-server-atlassian-jira/commit/582046e5649a33a659e7e6dd9e2ab6e01f0452f0))
+
 # [1.23.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.22.3...v1.23.0) (2025-05-04)
 
 
