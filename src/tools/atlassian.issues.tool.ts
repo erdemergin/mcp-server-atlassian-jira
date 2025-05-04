@@ -47,7 +47,11 @@ async function listIssues(args: ListIssuesToolArgsType) {
 
 		const result = await atlassianIssuesController.list(options);
 
-		methodLogger.debug('Successfully retrieved issues list');
+		methodLogger.debug('Successfully retrieved issues list', {
+			count: result.pagination?.count,
+			hasMore: result.pagination?.hasMore,
+			total: result.pagination?.total,
+		});
 
 		return {
 			content: [
@@ -56,6 +60,9 @@ async function listIssues(args: ListIssuesToolArgsType) {
 					text: result.content,
 				},
 			],
+			metadata: {
+				pagination: result.pagination,
+			},
 		};
 	} catch (error) {
 		methodLogger.error('Failed to list issues', error);
@@ -84,7 +91,7 @@ async function getIssue(args: GetIssueToolArgsType) {
 	);
 
 	try {
-		const message = await atlassianIssuesController.get({
+		const result = await atlassianIssuesController.get({
 			issueIdOrKey: args.issueIdOrKey,
 		});
 		methodLogger.debug(
@@ -95,7 +102,7 @@ async function getIssue(args: GetIssueToolArgsType) {
 			content: [
 				{
 					type: 'text' as const,
-					text: message.content,
+					text: result.content,
 				},
 			],
 		};
@@ -123,7 +130,7 @@ function registerTools(server: McpServer) {
 	// Register the list issues tool
 	server.tool(
 		'jira_ls_issues',
-		`Searches for Jira issues using flexible filtering criteria. You can provide a full JQL query via \`jql\` for complex filtering, or use specific filters like \`projectKeyOrId\` and \`statuses\`. Sort results using \`orderBy\` (e.g., "priority DESC"). Supports pagination via \`limit\` and \`startAt\`. Returns a formatted list of matching issues including key, summary, type, status, priority, and project. Default sort is by last updated date.`,
+		`Searches for Jira issues using flexible filtering criteria. You can provide a full JQL query via \`jql\` for complex filtering, or use specific filters like \`projectKeyOrId\` and \`statuses\`. Sort results using \`orderBy\` (e.g., "priority DESC"). Supports pagination via \`limit\` and \`startAt\`. Returns a formatted list of matching issues including key, summary, type, status, priority, and project. Default sort is by last updated date. **Note:** If \`jql\` is provided and already includes an ORDER BY clause, the \`orderBy\` parameter will be ignored. Requires Jira credentials to be configured.`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);
@@ -131,7 +138,7 @@ function registerTools(server: McpServer) {
 	// Register the get issue details tool
 	server.tool(
 		'jira_get_issue',
-		`Retrieves comprehensive details for a specific Jira issue identified by \`issueIdOrKey\`. Returns the issue's description, status, priority, assignee, reporter, comments, attachments, and linked issues as formatted Markdown. Also includes linked development information (commits, branches, PRs) when available. Use this after finding an issue key to get its complete context.`,
+		`Retrieves comprehensive details for a specific Jira issue identified by \`issueIdOrKey\`. Returns the issue's description, status, priority, assignee, reporter, comments, attachments, and linked issues as formatted Markdown. Also includes linked development information (commits, branches, PRs) when available. Use this after finding an issue key to get its complete context. Requires Jira credentials to be configured.`,
 		GetIssueToolArgs.shape,
 		getIssue,
 	);
