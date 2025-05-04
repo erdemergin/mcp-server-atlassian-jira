@@ -5,7 +5,6 @@ import {
 } from '../services/vendor.atlassian.projects.types.js';
 import {
 	formatUrl,
-	formatDate,
 	formatHeading,
 	formatBulletList,
 	formatSeparator,
@@ -28,12 +27,18 @@ type ProjectWithExpanded = Project & {
 /**
  * Format a list of projects for display
  * @param projectsData - Raw projects data from the API
- * @param _pagination - Pagination information (next cursor, has more, count) - handled by CLI layer
+ * @param pagination - Pagination information (startAt, limit, total, hasMore) - Now used for footer hints
  * @returns Formatted string with projects information in markdown format
  */
 export function formatProjectsList(
 	projectsData: ProjectsResponse,
-	_pagination?: { nextCursor?: string; hasMore: boolean; count?: number },
+	pagination?: {
+		startAt?: number;
+		limit?: number;
+		total?: number;
+		hasMore: boolean;
+		count?: number;
+	},
 ): string {
 	if (!projectsData.values || projectsData.values.length === 0) {
 		return 'No Jira projects found matching your criteria.';
@@ -76,7 +81,7 @@ export function formatProjectsList(
 		// Format as bullet list
 		formattedList += formatBulletList(properties, (key) => key) + '\n\n';
 
-		// Add separator between projects except for the last one
+		// Separator is now handled within the loop
 		if (index < projectsData.values.length - 1) {
 			formattedList += formatSeparator() + '\n\n';
 		}
@@ -89,14 +94,34 @@ export function formatProjectsList(
 
 	lines.push(formattedList);
 
-	// Add total count information if available
-	if (projectsData.total) {
-		lines.push(`*Total projects: ${projectsData.total}*`);
-		lines.push('');
+	// --- Footer --- (Revised Footer)
+	const footerLines: string[] = [];
+	footerLines.push('---');
+
+	const displayedCount = pagination?.count ?? projectsData.values.length;
+	if (pagination?.total !== undefined) {
+		footerLines.push(
+			`*Showing ${displayedCount} of ${pagination.total} projects*`,
+		);
+	}
+	// Check hasMore using limit and startAt if total isn't precise or available
+	const potentiallyMore =
+		pagination?.hasMore ??
+		(pagination?.limit &&
+			pagination?.startAt !== undefined &&
+			displayedCount >= pagination.limit);
+
+	if (potentiallyMore) {
+		const nextStartAt =
+			(pagination?.startAt ?? 0) + (pagination?.limit ?? displayedCount);
+		footerLines.push(`*Use --start-at ${nextStartAt} to view more.*`);
 	}
 
-	// Add timestamp for when this information was retrieved
-	lines.push(`*Project information retrieved at ${formatDate(new Date())}*`);
+	footerLines.push(
+		`*Information retrieved at: ${new Date().toLocaleString()}*`,
+	); // Use toLocaleString
+
+	lines.push(...footerLines); // Add footer lines
 
 	return lines.join('\n');
 }
@@ -218,7 +243,7 @@ export function formatProjectDetails(projectData: ProjectDetailed): string {
 	// Add timestamp for when this information was retrieved
 	lines.push('');
 	lines.push(formatSeparator());
-	lines.push(`*Project information retrieved at ${formatDate(new Date())}*`);
+	lines.push(`*Information retrieved at: ${new Date().toLocaleString()}*`); // Use toLocaleString
 	lines.push(`*To view this project in Jira, visit: ${projectUrl}*`);
 
 	return lines.join('\n');

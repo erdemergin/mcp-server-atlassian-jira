@@ -6,7 +6,6 @@ import {
 import { adfToMarkdown } from '../utils/adf.util.js';
 import {
 	formatUrl,
-	formatDate,
 	formatHeading,
 	formatBulletList,
 	formatSeparator,
@@ -143,21 +142,21 @@ interface IssuesData {
 	baseUrl: string;
 }
 
-interface ResponsePagination {
-	nextCursor?: string;
-	hasMore: boolean;
-	count?: number;
-}
-
 /**
  * Format a list of issues for display
  * @param issuesData - Raw issues data from the API
- * @param _pagination - Pagination information including count and next cursor (handled by CLI layer)
+ * @param pagination - Pagination information including count and next cursor
  * @returns Formatted string with issues information in markdown format
  */
 export function formatIssuesList(
 	issuesData: IssuesData,
-	_pagination?: ResponsePagination,
+	pagination?: {
+		startAt?: number;
+		limit?: number;
+		total?: number;
+		hasMore: boolean;
+		count?: number;
+	},
 ): string {
 	const { issues } = issuesData;
 
@@ -195,6 +194,34 @@ export function formatIssuesList(
 	});
 
 	lines.push(formattedIssues);
+
+	// --- Footer --- (Add standard footer with pagination)
+	const footerLines: string[] = [];
+	footerLines.push('---');
+
+	const displayedCount = pagination?.count ?? issues.length;
+	if (pagination?.total !== undefined) {
+		footerLines.push(
+			`*Showing ${displayedCount} of ${pagination.total} issues*`,
+		);
+	}
+	const potentiallyMore =
+		pagination?.hasMore ??
+		(pagination?.limit &&
+			pagination?.startAt !== undefined &&
+			displayedCount >= pagination.limit);
+
+	if (potentiallyMore) {
+		const nextStartAt =
+			(pagination?.startAt ?? 0) + (pagination?.limit ?? displayedCount);
+		footerLines.push(`*Use --start-at ${nextStartAt} to view more.*`);
+	}
+
+	footerLines.push(
+		`*Information retrieved at: ${new Date().toLocaleString()}*`,
+	);
+
+	lines.push(...footerLines);
 
 	return lines.join('\n');
 }
@@ -378,7 +405,7 @@ export function formatIssueDetails(issueData: Issue): string {
 			comments.forEach((comment: IssueComment, index: number) => {
 				lines.push(
 					formatHeading(
-						`${comment.author?.displayName || 'Anonymous'} - ${formatDate(comment.created)}`,
+						`${comment.author?.displayName || 'Anonymous'} - ${new Date(comment.created).toLocaleString()}`,
 						3,
 					),
 				);
@@ -476,7 +503,7 @@ export function formatIssueDetails(issueData: Issue): string {
 	// Footer
 	lines.push('');
 	lines.push(formatSeparator());
-	lines.push(`*Issue information retrieved at ${formatDate(new Date())}*`);
+	lines.push(`*Information retrieved at: ${new Date().toLocaleString()}*`);
 	lines.push(`*To view this issue in Jira, visit: ${issueUrl}*`);
 
 	return lines.join('\n');
@@ -539,20 +566,20 @@ export function formatDevelopmentInfo(
 			const lastUpdated =
 				summary.repository.overall.lastUpdated || 'Unknown';
 			summaryProps['Repositories'] =
-				`${summary.repository.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? formatDate(lastUpdated) : 'Unknown'})`;
+				`${summary.repository.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? new Date(lastUpdated).toLocaleString() : 'Unknown'})`;
 		}
 
 		if (summary.branch?.overall?.count) {
 			const lastUpdated = summary.branch.overall.lastUpdated || 'Unknown';
 			summaryProps['Branches'] =
-				`${summary.branch.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? formatDate(lastUpdated) : 'Unknown'})`;
+				`${summary.branch.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? new Date(lastUpdated).toLocaleString() : 'Unknown'})`;
 		}
 
 		if (summary.pullrequest?.overall?.count) {
 			const lastUpdated =
 				summary.pullrequest.overall.lastUpdated || 'Unknown';
 			summaryProps['Pull Requests'] =
-				`${summary.pullrequest.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? formatDate(lastUpdated) : 'Unknown'}, Status: ${summary.pullrequest.overall.state || 'Unknown'})`;
+				`${summary.pullrequest.overall.count} (Last updated: ${lastUpdated !== 'Unknown' ? new Date(lastUpdated).toLocaleString() : 'Unknown'}, Status: ${summary.pullrequest.overall.state || 'Unknown'})`;
 		}
 
 		lines.push(formatBulletList(summaryProps));
@@ -576,7 +603,7 @@ export function formatDevelopmentInfo(
 									`${index + 1}. **${commit.displayId}** - ${commit.message.split('\n')[0]}`,
 								);
 								lines.push(
-									`   Author: ${commit.author?.name || 'Unknown'}, Date: ${formatDate(commit.authorTimestamp)}`,
+									`   Author: ${commit.author?.name || 'Unknown'}, Date: ${new Date(commit.authorTimestamp).toLocaleString()}`,
 								);
 								if (commit.url) {
 									lines.push(
@@ -614,7 +641,7 @@ export function formatDevelopmentInfo(
 							`**Last Commit**: ${branch.lastCommit.displayId} - ${branch.lastCommit.message.split('\n')[0]}`,
 						);
 						lines.push(
-							`**Author**: ${branch.lastCommit.author?.name || 'Unknown'}, **Date**: ${formatDate(branch.lastCommit.authorTimestamp)}`,
+							`**Author**: ${branch.lastCommit.author?.name || 'Unknown'}, **Date**: ${new Date(branch.lastCommit.authorTimestamp).toLocaleString()}`,
 						);
 					}
 
@@ -670,7 +697,7 @@ export function formatDevelopmentInfo(
 					}
 
 					lines.push(
-						`**Last Updated**: ${formatDate(pr.lastUpdate)}`,
+						`**Last Updated**: ${new Date(pr.lastUpdate).toLocaleString()}`,
 					);
 
 					if (pr.url) {

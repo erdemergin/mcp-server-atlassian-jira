@@ -1,35 +1,13 @@
+// Test comment to verify edit functionality
+
+/**
+ * Markdown formatting utilities
+ */
+
 /**
  * Standardized formatting utilities for consistent output across all CLI and Tool interfaces.
  * These functions should be used by all formatters to ensure consistent formatting.
  */
-
-import { Logger } from './logger.util.js'; // Ensure logger is imported
-
-const formatterLogger = Logger.forContext('utils/formatter.util.ts'); // Define logger instance
-
-/**
- * Format a date in a standardized way: YYYY-MM-DD HH:MM:SS UTC
- * @param dateString - ISO date string or Date object
- * @returns Formatted date string
- */
-export function formatDate(dateString?: string | Date): string {
-	if (!dateString) {
-		return 'Not available';
-	}
-
-	try {
-		const date =
-			typeof dateString === 'string' ? new Date(dateString) : dateString;
-
-		// Format: YYYY-MM-DD HH:MM:SS UTC
-		return date
-			.toISOString()
-			.replace('T', ' ')
-			.replace(/\.\d+Z$/, ' UTC');
-	} catch {
-		return 'Invalid date';
-	}
-}
 
 /**
  * Format a URL as a markdown link
@@ -44,52 +22,6 @@ export function formatUrl(url?: string, title?: string): string {
 
 	const linkTitle = title || url;
 	return `[${linkTitle}](${url})`;
-}
-
-/**
- * Format pagination information in a standardized way
- * @param count - Number of items in the current result set
- * @param hasMore - Whether there are more results available
- * @param nextCursor - Cursor for the next page of results
- * @param total - Total number of items, if available
- * @returns Formatted pagination information
- */
-export function formatPagination(
-	count: number,
-	hasMore: boolean,
-	nextCursor?: string,
-	total?: number,
-): string {
-	const methodLogger = formatterLogger.forMethod('formatPagination');
-	const parts: string[] = [];
-
-	// Showing count and potentially total
-	if (total !== undefined && total > 0) {
-		parts.push(`*Showing ${count} of ${total} total items.*`);
-	} else if (count > 0) {
-		parts.push(`*Showing ${count} item${count !== 1 ? 's' : ''}.*`);
-	} else if (total === 0) {
-		parts.push('*Showing 0 of 0 total items.*'); // Handle zero total case
-	} else {
-		// If count is 0 and total is undefined, perhaps don't show count message
-		// Or keep a generic "Showing 0 items." message if desired
-		// parts.push('*Showing 0 items.*');
-	}
-
-	// More results availability
-	if (hasMore) {
-		parts.push('More results are available.');
-	}
-
-	// Prompt for next cursor
-	if (hasMore && nextCursor) {
-		// Always use '--cursor' for user consistency, even if mechanism is different
-		parts.push(`\nTo see more results, use --cursor "${nextCursor}"`);
-	}
-
-	const result = parts.join(' ').trim(); // Join with space, trim ends
-	methodLogger.debug(`Formatted pagination: ${result}`);
-	return result;
 }
 
 /**
@@ -140,7 +72,12 @@ function formatValue(value: unknown): string {
 	}
 
 	if (value instanceof Date) {
-		return formatDate(value);
+		// Use toLocaleString for Dates
+		try {
+			return value.toLocaleString();
+		} catch {
+			return 'Invalid date';
+		}
 	}
 
 	// Handle URL objects with url and title properties
@@ -157,9 +94,13 @@ function formatValue(value: unknown): string {
 			return formatUrl(value);
 		}
 
-		// Check if it might be a date
+		// Check if it might be a date string and format it
 		if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value)) {
-			return formatDate(value);
+			try {
+				return new Date(value).toLocaleString();
+			} catch {
+				return 'Invalid date string'; // Or return original string?
+			}
 		}
 
 		return value;

@@ -3,7 +3,7 @@ import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import { ListIssuesToolArgsType } from '../tools/atlassian.issues.types.js';
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
-import { formatHeading, formatPagination } from '../utils/formatter.util.js';
+import { formatHeading } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira issues.
@@ -125,25 +125,6 @@ function registerListIssuesCommand(program: Command): void {
 				// Print the main content
 				console.log(formatHeading('Issues', 2));
 				console.log(result.content);
-
-				// Print pagination information if available
-				if (result.pagination) {
-					// Use the actual number of items displayed rather than potentially zero count
-					// The count comes from the controller - it should be the number of items in the current batch
-					// We extract this from the controller response.
-					// If the response has no items but has more results, show 0 but indicate more are available
-					const displayCount = result.pagination.count ?? 0;
-
-					console.log(
-						'\n' +
-							formatPagination(
-								displayCount,
-								result.pagination.hasMore,
-								result.pagination.nextCursor,
-								result.pagination.total,
-							),
-					);
-				}
 			} catch (error) {
 				actionLogger.error('Operation failed:', error);
 				handleCliError(error);

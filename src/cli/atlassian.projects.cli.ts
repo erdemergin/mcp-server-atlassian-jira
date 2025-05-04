@@ -3,7 +3,6 @@ import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import { ListProjectsToolArgsType } from '../tools/atlassian.projects.types.js';
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
-import { formatPagination } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira projects.
@@ -110,24 +109,8 @@ function registerListProjectsCommand(program: Command): void {
 
 				actionLogger.debug('Successfully retrieved projects');
 
-				// Print the main content
+				// Print the main content (which now includes the footer)
 				console.log(result.content);
-
-				// Print pagination information if available
-				if (result.pagination) {
-					// This follows the same pattern as the issues CLI
-					const displayCount = result.pagination.count ?? 0;
-
-					console.log(
-						'\n' +
-							formatPagination(
-								displayCount,
-								result.pagination.hasMore,
-								result.pagination.nextCursor,
-								result.pagination.total,
-							),
-					);
-				}
 			} catch (error) {
 				handleCliError(error);
 			}

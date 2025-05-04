@@ -48,5 +48,8 @@ export function formatStatusesList(
 		lines.pop();
 	}
 
-	return lines.join('\n');
+	// --- Footer --- (Add standard footer)
+	const footer = `\n\n---\n*Information retrieved at: ${new Date().toLocaleString()}*`;
+
+	return lines.join('\n') + footer;
 }
