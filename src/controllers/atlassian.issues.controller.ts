@@ -104,7 +104,7 @@ async function list(
 		// Revert to simpler JQL building logic, using statuses
 		const jqlParts: string[] = [];
 		if (mergedOptions.jql && mergedOptions.jql.trim() !== '') {
-			jqlParts.push(`(${mergedOptions.jql})`);
+			jqlParts.push(mergedOptions.jql); // Pass user JQL directly without wrapping
 		}
 		if (mergedOptions.projectKeyOrId) {
 			// No need to escape simple keys/IDs typically
