@@ -1,3 +1,10 @@
+## [1.26.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.0...v1.26.1) (2025-05-04)
+
+
+### Bug Fixes
+
+* **errors:** Correctly parse nested API error bodies ([be42acb](https://github.com/aashari/mcp-server-atlassian-jira/commit/be42acbb410df8e2a9c606ab82a97cab406613af))
+
 # [1.26.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.25.1...v1.26.0) (2025-05-04)
 
 
