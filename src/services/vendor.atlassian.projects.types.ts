@@ -96,16 +96,19 @@ const ProjectDetailedSchema = ProjectSchema.extend({
 	description: z.string().optional(),
 	lead: z
 		.object({
-			id: z.string(),
+			id: z.string().optional(),
 			displayName: z.string(),
 			active: z.boolean(),
+			self: z.string().optional(),
+			accountId: z.string().optional(),
+			avatarUrls: z.record(z.string()).optional(),
 		})
 		.optional(),
 	components: z.array(ProjectComponentSchema),
 	versions: z.array(ProjectVersionSchema),
 	properties: z
 		.object({
-			results: z.array(z.any()),
+			results: z.array(z.any()).optional(),
 			meta: z.any().optional(),
 			_links: z.any().optional(),
 		})

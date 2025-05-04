@@ -99,6 +99,18 @@ const IssueCommentSchema = z.object({
 });
 
 /**
+ * Issue comment container schema - Jira API sometimes returns this as an object with nested arrays instead of a direct array
+ */
+const IssueCommentContainerSchema = z
+	.object({
+		comments: z.array(IssueCommentSchema).optional(),
+		maxResults: z.number().optional(),
+		total: z.number().optional(),
+		startAt: z.number().optional(),
+	})
+	.passthrough();
+
+/**
  * Issue worklog schema
  */
 const IssueWorklogSchema = z.object({
@@ -131,6 +143,18 @@ const IssueWorklogSchema = z.object({
 		})
 		.optional(),
 });
+
+/**
+ * Issue worklog container schema - Jira API sometimes returns this as an object with nested arrays instead of a direct array
+ */
+const IssueWorklogContainerSchema = z
+	.object({
+		worklogs: z.array(IssueWorklogSchema).optional(),
+		maxResults: z.number().optional(),
+		total: z.number().optional(),
+		startAt: z.number().optional(),
+	})
+	.passthrough();
 
 /**
  * Issue time tracking schema
@@ -183,13 +207,20 @@ const IssueFieldsSchema = z
 				})
 				.optional(),
 		}),
-		comment: z.array(IssueCommentSchema).optional(),
+		// Accept either an array of comments or a comment container object
+		comment: z
+			.union([z.array(IssueCommentSchema), IssueCommentContainerSchema])
+			.optional(),
 		issuelinks: z.array(IssueLinkSchema).optional(),
-		worklog: z.array(IssueWorklogSchema).optional(),
+		// Accept either an array of worklogs or a worklog container object
+		worklog: z
+			.union([z.array(IssueWorklogSchema), IssueWorklogContainerSchema])
+			.optional(),
 		updated: z.union([z.string(), z.number()]).optional(),
 		timetracking: IssueTimeTrackingSchema.optional(),
 		summary: z.string().optional(),
 		status: IssueStatusSchema.optional(),
+		// Make assignee accept null values
 		assignee: z
 			.object({
 				accountId: z.string(),
@@ -198,7 +229,7 @@ const IssueFieldsSchema = z
 				self: z.string(),
 				avatarUrls: z.record(z.string()).optional(),
 			})
-			.optional(),
+			.nullable(),
 		priority: z
 			.object({
 				id: z.string(),
