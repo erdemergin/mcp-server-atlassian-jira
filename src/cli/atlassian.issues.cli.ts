@@ -56,7 +56,7 @@ function registerListIssuesCommand(program: Command): void {
 		)
 		.option(
 			'-q, --jql <jql>',
-			'Filter issues using JQL syntax. Use this for complex queries like "project = TEAM AND status = \'In Progress\'" or "assignee = currentUser()". If omitted, returns issues according to your Jira default search.',
+			"Filter issues using JQL syntax (e.g., \"project = TEAM AND status = 'In Progress'\"). NOTE: JQL functions requiring user context (like currentUser()) may not work reliably with API token authentication and can cause errors; use explicit account IDs instead (e.g., assignee = 'accountid:...'). If omitted, returns issues according to your Jira default search.",
 		)
 		.option(
 			'-p, --project-key-or-id <keyOrId>',
