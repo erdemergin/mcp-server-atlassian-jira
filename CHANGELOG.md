@@ -1,3 +1,10 @@
+## [1.25.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.25.0...v1.25.1) (2025-05-04)
+
+
+### Bug Fixes
+
+* **jql:** Prevent incorrect wrapping of user-provided JQL ([9f11ca6](https://github.com/aashari/mcp-server-atlassian-jira/commit/9f11ca6e88097d7bfd40e243a4d1f2e92ebbcd5e))
+
 # [1.25.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.24.0...v1.25.0) (2025-05-04)
 
 
