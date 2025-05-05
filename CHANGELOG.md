@@ -1,3 +1,10 @@
+## [1.26.5](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.4...v1.26.5) (2025-05-05)
+
+
+### Bug Fixes
+
+* Remove explicit exit after CLI execution in index.ts ([b747d4a](https://github.com/aashari/mcp-server-atlassian-jira/commit/b747d4a393413eb6cc6688ab42b8b5ccee35aedb))
+
 ## [1.26.4](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.3...v1.26.4) (2025-05-05)
 
 
