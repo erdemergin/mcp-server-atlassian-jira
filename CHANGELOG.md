@@ -1,3 +1,10 @@
+## [1.26.7](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.6...v1.26.7) (2025-05-05)
+
+
+### Bug Fixes
+
+* revert to working server version that stays running ([39bbb85](https://github.com/aashari/mcp-server-atlassian-jira/commit/39bbb8559728da68f7a729117054f7796d75dab4))
+
 ## [1.26.6](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.5...v1.26.6) (2025-05-05)
 
 
