@@ -1,3 +1,15 @@
+## [1.26.4](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.3...v1.26.4) (2025-05-05)
+
+
+### Bug Fixes
+
+* Apply cross-platform compatibility improvements from boilerplate ([c1a82bd](https://github.com/aashari/mcp-server-atlassian-jira/commit/c1a82bde1abdfca22e051ce3b6e81dfd9361c467))
+
+
+### Performance Improvements
+
+* Update dependencies ([0fe29fc](https://github.com/aashari/mcp-server-atlassian-jira/commit/0fe29fca708a15d762ef893e029720266077389c))
+
 ## [1.26.3](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.2...v1.26.3) (2025-05-04)
 
 
