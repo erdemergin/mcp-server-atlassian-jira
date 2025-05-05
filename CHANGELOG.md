@@ -1,3 +1,10 @@
+## [1.26.6](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.5...v1.26.6) (2025-05-05)
+
+
+### Bug Fixes
+
+* improve signal handling for npx support ([5fff0a3](https://github.com/aashari/mcp-server-atlassian-jira/commit/5fff0a33023a486022b21e336fc112b0d09b4f71))
+
 ## [1.26.5](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.4...v1.26.5) (2025-05-05)
 
 
