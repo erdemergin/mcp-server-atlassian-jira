@@ -1,3 +1,11 @@
+# [1.28.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.27.2...v1.28.0) (2025-05-06)
+
+
+### Features
+
+* enhance Markdown to ADF conversion with support for lists, blockquotes, and more formatting ([c8fb137](https://github.com/aashari/mcp-server-atlassian-jira/commit/c8fb137a4f8fa260fa65c512ac091def4d4c8c0f))
+* improve Markdown to ADF conversion with proper headings and newline handling ([5705218](https://github.com/aashari/mcp-server-atlassian-jira/commit/5705218b3c309cc15932f0f7e54a427d34d6ba69))
+
 ## [1.27.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.27.1...v1.27.2) (2025-05-06)
 
 
