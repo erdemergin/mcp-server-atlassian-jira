@@ -1,3 +1,10 @@
+## [1.26.9](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.8...v1.26.9) (2025-05-06)
+
+
+### Bug Fixes
+
+* improve main module detection for npx compatibility ([2bc887a](https://github.com/aashari/mcp-server-atlassian-jira/commit/2bc887afe83be86a4b160992ef4e8a0d61ff5977))
+
 ## [1.26.8](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.7...v1.26.8) (2025-05-06)
 
 
