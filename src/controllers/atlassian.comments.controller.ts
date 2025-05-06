@@ -13,6 +13,7 @@ import {
 	formatCommentsList,
 	formatAddedCommentConfirmation,
 } from './atlassian.comments.formatter.js';
+import { markdownToAdf } from '../utils/adf.util.js';
 
 // Create a contextualized logger for this file
 const controllerLogger = Logger.forContext(
@@ -118,7 +119,7 @@ async function listComments(options: {
  * @async
  * @param {object} options - Controller options for adding a comment
  * @param {string} options.issueIdOrKey - The ID or key of the issue to add a comment to
- * @param {string} options.commentBody - The content of the comment to add
+ * @param {string} options.commentBody - The content of the comment to add (supports Markdown formatting)
  * @returns {Promise<ControllerResponse>} - Promise containing confirmation message
  * @throws {Error} - Throws standardized error if operation fails
  */
@@ -147,23 +148,9 @@ async function addComment(options: {
 		const { issueIdOrKey, commentBody } = options;
 
 		// Prepare the comment data for service
-		// Format the comment as required by the Jira API
+		// Convert markdown to ADF format
 		const commentData = {
-			body: {
-				version: 1,
-				type: 'doc' as const,
-				content: [
-					{
-						type: 'paragraph',
-						content: [
-							{
-								type: 'text',
-								text: commentBody,
-							},
-						],
-					},
-				],
-			},
+			body: markdownToAdf(commentBody),
 			expand: ['renderedBody'], // Include rendered content for HTML fallback
 		};
 

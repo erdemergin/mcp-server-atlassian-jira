@@ -449,3 +449,143 @@ export function textToAdf(text: string): AdfDocument {
 					})),
 	};
 }
+
+/**
+ * Convert Markdown text to an Atlassian Document Format (ADF) document
+ * Supports basic Markdown formatting including **bold**, *italic*, `code`, and line breaks
+ *
+ * @param {string} markdown - Markdown text to convert to ADF
+ * @returns {AdfDocument} - ADF document object
+ */
+export function markdownToAdf(markdown: string): AdfDocument {
+	const methodLogger = Logger.forContext(
+		'utils/adf.util.ts',
+		'markdownToAdf',
+	);
+
+	try {
+		// Split text into paragraphs
+		const paragraphs = markdown.split('\n').filter((p) => p !== '');
+
+		// Create basic document structure
+		const adfDoc: AdfDocument = {
+			version: 1,
+			type: 'doc',
+			content: [],
+		};
+
+		// Process each paragraph
+		for (const paragraph of paragraphs) {
+			adfDoc.content.push({
+				type: 'paragraph',
+				content: parseMarkdownText(paragraph),
+			});
+		}
+
+		methodLogger.debug(
+			`Converted Markdown to ADF, length: ${JSON.stringify(adfDoc).length}`,
+		);
+
+		return adfDoc;
+	} catch (error) {
+		methodLogger.error('Error converting Markdown to ADF:', error);
+		// Fall back to plain text if parsing fails
+		return textToAdf(markdown);
+	}
+}
+
+/**
+ * Parse Markdown text into ADF nodes
+ * Handles bold, italic, code, and plain text
+ */
+function parseMarkdownText(text: string): Array<{
+	type: string;
+	text?: string;
+	marks?: Array<{ type: string }>;
+}> {
+	const result: Array<{
+		type: string;
+		text?: string;
+		marks?: Array<{ type: string }>;
+	}> = [];
+
+	// Regex patterns for basic Markdown
+	const patterns = [
+		// Bold: **text**
+		{ regex: /\*\*(.*?)\*\*/g, mark: 'strong' },
+		// Italic: *text*
+		{ regex: /\*(.*?)\*/g, mark: 'em' },
+		// Code: `text`
+		{ regex: /`(.*?)`/g, mark: 'code' },
+	];
+
+	// Track segments that have been processed
+	let segments: Array<{
+		text: string;
+		start: number;
+		end: number;
+		marks: Array<{ type: string }>;
+	}> = [{ text, start: 0, end: text.length - 1, marks: [] }];
+
+	// Process each pattern
+	for (const { regex, mark } of patterns) {
+		const newSegments: typeof segments = [];
+
+		for (const segment of segments) {
+			let lastIndex = 0;
+			const segmentText = segment.text;
+
+			// Reset regex state
+			regex.lastIndex = 0;
+
+			let match;
+			while ((match = regex.exec(segmentText)) !== null) {
+				// Text before the match
+				if (match.index > lastIndex) {
+					newSegments.push({
+						text: segmentText.substring(lastIndex, match.index),
+						start: segment.start + lastIndex,
+						end: segment.start + match.index - 1,
+						marks: [...segment.marks],
+					});
+				}
+
+				// The matched text (without markers)
+				newSegments.push({
+					text: match[1],
+					start: segment.start + match.index,
+					end: segment.start + match.index + match[0].length - 1,
+					marks: [...segment.marks, { type: mark }],
+				});
+
+				lastIndex = match.index + match[0].length;
+			}
+
+			// Text after the last match
+			if (lastIndex < segmentText.length) {
+				newSegments.push({
+					text: segmentText.substring(lastIndex),
+					start: segment.start + lastIndex,
+					end: segment.end,
+					marks: [...segment.marks],
+				});
+			}
+		}
+
+		// If no matches were found, keep the original segments
+		segments = newSegments.length > 0 ? newSegments : segments;
+	}
+
+	// Convert segments to ADF nodes
+	for (const segment of segments) {
+		if (segment.text.length > 0) {
+			result.push({
+				type: 'text',
+				text: segment.text,
+				...(segment.marks.length > 0 ? { marks: segment.marks } : {}),
+			});
+		}
+	}
+
+	return result.length > 0 ? result : [{ type: 'text', text: '' }];
+}
