@@ -111,6 +111,69 @@ const IssueCommentContainerSchema = z
 	.passthrough();
 
 /**
+ * Comments pagination response schema - used when retrieving comments for an issue
+ */
+const PageOfCommentsSchema = z.object({
+	comments: z.array(IssueCommentSchema),
+	maxResults: z.number(),
+	total: z.number(),
+	startAt: z.number(),
+});
+export type PageOfComments = z.infer<typeof PageOfCommentsSchema>;
+
+/**
+ * Atlassian Document Format (ADF) document schema
+ * Simplified version of the full ADF schema focusing on the minimal required structure
+ */
+const AdfDocumentSchema = z.object({
+	version: z.number(),
+	type: z.literal('doc'),
+	content: z.array(
+		z.object({
+			type: z.string(),
+			content: z.array(z.any()).optional(),
+			text: z.string().optional(),
+			attrs: z.record(z.any()).optional(),
+		}),
+	),
+});
+export type AdfDocument = z.infer<typeof AdfDocumentSchema>;
+
+/**
+ * Comment body for creating/updating comments
+ * Can be either ADF document object or a simple string (converted to ADF)
+ */
+const CommentBodySchema = z.union([
+	AdfDocumentSchema,
+	z.object({
+		body: z.union([z.string(), AdfDocumentSchema]),
+	}),
+]);
+export type CommentBody = z.infer<typeof CommentBodySchema>;
+
+/**
+ * Parameters for listing comments
+ */
+export interface ListCommentsParams {
+	startAt?: number;
+	maxResults?: number;
+	orderBy?: string;
+	expand?: string[];
+}
+
+/**
+ * Parameters for adding a comment
+ */
+export interface AddCommentParams {
+	body: CommentBody;
+	visibility?: {
+		type: string;
+		value: string;
+	};
+	expand?: string[];
+}
+
+/**
  * Issue worklog schema
  */
 const IssueWorklogSchema = z.object({
@@ -519,4 +582,7 @@ export {
 	IssuesResponseSchema,
 	DevInfoResponseSchema,
 	DevInfoSummaryResponseSchema,
+	PageOfCommentsSchema,
+	IssueCommentSchema,
+	CommentBodySchema,
 };

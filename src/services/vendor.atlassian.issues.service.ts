@@ -10,6 +10,11 @@ import {
 	GetIssueByIdParams,
 	IssueSchema,
 	IssuesResponseSchema,
+	PageOfComments,
+	PageOfCommentsSchema,
+	IssueCommentSchema,
+	ListCommentsParams,
+	AddCommentParams,
 } from './vendor.atlassian.issues.types.js';
 import {
 	createAuthMissingError,
@@ -245,4 +250,201 @@ async function get(
 	}
 }
 
-export default { search, get };
+/**
+ * Get comments for a specific Jira issue
+ *
+ * Retrieves the list of comments for an issue with pagination support.
+ * Can be sorted and expanded as needed.
+ *
+ * @async
+ * @memberof VendorAtlassianIssuesService
+ * @param {string} issueIdOrKey - The ID or key of the issue to get comments for
+ * @param {ListCommentsParams} [params={}] - Optional parameters for customizing the response
+ * @param {number} [params.startAt] - Pagination start index
+ * @param {number} [params.maxResults] - Maximum number of results to return
+ * @param {string} [params.orderBy] - Field and direction to order results by
+ * @param {string[]} [params.expand] - Comment data to expand in response (e.g., 'renderedBody')
+ * @returns {Promise<PageOfComments>} Promise containing the comments with pagination information
+ * @throws {Error} If Atlassian credentials are missing or API request fails
+ * @example
+ * // Get comments for an issue with pagination
+ * const comments = await getComments('ABC-123', {
+ *   maxResults: 10,
+ *   expand: ['renderedBody']
+ * });
+ */
+async function getComments(
+	issueIdOrKey: string,
+	params: ListCommentsParams = {},
+): Promise<PageOfComments> {
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'getComments',
+	);
+	methodLogger.debug(
+		`Getting comments for issue ${issueIdOrKey} with params:`,
+		params,
+	);
+
+	const credentials = getAtlassianCredentials();
+	if (!credentials) {
+		throw createAuthMissingError(`Get comments for issue ${issueIdOrKey}`);
+	}
+
+	// Build query parameters
+	const queryParams = new URLSearchParams();
+
+	// Pagination
+	if (params.startAt !== undefined) {
+		queryParams.set('startAt', params.startAt.toString());
+	}
+	if (params.maxResults !== undefined) {
+		queryParams.set('maxResults', params.maxResults.toString());
+	}
+
+	// Sorting
+	if (params.orderBy) {
+		queryParams.set('orderBy', params.orderBy);
+	}
+
+	// Expansion
+	if (params.expand?.length) {
+		queryParams.set('expand', params.expand.join(','));
+	}
+
+	const queryString = queryParams.toString()
+		? `?${queryParams.toString()}`
+		: '';
+	const path = `${API_PATH}/issue/${issueIdOrKey}/comment${queryString}`;
+
+	methodLogger.debug(`Calling Jira API: ${path}`);
+
+	try {
+		const rawData = await fetchAtlassian(credentials, path);
+		// Skip validation in test environment
+		if (skipValidation) {
+			return rawData as PageOfComments;
+		}
+		// Validate response with Zod schema
+		return PageOfCommentsSchema.parse(rawData);
+	} catch (error) {
+		// Handle Zod validation errors
+		if (error instanceof z.ZodError) {
+			methodLogger.error('Response validation failed:', error.format());
+			throw new McpError(
+				`API response validation failed: Invalid Jira comments response format for issue ${issueIdOrKey}`,
+				ErrorType.VALIDATION_ERROR,
+				500,
+				{ zodErrors: error.format() },
+			);
+		}
+		throw error;
+	}
+}
+
+/**
+ * Add a comment to a specific Jira issue
+ *
+ * Creates a new comment on the specified issue with the provided content.
+ * The comment body must be provided in Atlassian Document Format (ADF).
+ *
+ * @async
+ * @memberof VendorAtlassianIssuesService
+ * @param {string} issueIdOrKey - The ID or key of the issue to add a comment to
+ * @param {AddCommentParams} commentData - Parameters for the comment to add
+ * @returns {Promise<z.infer<typeof IssueCommentSchema>>} Promise containing the created comment information
+ * @throws {Error} If Atlassian credentials are missing or API request fails
+ * @example
+ * // Add a comment with ADF content
+ * const comment = await addComment('ABC-123', {
+ *   body: {
+ *     version: 1,
+ *     type: "doc",
+ *     content: [
+ *       {
+ *         type: "paragraph",
+ *         content: [
+ *           {
+ *             type: "text",
+ *             text: "This is a test comment"
+ *           }
+ *         ]
+ *       }
+ *     ]
+ *   }
+ * });
+ */
+async function addComment(
+	issueIdOrKey: string,
+	commentData: AddCommentParams,
+): Promise<z.infer<typeof IssueCommentSchema>> {
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'addComment',
+	);
+
+	try {
+		methodLogger.debug('Adding comment to issue', issueIdOrKey, {
+			bodyProvided: !!commentData.body,
+		});
+
+		// Get configured credentials
+		const credentials = getAtlassianCredentials();
+		if (!credentials) {
+			throw createAuthMissingError('Add comment to issue');
+		}
+
+		// Build API endpoint
+		const apiEndpoint = `${API_PATH}/issue/${issueIdOrKey}/comment`;
+
+		// Add expand parameter for rendered content
+		const queryParams = new URLSearchParams();
+		if (commentData.expand?.length) {
+			queryParams.append('expand', commentData.expand.join(','));
+		}
+
+		// Prepare request URL and options
+		const url = `${apiEndpoint}${
+			queryParams.toString() ? `?${queryParams.toString()}` : ''
+		}`;
+
+		// Prepare request body - using the structure that works with Jira API
+		// The body should be an object containing the ADF document
+		const requestBody = {
+			body: commentData.body,
+			// Optional fields that may be added later
+			...(commentData.visibility
+				? { visibility: commentData.visibility }
+				: {}),
+		};
+
+		methodLogger.debug('Calling Jira API:', url);
+
+		// Make the API call - note the correct parameter order
+		const response = await fetchAtlassian(credentials, url, {
+			method: 'POST',
+			body: requestBody,
+		});
+
+		// Skip validation in test environment
+		if (skipValidation) {
+			return response as z.infer<typeof IssueCommentSchema>;
+		}
+		// Validate response with Zod schema
+		return IssueCommentSchema.parse(response);
+	} catch (error) {
+		// Handle Zod validation errors
+		if (error instanceof z.ZodError) {
+			methodLogger.error('Response validation failed:', error.format());
+			throw new McpError(
+				`API response validation failed: Invalid Jira comment creation response format for issue ${issueIdOrKey}`,
+				ErrorType.VALIDATION_ERROR,
+				500,
+				{ zodErrors: error.format() },
+			);
+		}
+		throw error;
+	}
+}
+
+export default { search, get, getComments, addComment };

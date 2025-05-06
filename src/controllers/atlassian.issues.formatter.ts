@@ -389,6 +389,8 @@ export function formatIssueDetails(issueData: Issue): string {
 					lines.push(comment.body);
 				} else if (typeof comment.body === 'object') {
 					lines.push(adfToMarkdown(comment.body));
+				} else {
+					lines.push('*Comment content not available*');
 				}
 
 				// Add separator between comments

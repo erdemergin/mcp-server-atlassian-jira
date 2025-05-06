@@ -3,6 +3,7 @@
  */
 
 import { Logger } from './logger.util.js';
+import { AdfDocument } from '../services/vendor.atlassian.issues.types.js';
 
 // Create a contextualized logger for this file
 const adfLogger = Logger.forContext('utils/adf.util.ts');
@@ -19,15 +20,6 @@ interface AdfNode {
 	content?: AdfNode[];
 	attrs?: Record<string, unknown>;
 	marks?: Array<{ type: string; attrs?: Record<string, unknown> }>;
-}
-
-/**
- * Interface for ADF document
- */
-interface AdfDocument {
-	type: 'doc';
-	version: number;
-	content?: AdfNode[];
 }
 
 /**
@@ -426,4 +418,34 @@ function processText(node: AdfNode): string {
 	}
 
 	return text;
+}
+
+/**
+ * Convert plain text to an Atlassian Document Format (ADF) document
+ * This is useful for creating comments in Jira
+ *
+ * @param {string} text - Plain text to convert to ADF
+ * @returns {AdfDocument} - ADF document object
+ */
+export function textToAdf(text: string): AdfDocument {
+	// Split text into paragraphs
+	const paragraphs = text.split('\n').filter((p) => p.trim() !== '');
+
+	// Create ADF document structure
+	return {
+		version: 1,
+		type: 'doc',
+		content:
+			paragraphs.length === 0
+				? [{ type: 'paragraph', content: [] }] // Empty paragraph if no content
+				: paragraphs.map((paragraph) => ({
+						type: 'paragraph',
+						content: [
+							{
+								type: 'text',
+								text: paragraph,
+							},
+						],
+					})),
+	};
 }

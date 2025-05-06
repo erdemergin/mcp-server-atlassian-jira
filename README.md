@@ -180,6 +180,43 @@ _or:_
 
 ---
 
+## `jira_ls_comments`
+
+List all comments for a specific Jira issue with pagination.
+
+```json
+{ "issueIdOrKey": "PROJ-123" }
+```
+
+_or:_
+
+```json
+{
+	"issueIdOrKey": "PROJ-123",
+	"limit": 10,
+	"orderBy": "created DESC"
+}
+```
+
+> "Show me all comments on issue PROJ-123."
+
+---
+
+## `jira_add_comment`
+
+Add a new comment to a specific Jira issue.
+
+```json
+{
+	"issueIdOrKey": "PROJ-123",
+	"commentBody": "Thanks for the update. I'll review this by end of day."
+}
+```
+
+> "Add a comment to PROJ-123 saying we'll implement the fix next sprint."
+
+---
+
 # Command-Line Interface (CLI)
 
 The CLI uses kebab-case for commands (e.g., `ls-projects`) and options (e.g., `--project-key-or-id`).
@@ -190,6 +227,8 @@ The CLI uses kebab-case for commands (e.g., `ls-projects`) and options (e.g., `-
 npx -y @aashari/mcp-server-atlassian-jira ls-projects
 npx -y @aashari/mcp-server-atlassian-jira get-issue --issue-id-or-key PROJ-123
 npx -y @aashari/mcp-server-atlassian-jira ls-issues --jql "project = DEV AND status = 'In Progress'"
+npx -y @aashari/mcp-server-atlassian-jira ls-comments --issue-id-or-key PROJ-123
+npx -y @aashari/mcp-server-atlassian-jira add-comment --issue-id-or-key PROJ-123 --body "This issue has been prioritized for the next sprint."
 ```
 
 ## Install Globally
@@ -203,6 +242,7 @@ Then run directly:
 ```bash
 mcp-atlassian-jira ls-projects
 mcp-atlassian-jira get-issue --issue-id-or-key PROJ-123
+mcp-atlassian-jira ls-comments --issue-id-or-key PROJ-123
 ```
 
 ## Discover More CLI Options
@@ -220,6 +260,8 @@ mcp-atlassian-jira ls-projects --help
 mcp-atlassian-jira get-project --help
 mcp-atlassian-jira ls-issues --help
 mcp-atlassian-jira get-issue --help
+mcp-atlassian-jira ls-comments --help
+mcp-atlassian-jira add-comment --help
 ```
 
 ---

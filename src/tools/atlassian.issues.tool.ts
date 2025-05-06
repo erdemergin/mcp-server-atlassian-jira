@@ -115,7 +115,7 @@ async function getIssue(args: GetIssueToolArgsType) {
 /**
  * Register Atlassian Issues MCP Tools
  *
- * Registers the list-issues and get-issue tools with the MCP server.
+ * Registers the issue-related tools with the MCP server.
  * Each tool is registered with its schema, description, and handler function.
  *
  * @param {McpServer} server - The MCP server instance to register tools with
