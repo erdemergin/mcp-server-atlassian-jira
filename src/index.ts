@@ -119,7 +119,8 @@ async function main() {
 const isMainModule =
 	require.main === module ||
 	(process.argv[1] && process.argv[1].endsWith('index.js')) ||
-	(process.argv[1] && process.argv[1].endsWith('mcp-atlassian-jira'));
+	(process.argv[1] && process.argv[1].endsWith('mcp-atlassian-jira')) ||
+	(process.argv[1] && process.argv[1].endsWith('mcp-server-atlassian-jira')); // Additional binary name pattern check
 if (isMainModule) {
 	main().catch((err) => {
 		indexLogger.error('Unhandled error in main process', err);
