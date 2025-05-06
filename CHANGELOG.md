@@ -1,3 +1,10 @@
+## [1.27.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.27.1...v1.27.2) (2025-05-06)
+
+
+### Bug Fixes
+
+* implement Markdown to ADF conversion for Jira comments ([9ae25e4](https://github.com/aashari/mcp-server-atlassian-jira/commit/9ae25e4fb8fc24b3e797de79774b1aac34f48671))
+
 ## [1.27.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.27.0...v1.27.1) (2025-05-06)
 
 
