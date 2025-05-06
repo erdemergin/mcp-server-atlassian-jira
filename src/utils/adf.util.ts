@@ -452,7 +452,16 @@ export function textToAdf(text: string): AdfDocument {
 
 /**
  * Convert Markdown text to an Atlassian Document Format (ADF) document
- * Supports basic Markdown formatting including **bold**, *italic*, `code`, and line breaks
+ * Supports a wide range of Markdown formatting:
+ * - Headings (# text) are converted to bold text
+ * - Bold (**text**)
+ * - Italic (*text*)
+ * - Code (`text`)
+ * - Strikethrough (~~text~~)
+ * - Links ([text](url))
+ * - Unordered lists (- item or * item)
+ * - Blockquotes (> text)
+ * - Horizontal rules (---, ***, ___)
  *
  * @param {string} markdown - Markdown text to convert to ADF
  * @returns {AdfDocument} - ADF document object
@@ -465,7 +474,7 @@ export function markdownToAdf(markdown: string): AdfDocument {
 
 	try {
 		// Split text into paragraphs
-		const paragraphs = markdown.split('\n').filter((p) => p !== '');
+		const paragraphs = markdown.split('\n');
 
 		// Create basic document structure
 		const adfDoc: AdfDocument = {
@@ -474,8 +483,98 @@ export function markdownToAdf(markdown: string): AdfDocument {
 			content: [],
 		};
 
-		// Process each paragraph
-		for (const paragraph of paragraphs) {
+		// Process paragraphs in a loop to handle multi-line structures
+		for (let i = 0; i < paragraphs.length; i++) {
+			const paragraph = paragraphs[i].trim();
+
+			// Skip empty paragraphs
+			if (paragraph === '') {
+				continue;
+			}
+
+			// Handle headings (lines starting with # symbol)
+			if (paragraph.startsWith('#')) {
+				const headingMatch = paragraph.match(/^(#+)\s*(.+?)\s*$/);
+				if (headingMatch) {
+					// Store the heading text to make it bold
+					const headingText = headingMatch[2];
+					adfDoc.content.push({
+						type: 'paragraph',
+						content: [
+							{
+								type: 'text',
+								text: headingText,
+								marks: [{ type: 'strong' }],
+							},
+						],
+					});
+				}
+				continue;
+			}
+
+			// Handle horizontal rules
+			if (/^(\*\*\*|---|_{3,})$/.test(paragraph)) {
+				adfDoc.content.push({
+					type: 'rule',
+				});
+				continue;
+			}
+
+			// Handle blockquotes (lines starting with >)
+			if (paragraph.startsWith('>')) {
+				const quoteText = paragraph.substring(1).trim();
+				adfDoc.content.push({
+					type: 'blockquote',
+					content: [
+						{
+							type: 'paragraph',
+							content: parseMarkdownText(quoteText),
+						},
+					],
+				});
+				continue;
+			}
+
+			// Handle unordered lists (lines starting with - or *)
+			if (paragraph.startsWith('- ') || paragraph.startsWith('* ')) {
+				// Extract all list items starting from this paragraph
+				const listItems = [];
+				let j = i;
+
+				// Collect consecutive list items
+				while (
+					j < paragraphs.length &&
+					(paragraphs[j].trim().startsWith('- ') ||
+						paragraphs[j].trim().startsWith('* '))
+				) {
+					const itemText = paragraphs[j].trim().substring(2);
+					listItems.push(itemText);
+					j++;
+				}
+
+				// Update loop counter to skip processed items
+				i = j - 1;
+
+				// Create bullet list structure
+				const bulletListContent = listItems.map((item) => ({
+					type: 'listItem',
+					content: [
+						{
+							type: 'paragraph',
+							content: parseMarkdownText(item),
+						},
+					],
+				}));
+
+				adfDoc.content.push({
+					type: 'bulletList',
+					content: bulletListContent,
+				});
+
+				continue;
+			}
+
+			// Handle regular paragraphs with inline formatting
 			adfDoc.content.push({
 				type: 'paragraph',
 				content: parseMarkdownText(paragraph),
@@ -496,96 +595,126 @@ export function markdownToAdf(markdown: string): AdfDocument {
 
 /**
  * Parse Markdown text into ADF nodes
- * Handles bold, italic, code, and plain text
+ * Handles inline formatting: bold, italic, code, strikethrough, and links
  */
 function parseMarkdownText(text: string): Array<{
 	type: string;
 	text?: string;
-	marks?: Array<{ type: string }>;
+	marks?: Array<{ type: string; attrs?: { [key: string]: string } }>;
 }> {
 	const result: Array<{
 		type: string;
 		text?: string;
-		marks?: Array<{ type: string }>;
+		marks?: Array<{ type: string; attrs?: { [key: string]: string } }>;
 	}> = [];
 
-	// Regex patterns for basic Markdown
+	// Regex patterns for inline Markdown formatting
 	const patterns = [
+		// Links: [text](url)
+		{
+			regex: /\[([^\]]+)\]\(([^)]+)\)/g,
+			process: (match: RegExpExecArray) => ({
+				type: 'text',
+				text: match[1],
+				marks: [
+					{
+						type: 'link',
+						attrs: {
+							href: match[2],
+						},
+					},
+				],
+			}),
+		},
 		// Bold: **text**
-		{ regex: /\*\*(.*?)\*\*/g, mark: 'strong' },
+		{
+			regex: /\*\*(.*?)\*\*/g,
+			process: (match: RegExpExecArray) => ({
+				type: 'text',
+				text: match[1],
+				marks: [{ type: 'strong' }],
+			}),
+		},
 		// Italic: *text*
-		{ regex: /\*(.*?)\*/g, mark: 'em' },
+		{
+			regex: /\*(.*?)\*/g,
+			process: (match: RegExpExecArray) => ({
+				type: 'text',
+				text: match[1],
+				marks: [{ type: 'em' }],
+			}),
+		},
 		// Code: `text`
-		{ regex: /`(.*?)`/g, mark: 'code' },
+		{
+			regex: /`(.*?)`/g,
+			process: (match: RegExpExecArray) => ({
+				type: 'text',
+				text: match[1],
+				marks: [{ type: 'code' }],
+			}),
+		},
+		// Strikethrough: ~~text~~
+		{
+			regex: /~~(.*?)~~/g,
+			process: (match: RegExpExecArray) => ({
+				type: 'text',
+				text: match[1],
+				marks: [{ type: 'strike' }],
+			}),
+		},
 	];
 
-	// Track segments that have been processed
-	let segments: Array<{
-		text: string;
-		start: number;
-		end: number;
-		marks: Array<{ type: string }>;
-	}> = [{ text, start: 0, end: text.length - 1, marks: [] }];
+	// Process text with multiple patterns
+	let remainingText = text;
+	let nextStartIndex = Number.MAX_SAFE_INTEGER;
+	let nextPattern = null;
+	let nextMatch = null;
 
-	// Process each pattern
-	for (const { regex, mark } of patterns) {
-		const newSegments: typeof segments = [];
+	// Find all pattern matches and their positions
+	while (remainingText.length > 0) {
+		nextStartIndex = Number.MAX_SAFE_INTEGER;
+		nextPattern = null;
+		nextMatch = null;
 
-		for (const segment of segments) {
-			let lastIndex = 0;
-			const segmentText = segment.text;
-
-			// Reset regex state
-			regex.lastIndex = 0;
-
-			let match;
-			while ((match = regex.exec(segmentText)) !== null) {
-				// Text before the match
-				if (match.index > lastIndex) {
-					newSegments.push({
-						text: segmentText.substring(lastIndex, match.index),
-						start: segment.start + lastIndex,
-						end: segment.start + match.index - 1,
-						marks: [...segment.marks],
-					});
-				}
-
-				// The matched text (without markers)
-				newSegments.push({
-					text: match[1],
-					start: segment.start + match.index,
-					end: segment.start + match.index + match[0].length - 1,
-					marks: [...segment.marks, { type: mark }],
-				});
-
-				lastIndex = match.index + match[0].length;
-			}
-
-			// Text after the last match
-			if (lastIndex < segmentText.length) {
-				newSegments.push({
-					text: segmentText.substring(lastIndex),
-					start: segment.start + lastIndex,
-					end: segment.end,
-					marks: [...segment.marks],
-				});
+		// Find the next earliest match
+		for (const pattern of patterns) {
+			pattern.regex.lastIndex = 0;
+			const match = pattern.regex.exec(remainingText);
+			if (match && match.index < nextStartIndex) {
+				nextStartIndex = match.index;
+				nextPattern = pattern;
+				nextMatch = match;
 			}
 		}
 
-		// If no matches were found, keep the original segments
-		segments = newSegments.length > 0 ? newSegments : segments;
-	}
+		// No more matches found
+		if (!nextPattern || !nextMatch) {
+			// Add remaining text as plain text
+			if (remainingText.length > 0) {
+				result.push({
+					type: 'text',
+					text: remainingText,
+				});
+			}
+			break;
+		}
 
-	// Convert segments to ADF nodes
-	for (const segment of segments) {
-		if (segment.text.length > 0) {
+		// Add text before the match as plain text
+		if (nextStartIndex > 0) {
 			result.push({
 				type: 'text',
-				text: segment.text,
-				...(segment.marks.length > 0 ? { marks: segment.marks } : {}),
+				text: remainingText.substring(0, nextStartIndex),
 			});
 		}
+
+		// Add the formatted text
+		result.push(nextPattern.process(nextMatch));
+
+		// Update the remaining text
+		remainingText = remainingText.substring(
+			nextStartIndex + nextMatch[0].length,
+		);
 	}
 
-	return result.length > 0 ? result : [{ type: 'text', text: '' }];
+	return result.length > 0 ? result : [{ type: 'text', text: text }];
 }
