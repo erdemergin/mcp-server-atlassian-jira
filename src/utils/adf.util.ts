@@ -134,12 +134,22 @@ function processAdfNode(node: AdfNode): string {
 			return '---';
 		case 'mediaGroup':
 			return processMediaGroup(node);
+		case 'media':
+			return processMedia(node);
 		case 'table':
 			return processTable(node);
 		case 'text':
 			return processText(node);
 		case 'mention':
 			return processMention(node);
+		case 'inlineCard':
+			return processInlineCard(node);
+		case 'emoji':
+			return processEmoji(node);
+		case 'date':
+			return processDate(node);
+		case 'status':
+			return processStatus(node);
 		default:
 			// For unknown node types, try to process content if available
 			if (node.content) {
@@ -306,6 +316,29 @@ function processMediaGroup(node: AdfNode): string {
 }
 
 /**
+ * Process media node
+ */
+function processMedia(node: AdfNode): string {
+	if (!node.attrs) {
+		return '';
+	}
+
+	// Handle file attachments
+	if (node.attrs.type === 'file') {
+		const id = node.attrs.id || '';
+		const altText = node.attrs.alt ? node.attrs.alt : `Attachment: ${id}`;
+		return `![${altText}](attachment:${id})`;
+	}
+
+	// Handle external media (e.g., YouTube embeds)
+	if (node.attrs.type === 'external' && node.attrs.url) {
+		return `[External Media](${node.attrs.url})`;
+	}
+
+	return '';
+}
+
+/**
  * Process table node
  */
 function processTable(node: AdfNode): string {
@@ -385,12 +418,15 @@ function processText(node: AdfNode): string {
 
 	// Apply marks if available
 	if (node.marks && node.marks.length > 0) {
-		// Process link marks last to avoid issues with other formatting
-		const linkMark = node.marks.find((mark) => mark.type === 'link');
-		const otherMarks = node.marks.filter((mark) => mark.type !== 'link');
+		// Sort marks to ensure consistent application (process links last)
+		const sortedMarks = [...node.marks].sort((a, b) => {
+			if (a.type === 'link') return 1;
+			if (b.type === 'link') return -1;
+			return 0;
+		});
 
 		// Apply non-link marks first
-		otherMarks.forEach((mark) => {
+		sortedMarks.forEach((mark) => {
 			switch (mark.type) {
 				case 'strong':
 					text = `**${text}**`;
@@ -408,16 +444,82 @@ function processText(node: AdfNode): string {
 					// Markdown doesn't support underline, use emphasis instead
 					text = `_${text}_`;
 					break;
+				case 'textColor':
+					// Ignore in Markdown (no equivalent)
+					break;
+				case 'superscript':
+					// Some flavors of Markdown support ^superscript^
+					text = `^${text}^`;
+					break;
+				case 'subscript':
+					// Some flavors of Markdown support ~subscript~
+					// but this conflicts with strikethrough
+					text = `~${text}~`;
+					break;
+				case 'link':
+					if (mark.attrs && mark.attrs.href) {
+						text = `[${text}](${mark.attrs.href})`;
+					}
+					break;
 			}
 		});
-
-		// Apply link mark last
-		if (linkMark && linkMark.attrs && linkMark.attrs.href) {
-			text = `[${text}](${linkMark.attrs.href})`;
-		}
 	}
 
 	return text;
+}
+
+/**
+ * Process inline card node (references to Jira issues, Confluence pages, etc.)
+ */
+function processInlineCard(node: AdfNode): string {
+	if (!node.attrs) {
+		return '[Link]';
+	}
+
+	const url = (node.attrs.url as string) || '';
+	// Extract the name/ID from the URL if possible
+	const match = url.match(/\/([^/]+)$/);
+	const name = match ? match[1] : 'Link';
+
+	return `[${name}](${url})`;
+}
+
+/**
+ * Process emoji node
+ */
+function processEmoji(node: AdfNode): string {
+	if (!node.attrs) {
+		return '';
+	}
+
+	// Return shortName if available, otherwise fallback
+	return (
+		(node.attrs.shortName as string) || (node.attrs.id as string) || '📝'
+	);
+}
+
+/**
+ * Process date node
+ */
+function processDate(node: AdfNode): string {
+	if (!node.attrs) {
+		return '';
+	}
+
+	return (node.attrs.timestamp as string) || '';
+}
+
+/**
+ * Process status node (status lozenges)
+ */
+function processStatus(node: AdfNode): string {
+	if (!node.attrs) {
+		return '[Status]';
+	}
+
+	const text = (node.attrs.text as string) || 'Status';
+	// Markdown doesn't support colored lozenges, so we use brackets
+	return `[${text}]`;
 }
 
 /**
@@ -453,14 +555,16 @@ export function textToAdf(text: string): AdfDocument {
 /**
  * Convert Markdown text to an Atlassian Document Format (ADF) document
  * Supports a wide range of Markdown formatting:
- * - Headings (# text) are converted to bold text
+ * - Headings (# text) converted to proper ADF heading nodes with levels 1-6
  * - Bold (**text**)
  * - Italic (*text*)
  * - Code (`text`)
  * - Strikethrough (~~text~~)
  * - Links ([text](url))
  * - Unordered lists (- item or * item)
+ * - Ordered lists (1. item)
  * - Blockquotes (> text)
+ * - Code blocks (```language\ncode\n```)
  * - Horizontal rules (---, ***, ___)
  *
  * @param {string} markdown - Markdown text to convert to ADF
@@ -473,8 +577,11 @@ export function markdownToAdf(markdown: string): AdfDocument {
 	);
 
 	try {
+		// Replace literal '\n' string with actual newlines
+		const processedMarkdown = markdown.replace(/\\n/g, '\n');
+
 		// Split text into paragraphs
-		const paragraphs = markdown.split('\n');
+		const paragraphs = processedMarkdown.split('\n');
 
 		// Create basic document structure
 		const adfDoc: AdfDocument = {
@@ -496,19 +603,63 @@ export function markdownToAdf(markdown: string): AdfDocument {
 			if (paragraph.startsWith('#')) {
 				const headingMatch = paragraph.match(/^(#+)\s*(.+?)\s*$/);
 				if (headingMatch) {
-					// Store the heading text to make it bold
+					// Get heading level (number of # symbols)
+					const level = headingMatch[1].length;
+					// Get heading text
 					const headingText = headingMatch[2];
+
+					// Create proper ADF heading node with appropriate level
 					adfDoc.content.push({
-						type: 'paragraph',
+						type: 'heading',
+						attrs: { level },
 						content: [
 							{
 								type: 'text',
 								text: headingText,
-								marks: [{ type: 'strong' }],
 							},
 						],
 					});
 				}
+				continue;
+			}
+
+			// Handle code blocks (lines starting with ```)
+			if (paragraph.startsWith('```')) {
+				const language = paragraph.substring(3).trim();
+				const codeLines = [];
+				let j = i + 1;
+
+				// Collect code lines until closing ```
+				while (
+					j < paragraphs.length &&
+					!paragraphs[j].trim().startsWith('```')
+				) {
+					codeLines.push(paragraphs[j]);
+					j++;
+				}
+
+				// Skip the closing ``` if found
+				if (
+					j < paragraphs.length &&
+					paragraphs[j].trim().startsWith('```')
+				) {
+					j++;
+				}
+
+				// Update loop counter
+				i = j - 1;
+
+				// Create code block
+				adfDoc.content.push({
+					type: 'codeBlock',
+					attrs: language ? { language } : {},
+					content: [
+						{
+							type: 'text',
+							text: codeLines.join('\n'),
+						},
+					],
+				});
 				continue;
 			}
 
@@ -532,6 +683,46 @@ export function markdownToAdf(markdown: string): AdfDocument {
 						},
 					],
 				});
+				continue;
+			}
+
+			// Handle ordered lists (lines starting with number and period)
+			if (/^\d+\.\s/.test(paragraph)) {
+				// Extract all list items starting from this paragraph
+				const listItems = [];
+				let j = i;
+
+				// Collect consecutive list items
+				while (
+					j < paragraphs.length &&
+					/^\d+\.\s/.test(paragraphs[j].trim())
+				) {
+					const itemText = paragraphs[j]
+						.trim()
+						.replace(/^\d+\.\s/, '');
+					listItems.push(itemText);
+					j++;
+				}
+
+				// Update loop counter to skip processed items
+				i = j - 1;
+
+				// Create ordered list structure
+				const orderedListContent = listItems.map((item) => ({
+					type: 'listItem',
+					content: [
+						{
+							type: 'paragraph',
+							content: parseMarkdownText(item),
+						},
+					],
+				}));
+
+				adfDoc.content.push({
+					type: 'orderedList',
+					content: orderedListContent,
+				});
+
 				continue;
 			}
 
