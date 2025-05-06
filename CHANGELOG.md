@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.11...v1.27.0) (2025-05-06)
+
+
+### Features
+
+* Add support for Jira issue comments ([09ea696](https://github.com/aashari/mcp-server-atlassian-jira/commit/09ea696915329882eae4d17422154820e9966371))
+
 ## [1.26.11](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.10...v1.26.11) (2025-05-06)
 
 
