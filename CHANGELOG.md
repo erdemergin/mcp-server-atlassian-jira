@@ -1,3 +1,10 @@
+## [1.26.10](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.9...v1.26.10) (2025-05-06)
+
+
+### Bug Fixes
+
+* Revert back the index.ts and package.json ([4b37d55](https://github.com/aashari/mcp-server-atlassian-jira/commit/4b37d551c7c841b2a2e3d5385f07923a5a1f0a3f))
+
 ## [1.26.9](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.26.8...v1.26.9) (2025-05-06)
 
 
