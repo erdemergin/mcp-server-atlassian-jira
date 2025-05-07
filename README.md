@@ -110,7 +110,16 @@ This section covers the MCP tools available when using this server with an AI as
 
 ## `jira_ls_projects`
 
-List available Jira projects with optional filtering and pagination.
+Lists Jira projects accessible to the user with optional filtering and pagination.
+
+**Parameters:**
+
+- `name` (string, optional): Filter projects by name (case-insensitive partial match)
+- `limit` (number, optional): Maximum number of projects to return (1-100, default: 25)
+- `startAt` (number, optional): Index of the first project to return (0-based offset)
+- `orderBy` (string, optional): Sort field - can be "name", "key", "id", or "lastIssueUpdatedTime" (default)
+
+**Example:**
 
 ```json
 {}
@@ -119,7 +128,11 @@ List available Jira projects with optional filtering and pagination.
 _or:_
 
 ```json
-{ "name": "Platform" }
+{
+	"name": "Platform",
+	"limit": 10,
+	"orderBy": "name"
+}
 ```
 
 > "Show me all my Jira projects."
@@ -128,7 +141,13 @@ _or:_
 
 ## `jira_get_project`
 
-Get full details for a specific project, including components and versions.
+Gets comprehensive details for a specific project, including components, versions, and metadata.
+
+**Parameters:**
+
+- `projectKeyOrId` (string, required): The key (e.g., "DEV") or numeric ID (e.g., "10001") of the project
+
+**Example:**
 
 ```json
 { "projectKeyOrId": "DEV" }
@@ -146,7 +165,18 @@ _or:_
 
 ## `jira_ls_issues`
 
-List issues matching a JQL (Jira Query Language) query with pagination.
+Searches for Jira issues using flexible filtering criteria, with pagination support.
+
+**Parameters:**
+
+- `jql` (string, optional): JQL query to filter issues (e.g., "project = DEV AND status = 'In Progress'")
+- `projectKeyOrId` (string, optional): Filter by a specific project key or ID
+- `statuses` (string[], optional): Filter by one or more status names
+- `orderBy` (string, optional): JQL ORDER BY clause (e.g., "priority DESC")
+- `limit` (number, optional): Maximum number of issues to return (1-100, default: 25)
+- `startAt` (number, optional): Index of the first issue to return (0-based offset)
+
+**Example:**
 
 ```json
 { "jql": "project = DEV AND status = 'In Progress'" }
@@ -155,7 +185,11 @@ List issues matching a JQL (Jira Query Language) query with pagination.
 _or:_
 
 ```json
-{ "jql": "assignee = currentUser() AND resolution = Unresolved" }
+{
+	"projectKeyOrId": "DEV",
+	"statuses": ["In Progress", "To Do"],
+	"limit": 15
+}
 ```
 
 > "Find open bugs assigned to me in the DEV project."
@@ -164,7 +198,13 @@ _or:_
 
 ## `jira_get_issue`
 
-Get comprehensive details for a specific issue, including description, comments, and linked development information.
+Gets comprehensive details for a specific issue, including description, comments, and linked development information.
+
+**Parameters:**
+
+- `issueIdOrKey` (string, required): The key (e.g., "PROJ-123") or numeric ID (e.g., "10001") of the issue
+
+**Example:**
 
 ```json
 { "issueIdOrKey": "PROJ-123" }
@@ -182,7 +222,16 @@ _or:_
 
 ## `jira_ls_comments`
 
-List all comments for a specific Jira issue with pagination.
+Lists all comments for a specific Jira issue with pagination.
+
+**Parameters:**
+
+- `issueIdOrKey` (string, required): The key or ID of the issue to get comments from
+- `limit` (number, optional): Maximum number of comments to return (1-100, default: 25)
+- `startAt` (number, optional): Index of the first comment to return (0-based offset)
+- `orderBy` (string, optional): Field and direction to sort comments by (e.g., "created ASC" or "updated DESC")
+
+**Example:**
 
 ```json
 { "issueIdOrKey": "PROJ-123" }
@@ -204,7 +253,14 @@ _or:_
 
 ## `jira_add_comment`
 
-Add a new comment to a specific Jira issue.
+Adds a new comment to a specific Jira issue.
+
+**Parameters:**
+
+- `issueIdOrKey` (string, required): The key or ID of the issue to add a comment to
+- `commentBody` (string, required): The text content of the comment to add (plain text only)
+
+**Example:**
 
 ```json
 {
@@ -214,6 +270,30 @@ Add a new comment to a specific Jira issue.
 ```
 
 > "Add a comment to PROJ-123 saying we'll implement the fix next sprint."
+
+---
+
+## `jira_ls_statuses`
+
+Lists all available Jira statuses, either globally or for a specific project.
+
+**Parameters:**
+
+- `projectKeyOrId` (string, optional): Project key or ID to filter statuses relevant to that project's workflows
+
+**Example:**
+
+```json
+{}
+```
+
+_or:_
+
+```json
+{ "projectKeyOrId": "DEV" }
+```
+
+> "What are the available statuses in our Jira instance?"
 
 ---
 
@@ -229,6 +309,7 @@ npx -y @aashari/mcp-server-atlassian-jira get-issue --issue-id-or-key PROJ-123
 npx -y @aashari/mcp-server-atlassian-jira ls-issues --jql "project = DEV AND status = 'In Progress'"
 npx -y @aashari/mcp-server-atlassian-jira ls-comments --issue-id-or-key PROJ-123
 npx -y @aashari/mcp-server-atlassian-jira add-comment --issue-id-or-key PROJ-123 --body "This issue has been prioritized for the next sprint."
+npx -y @aashari/mcp-server-atlassian-jira ls-statuses --project-key-or-id DEV
 ```
 
 ## Install Globally
@@ -243,6 +324,99 @@ Then run directly:
 mcp-atlassian-jira ls-projects
 mcp-atlassian-jira get-issue --issue-id-or-key PROJ-123
 mcp-atlassian-jira ls-comments --issue-id-or-key PROJ-123
+```
+
+## Available Commands
+
+The following CLI commands are available:
+
+### `ls-projects`
+
+Lists Jira projects with optional filtering and pagination.
+
+```bash
+mcp-atlassian-jira ls-projects [options]
+
+Options:
+  -n, --name <value>       Filter projects by name (case-insensitive partial match)
+  -l, --limit <number>     Maximum number of items to return (1-100). Default is 25
+  -s, --start-at <number>  Index of the first item to return (0-based offset)
+  -o, --order-by <field>   Sort field (name, key, id, or lastIssueUpdatedTime)
+```
+
+### `get-project`
+
+Gets detailed information about a specific Jira project.
+
+```bash
+mcp-atlassian-jira get-project --project-key-or-id <value>
+
+Options:
+  --project-key-or-id <value>  The key or ID of the project to retrieve (required)
+```
+
+### `ls-issues`
+
+Searches for Jira issues using JQL or specific filters, with pagination.
+
+```bash
+mcp-atlassian-jira ls-issues [options]
+
+Options:
+  -l, --limit <number>                Maximum number of items to return (1-100). Default is 25
+  -c, --start-at <number>             Index of the first item to return (0-based offset)
+  -q, --jql <jql>                     Filter issues using JQL syntax
+  -p, --project-key-or-id <keyOrId>   Filter by a specific project key or ID
+  -s, --statuses <statuses...>        Filter by one or more status names (repeatable)
+  -o, --order-by <field>              JQL ORDER BY clause (e.g., "priority DESC")
+```
+
+### `get-issue`
+
+Gets detailed information about a specific Jira issue.
+
+```bash
+mcp-atlassian-jira get-issue --issue-id-or-key <value>
+
+Options:
+  --issue-id-or-key <value>  The ID or key of the Jira issue to retrieve (required)
+```
+
+### `ls-comments`
+
+Lists comments for a specific Jira issue with pagination support.
+
+```bash
+mcp-atlassian-jira ls-comments --issue-id-or-key <value> [options]
+
+Options:
+  --issue-id-or-key <value>   The ID or key of the Jira issue to get comments from (required)
+  -l, --limit <number>        Maximum number of comments to return (1-100). Default is 25
+  -s, --start-at <number>     Index of the first comment to return (0-based offset)
+  -o, --order-by <field>      Field and direction to sort comments by
+```
+
+### `add-comment`
+
+Adds a new comment to a specific Jira issue.
+
+```bash
+mcp-atlassian-jira add-comment --issue-id-or-key <value> --body <text>
+
+Options:
+  --issue-id-or-key <value>   The ID or key of the Jira issue to add a comment to (required)
+  --body <text>               The text content of the comment to add (required)
+```
+
+### `ls-statuses`
+
+Lists available Jira statuses globally or for a specific project.
+
+```bash
+mcp-atlassian-jira ls-statuses [options]
+
+Options:
+  --project-key-or-id <keyOrId>  Optional project key or ID to filter statuses
 ```
 
 ## Discover More CLI Options
@@ -262,6 +436,7 @@ mcp-atlassian-jira ls-issues --help
 mcp-atlassian-jira get-issue --help
 mcp-atlassian-jira ls-comments --help
 mcp-atlassian-jira add-comment --help
+mcp-atlassian-jira ls-statuses --help
 ```
 
 ---
