@@ -1,3 +1,10 @@
+## [1.28.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.28.0...v1.28.1) (2025-05-07)
+
+
+### Performance Improvements
+
+* Update dependencies ([26efedb](https://github.com/aashari/mcp-server-atlassian-jira/commit/26efedbff2fcf0e2827761acfdfa25b1abc4b808))
+
 # [1.28.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.27.2...v1.28.0) (2025-05-06)
 
 
