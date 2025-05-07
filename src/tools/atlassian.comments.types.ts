@@ -57,7 +57,7 @@ export const AddCommentToolArgs = z.object({
 		.string()
 		.min(1)
 		.describe(
-			'The text content of the comment to add. Markdown is not supported; the text will be treated as plain text.',
+			'The text content of the comment to add. Supports Markdown formatting including headings, lists, code blocks, tables, and other common markdown elements.',
 		),
 });
 export type AddCommentToolArgsType = z.infer<typeof AddCommentToolArgs>;

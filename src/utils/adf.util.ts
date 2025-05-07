@@ -566,6 +566,7 @@ export function textToAdf(text: string): AdfDocument {
  * - Blockquotes (> text)
  * - Code blocks (```language\ncode\n```)
  * - Horizontal rules (---, ***, ___)
+ * - Tables (| Column | Column |)
  *
  * @param {string} markdown - Markdown text to convert to ADF
  * @returns {AdfDocument} - ADF document object
@@ -669,6 +670,50 @@ export function markdownToAdf(markdown: string): AdfDocument {
 					type: 'rule',
 				});
 				continue;
+			}
+
+			// Handle tables - detect a line that starts and ends with pipe
+			if (
+				paragraph.trim().startsWith('|') &&
+				paragraph.trim().endsWith('|')
+			) {
+				// Look ahead to see if there's a separator row (|---|---|)
+				const nextLine =
+					i + 1 < paragraphs.length ? paragraphs[i + 1].trim() : '';
+				const isSeparatorRow =
+					nextLine.startsWith('|') &&
+					nextLine.endsWith('|') &&
+					/^\|[\s\-:|]+\|$/.test(
+						nextLine.replace(/\|[^|]+/g, '|---'),
+					);
+
+				if (isSeparatorRow) {
+					// This is a table
+					// Extract rows starting with header, then separator, then data rows
+					const tableRows = [];
+					let j = i;
+
+					// Collect all table rows (rows starting and ending with |)
+					while (
+						j < paragraphs.length &&
+						paragraphs[j].trim().startsWith('|') &&
+						paragraphs[j].trim().endsWith('|')
+					) {
+						tableRows.push(paragraphs[j].trim());
+						j++;
+					}
+
+					// Update loop counter to skip processed rows
+					i = j - 1;
+
+					// Parse and create ADF table
+					if (tableRows.length >= 2) {
+						// Need at least header and separator
+						const tableContent = parseMarkdownTable(tableRows);
+						adfDoc.content.push(tableContent);
+					}
+					continue;
+				}
 			}
 
 			// Handle blockquotes (lines starting with >)
@@ -908,4 +953,74 @@ function parseMarkdownText(text: string): Array<{
 	}
 
 	return result.length > 0 ? result : [{ type: 'text', text: text }];
+}
+
+/**
+ * Parse a markdown table into an ADF table structure
+ * @param {string[]} tableRows - Array of table row strings including header, separator, and data rows
+ * @returns {AdfNode} - ADF table node
+ */
+function parseMarkdownTable(tableRows: string[]): AdfNode {
+	// Create the basic table structure
+	const tableNode: AdfNode = {
+		type: 'table',
+		attrs: {
+			isNumberColumnEnabled: false,
+			layout: 'default',
+		},
+		content: [],
+	};
+
+	// Process each row
+	tableRows.forEach((row, rowIndex) => {
+		// Skip separator row (row index 1)
+		if (rowIndex === 1) {
+			return;
+		}
+
+		// Split the row into cells, removing first and last empty entries from split
+		const cells = row
+			.split('|')
+			.slice(1, -1)
+			.map((cell) => cell.trim());
+
+		// Create a row node
+		const rowNode: AdfNode = {
+			type: 'tableRow',
+			content: [],
+		};
+
+		// Process each cell
+		cells.forEach((cellText) => {
+			// Determine if this is a header cell (first row)
+			const cellType = rowIndex === 0 ? 'tableHeader' : 'tableCell';
+
+			// Create cell node
+			const cellNode: AdfNode = {
+				type: cellType,
+				content: [
+					{
+						type: 'paragraph',
+						content: parseMarkdownText(cellText),
+					},
+				],
+			};
+
+			// Add cell to row
+			if (rowNode.content) {
+				rowNode.content.push(cellNode);
+			}
+		});
+
+		// Add row to table
+		if (
+			tableNode.content &&
+			rowNode.content &&
+			rowNode.content.length > 0
+		) {
+			tableNode.content.push(rowNode);
+		}
+	});
+
+	return tableNode;
 }
