@@ -1,3 +1,10 @@
+## [1.28.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.28.1...v1.28.2) (2025-05-07)
+
+
+### Bug Fixes
+
+* add markdown table support for Jira comments ([faa6d14](https://github.com/aashari/mcp-server-atlassian-jira/commit/faa6d142df33df60878a52c8e449cec4f1b022ff))
+
 ## [1.28.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.28.0...v1.28.1) (2025-05-07)
 
 
