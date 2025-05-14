@@ -125,6 +125,10 @@ function getDeepOriginalError(error: McpError | unknown): unknown {
  */
 export function formatErrorForMcpTool(error: unknown): {
 	content: Array<{ type: 'text'; text: string }>;
+	metadata: {
+		errorType: ErrorType;
+		statusCode?: number;
+	};
 } {
 	const methodLogger = Logger.forContext(
 		'utils/error.util.ts',
@@ -154,6 +158,10 @@ export function formatErrorForMcpTool(error: unknown): {
 
 	return {
 		content: [{ type: 'text' as const, text: detailedMessage }],
+		metadata: {
+			errorType: mcpError.type,
+			...(mcpError.statusCode && { statusCode: mcpError.statusCode }),
+		},
 	};
 }
 
