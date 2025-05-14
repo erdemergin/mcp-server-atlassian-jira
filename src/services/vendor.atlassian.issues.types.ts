@@ -330,7 +330,7 @@ const IssueFieldsSchema = z
 				self: z.string(),
 				avatarUrls: z.record(z.string()).optional(),
 			})
-			.optional(),
+			.nullable(),
 		created: z.string().optional(),
 		labels: z.array(z.string()).optional(),
 		components: z
