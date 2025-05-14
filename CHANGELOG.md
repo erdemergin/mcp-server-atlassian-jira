@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.29.0...v1.30.0) (2025-05-14)
+
+
+### Features
+
+* include error metadata in tool responses for enhanced AI context ([6f99658](https://github.com/aashari/mcp-server-atlassian-jira/commit/6f99658279590d9f3d1e2002b5d4477d77b7ca71))
+
 # [1.29.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.28.3...v1.29.0) (2025-05-14)
 
 
