@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.28.3...v1.29.0) (2025-05-14)
+
+
+### Features
+
+* enhance error handling with vendor propagation and enriched CLI/Tool formatting ([8ec1278](https://github.com/aashari/mcp-server-atlassian-jira/commit/8ec12788b8bfe1462763b3ad33186bfa2e4c8ff5))
+
 ## [1.28.3](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.28.2...v1.28.3) (2025-05-13)
 
 
