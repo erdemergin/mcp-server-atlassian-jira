@@ -1,3 +1,10 @@
+## [1.30.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.30.0...v1.30.1) (2025-05-14)
+
+
+### Bug Fixes
+
+* Make reporter field nullable in IssueFieldsSchema to handle null values in API response ([5f94946](https://github.com/aashari/mcp-server-atlassian-jira/commit/5f9494696350f5ffcc26ba14176baefa4d1ba69b))
+
 # [1.30.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.29.0...v1.30.0) (2025-05-14)
 
 
