@@ -1,3 +1,10 @@
+## [1.30.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.30.1...v1.30.2) (2025-05-14)
+
+
+### Bug Fixes
+
+* remove Dockerfile and smithery.yaml ([fae1600](https://github.com/aashari/mcp-server-atlassian-jira/commit/fae160046f8197d599acb9a464a79fd82066d931))
+
 ## [1.30.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.30.0...v1.30.1) (2025-05-14)
 
 
