@@ -4,6 +4,7 @@ import {
 	createAuthInvalidError,
 	createApiError,
 	createUnexpectedError,
+	createNotFoundError,
 	McpError,
 } from './error.util.js';
 
@@ -125,7 +126,7 @@ export async function fetchAtlassian<T>(
 			const errorText = await response.text();
 			methodLogger.error(
 				`API error: ${response.status} ${response.statusText}`,
-				errorText,
+				{ errorText, url, method: options.method || 'GET' },
 			);
 
 			// Try to parse the error response - handle Jira-specific error formats
@@ -139,6 +140,9 @@ export async function fetchAtlassian<T>(
 				) {
 					parsedError = JSON.parse(errorText);
 
+					// Process the parsed error object to build a comprehensive error message
+					const errorParts: string[] = [];
+
 					// Jira-specific error format: errorMessages array
 					if (
 						parsedError.errorMessages &&
@@ -146,26 +150,30 @@ export async function fetchAtlassian<T>(
 						parsedError.errorMessages.length > 0
 					) {
 						// Format: {"errorMessages":["Issue does not exist or you do not have permission to see it."],"errors":{}}
-						errorMessage = parsedError.errorMessages.join('; ');
+						errorParts.push(parsedError.errorMessages.join('; '));
 					}
+
 					// Jira-specific error format: errors object with field-specific errors
-					else if (
+					if (
 						parsedError.errors &&
 						typeof parsedError.errors === 'object' &&
 						Object.keys(parsedError.errors).length > 0
 					) {
 						// Format: { "errors": { "jql": "The JQL query is invalid." }, "errorMessages": [], "warningMessages": [] }
-						errorMessage = Object.entries(parsedError.errors)
+						const fieldErrors = Object.entries(parsedError.errors)
 							.map(([key, value]) => `${key}: ${value}`)
 							.join('; ');
+						errorParts.push(fieldErrors);
 					}
+
 					// Generic Atlassian API error with a message field
-					else if (parsedError.message) {
+					if (parsedError.message) {
 						// Format: {"message":"Some error message"}
-						errorMessage = parsedError.message;
+						errorParts.push(parsedError.message);
 					}
+
 					// Other Atlassian API error formats (generic)
-					else if (
+					if (
 						parsedError.errors &&
 						Array.isArray(parsedError.errors) &&
 						parsedError.errors.length > 0
@@ -173,41 +181,100 @@ export async function fetchAtlassian<T>(
 						// Format: {"errors":[{"status":400,"code":"INVALID_REQUEST_PARAMETER","title":"..."}]}
 						const atlassianError = parsedError.errors[0];
 						if (atlassianError.title) {
-							errorMessage = atlassianError.title;
+							errorParts.push(atlassianError.title);
 						}
+						if (atlassianError.detail) {
+							errorParts.push(atlassianError.detail);
+						}
+					}
+
+					// Check for warnings that might give additional context
+					if (
+						parsedError.warningMessages &&
+						Array.isArray(parsedError.warningMessages) &&
+						parsedError.warningMessages.length > 0
+					) {
+						errorParts.push(
+							`Warnings: ${parsedError.warningMessages.join('; ')}`,
+						);
+					}
+
+					// Combine all error parts into a single message
+					if (errorParts.length > 0) {
+						errorMessage = errorParts.join(' | ');
 					}
 				}
 			} catch (parseError) {
 				methodLogger.debug(`Error parsing error response:`, parseError);
-				// Fall back to the default error message
+				// Fall back to using the raw error text
+				if (errorText && errorText.trim()) {
+					errorMessage = errorText;
+				}
 			}
 
 			// Classify HTTP errors based on status code
-			if (response.status === 401 || response.status === 403) {
+			if (response.status === 401) {
 				throw createAuthInvalidError(
 					`Authentication failed. Jira API: ${errorMessage}`,
-					errorText,
+					parsedError || errorText,
+				);
+			} else if (response.status === 403) {
+				throw createAuthInvalidError(
+					`Insufficient permissions. Jira API: ${errorMessage}`,
+					parsedError || errorText,
 				);
 			} else if (response.status === 404) {
-				throw createApiError(
+				throw createNotFoundError(
 					`Resource not found. Jira API: ${errorMessage}`,
-					404,
-					errorText,
+					parsedError || errorText,
+				);
+			} else if (response.status === 429) {
+				throw createApiError(
+					`Rate limit exceeded. Jira API: ${errorMessage}`,
+					429,
+					parsedError || errorText,
+				);
+			} else if (response.status >= 500) {
+				throw createApiError(
+					`Jira server error. Detail: ${errorMessage}`,
+					response.status,
+					parsedError || errorText,
 				);
 			} else {
-				// For other API errors, preserve the original error message from Atlassian API
+				// For other API errors, create detailed error with context
+				const requestPath = path.split('?')[0]; // Remove query parameters for cleaner logs
+				let contextualInfo = '';
+
+				// Add some contextual handling for common operations
+				if (
+					requestPath.includes('/search') &&
+					parsedError?.errors?.jql
+				) {
+					contextualInfo = ' Check your JQL syntax for errors.';
+				} else if (
+					requestPath.includes('/issue/') &&
+					options.method === 'POST'
+				) {
+					contextualInfo =
+						' Check issue fields for validation errors.';
+				}
+
 				throw createApiError(
-					`Jira API request failed. Detail: ${errorMessage}`,
+					`Jira API request failed. Detail: ${errorMessage}${contextualInfo}`,
 					response.status,
-					errorText,
+					parsedError || errorText,
 				);
 			}
 		}
 
 		// Clone the response to log its content without consuming it
 		const clonedResponse = response.clone();
-		const responseJson = await clonedResponse.json();
-		methodLogger.debug(`Response body:`, responseJson);
+		try {
+			const responseJson = await clonedResponse.json();
+			methodLogger.debug(`Response body:`, responseJson);
+		} catch (error) {
+			methodLogger.debug(`Non-JSON response received:`, { error });
+		}
 
 		return response.json() as Promise<T>;
 	} catch (error) {
@@ -219,16 +286,22 @@ export async function fetchAtlassian<T>(
 		}
 
 		// Handle network or parsing errors
-		if (error instanceof TypeError || error instanceof SyntaxError) {
+		if (error instanceof TypeError && error.message.includes('fetch')) {
 			throw createApiError(
-				`Network or parsing error: ${error instanceof Error ? error.message : String(error)}`,
+				`Network error connecting to Jira API: ${error.message}`,
+				500,
+				error,
+			);
+		} else if (error instanceof SyntaxError) {
+			throw createApiError(
+				`Invalid response from Jira API (parsing error): ${error.message}`,
 				500,
 				error,
 			);
 		}
 
 		throw createUnexpectedError(
-			`Unexpected error while calling Atlassian API: ${error instanceof Error ? error.message : String(error)}`,
+			`Unexpected error while calling Jira API: ${error instanceof Error ? error.message : String(error)}`,
 			error,
 		);
 	}

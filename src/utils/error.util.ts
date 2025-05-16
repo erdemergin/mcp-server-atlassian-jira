@@ -91,6 +91,16 @@ export function createUnexpectedError(
 }
 
 /**
+ * Create a not found error
+ */
+export function createNotFoundError(
+	message: string = 'Resource not found',
+	originalError?: unknown,
+): McpError {
+	return new McpError(message, ErrorType.API_ERROR, 404, originalError);
+}
+
+/**
  * Ensure an error is an McpError
  */
 export function ensureMcpError(error: unknown): McpError {
@@ -106,18 +116,30 @@ export function ensureMcpError(error: unknown): McpError {
 }
 
 /**
- * Helper to unwrap nested McpErrors and return the deepest original error.
+ * Get the deepest original error from an error chain
+ * @param error The error to extract the original cause from
+ * @returns The deepest original error or the error itself
  */
-function getDeepOriginalError(error: McpError | unknown): unknown {
-	let current: unknown = error;
-	for (let i = 0; i < 5; i += 1) {
-		if (current instanceof McpError && current.originalError) {
-			current = current.originalError;
-			continue;
-		}
-		break;
+export function getDeepOriginalError(error: unknown): unknown {
+	if (!error) {
+		return error;
 	}
-	return current instanceof McpError ? current.message : current;
+
+	let current = error;
+	let depth = 0;
+	const maxDepth = 10; // Prevent infinite recursion
+
+	while (
+		depth < maxDepth &&
+		current instanceof Error &&
+		'originalError' in current &&
+		current.originalError
+	) {
+		current = current.originalError;
+		depth++;
+	}
+
+	return current;
 }
 
 /**
@@ -128,6 +150,7 @@ export function formatErrorForMcpTool(error: unknown): {
 	metadata: {
 		errorType: ErrorType;
 		statusCode?: number;
+		errorDetails?: unknown;
 	};
 } {
 	const methodLogger = Logger.forContext(
@@ -138,21 +161,31 @@ export function formatErrorForMcpTool(error: unknown): {
 
 	methodLogger.error(`${mcpError.type} error`, mcpError);
 
+	// Get the deep original error for additional context
+	const originalError = getDeepOriginalError(mcpError.originalError);
+
+	// Create a detailed message including the original error information
 	let detailedMessage = `Error: ${mcpError.message}`;
 
-	const deepOriginal = getDeepOriginalError(mcpError);
-	if (deepOriginal) {
+	// Safely extract details from the original error
+	const errorDetails =
+		originalError instanceof Error
+			? { message: originalError.message }
+			: originalError;
+
+	// Add Jira-specific error handling for display
+	if (originalError) {
 		let vendorText = '';
-		if (deepOriginal instanceof Error) {
-			vendorText = deepOriginal.message;
-		} else if (typeof deepOriginal === 'object') {
-			vendorText = JSON.stringify(deepOriginal);
+		if (originalError instanceof Error) {
+			vendorText = originalError.message;
+		} else if (typeof originalError === 'object') {
+			vendorText = JSON.stringify(originalError);
 		} else {
-			vendorText = String(deepOriginal);
+			vendorText = String(originalError);
 		}
 
 		if (!detailedMessage.includes(vendorText)) {
-			detailedMessage += `\nVendor API Error: ${vendorText}`;
+			detailedMessage += `\nJira API Error: ${vendorText}`;
 		}
 	}
 
@@ -160,7 +193,8 @@ export function formatErrorForMcpTool(error: unknown): {
 		content: [{ type: 'text' as const, text: detailedMessage }],
 		metadata: {
 			errorType: mcpError.type,
-			...(mcpError.statusCode && { statusCode: mcpError.statusCode }),
+			statusCode: mcpError.statusCode,
+			errorDetails,
 		},
 	};
 }
@@ -201,10 +235,8 @@ export function formatErrorForMcpResource(
 
 /**
  * Handle error in CLI context
- * @param error The error to handle
- * @param source Optional source information for better error messages
  */
-export function handleCliError(error: unknown, source?: string): never {
+export function handleCliError(error: unknown): never {
 	const methodLogger = Logger.forContext(
 		'utils/error.util.ts',
 		'handleCliError',
@@ -216,14 +248,12 @@ export function handleCliError(error: unknown, source?: string): never {
 		methodLogger.error(`${mcpError.type} error occurred`, {
 			message: mcpError.message,
 			statusCode: mcpError.statusCode,
-			source,
 			stack: mcpError.stack,
 		});
 	} else {
 		methodLogger.warn(`${mcpError.type} error occurred`, {
 			message: mcpError.message,
 			statusCode: mcpError.statusCode,
-			source,
 		});
 	}
 
@@ -238,14 +268,51 @@ export function handleCliError(error: unknown, source?: string): never {
 	// Build structured CLI output
 	const cliLines: string[] = [];
 	cliLines.push(`❌  ${mcpError.message}`);
+
 	if (mcpError.statusCode) {
 		cliLines.push(`HTTP Status: ${mcpError.statusCode}`);
 	}
+
+	// Provide helpful context based on error type
+	if (mcpError.type === ErrorType.AUTH_MISSING) {
+		cliLines.push(
+			'\nTip: Make sure to set up your Atlassian credentials in the environment variables:',
+		);
+		cliLines.push('- ATLASSIAN_SITE_NAME');
+		cliLines.push('- ATLASSIAN_USER_EMAIL');
+		cliLines.push('- ATLASSIAN_API_TOKEN');
+	} else if (mcpError.type === ErrorType.AUTH_INVALID) {
+		cliLines.push(
+			'\nTip: Check that your Atlassian API token is correct and has not expired.',
+		);
+		cliLines.push(
+			'Verify your user has the required permissions to access the requested resource.',
+		);
+	} else if (
+		mcpError.type === ErrorType.API_ERROR &&
+		mcpError.statusCode === 429
+	) {
+		cliLines.push(
+			'\nTip: You may have exceeded Jira API rate limits. Try again later or space out your requests.',
+		);
+	} else if (
+		mcpError.type === ErrorType.VALIDATION_ERROR &&
+		mcpError.message.includes('JQL')
+	) {
+		cliLines.push(
+			'\nTip: Check your JQL syntax. Functions like currentUser() may not work with API token authentication.',
+		);
+		cliLines.push(
+			"Use explicit account IDs instead (e.g., assignee = 'accountid:...').",
+		);
+	}
+
 	cliLines.push(formatSeparator());
 
-	const deepOriginal = getDeepOriginalError(mcpError);
+	// Include the deep original error details
+	const deepOriginal = getDeepOriginalError(mcpError.originalError);
 	if (deepOriginal) {
-		cliLines.push('Vendor API Error:');
+		cliLines.push('Jira API Error:');
 		let vendorText = '';
 		if (deepOriginal instanceof Error) {
 			vendorText = deepOriginal.message;
@@ -257,6 +324,13 @@ export function handleCliError(error: unknown, source?: string): never {
 		cliLines.push('```json');
 		cliLines.push(vendorText.trim());
 		cliLines.push('```');
+	}
+
+	// Display DEBUG tip
+	if (!process.env.DEBUG) {
+		cliLines.push(
+			'\nFor detailed error information, run with DEBUG=mcp:* environment variable.',
+		);
 	}
 
 	console.error(cliLines.join('\n'));

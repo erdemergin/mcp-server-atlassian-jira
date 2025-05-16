@@ -2,7 +2,10 @@ import { Logger } from '../utils/logger.util.js';
 import { DEFAULT_PAGE_SIZE, applyDefaults } from '../utils/defaults.util.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { createApiError } from '../utils/error.util.js';
-import { handleControllerError } from '../utils/error-handler.util.js';
+import {
+	handleControllerError,
+	buildErrorContext,
+} from '../utils/error-handler.util.js';
 import {
 	extractPaginationInfo,
 	PaginationType,
@@ -184,12 +187,16 @@ async function list(
 			pagination,
 		};
 	} catch (error) {
-		throw handleControllerError(error, {
-			entityType: 'Issues',
-			operation: 'listing',
-			source: 'controllers/atlassian.issues.controller.ts@list',
-			additionalInfo: { options, jql: options.jql },
-		});
+		throw handleControllerError(
+			error,
+			buildErrorContext(
+				'Issues',
+				'listing',
+				'controllers/atlassian.issues.controller.ts@list',
+				undefined,
+				{ options, jql: options.jql },
+			),
+		);
 	}
 }
 
@@ -314,12 +321,15 @@ async function get(
 			content: combinedContent,
 		};
 	} catch (error) {
-		throw handleControllerError(error, {
-			entityType: 'Issue',
-			entityId: identifier,
-			operation: 'retrieving',
-			source: 'controllers/atlassian.issues.controller.ts@get',
-		});
+		throw handleControllerError(
+			error,
+			buildErrorContext(
+				'Issue',
+				'retrieving',
+				'controllers/atlassian.issues.controller.ts@get',
+				issueIdOrKey,
+			),
+		);
 	}
 }
 

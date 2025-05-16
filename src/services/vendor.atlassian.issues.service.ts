@@ -18,7 +18,7 @@ import {
 } from './vendor.atlassian.issues.types.js';
 import {
 	createAuthMissingError,
-	ErrorType,
+	createApiError,
 	McpError,
 } from '../utils/error.util.js';
 import { z } from 'zod';
@@ -47,6 +47,39 @@ const skipValidation = process.env.NODE_ENV === 'test';
  * Provides methods for searching issues and retrieving issue details.
  * All methods require valid Atlassian credentials configured in the environment.
  */
+
+/**
+ * Validates API response against a Zod schema
+ * @param data The data to validate
+ * @param schema The Zod schema to validate against
+ * @param context Context for error messages (e.g., "issue details", "issue list")
+ * @returns The validated data
+ * @throws {McpError} If validation fails
+ */
+function validateResponse<T, S>(
+	data: unknown,
+	schema: z.ZodType<T, z.ZodTypeDef, S>,
+	context: string,
+): T {
+	// Skip validation in test environment if the flag is set
+	if (skipValidation) {
+		return data as T;
+	}
+
+	try {
+		return schema.parse(data);
+	} catch (error) {
+		if (error instanceof z.ZodError) {
+			serviceLogger.error(`Response validation failed for ${context}:`, error.format());
+			throw createApiError(
+				`API response validation failed: Invalid Jira ${context} format`,
+				500,
+				{ zodErrors: error.format() },
+			);
+		}
+		throw error; // Re-throw if it's not a Zod error
+	}
+}
 
 /**
  * Search for Jira issues using JQL and other criteria
@@ -87,7 +120,7 @@ async function search(
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError('Search issues');
+		throw createAuthMissingError('Atlassian credentials required to search issues');
 	}
 
 	// Build query parameters
@@ -138,24 +171,20 @@ async function search(
 
 	try {
 		const rawData = await fetchAtlassian(credentials, path);
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as IssuesResponse;
-		}
-		// Validate response with Zod schema
-		return IssuesResponseSchema.parse(rawData);
+		return validateResponse(rawData, IssuesResponseSchema, 'issues search');
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				'API response validation failed: Invalid Jira issues response format',
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
-		throw error;
+		
+		// Unexpected errors need to be wrapped
+		methodLogger.error('Unexpected error searching issues:', error);
+		throw createApiError(
+			`Unexpected error searching Jira issues: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error
+		);
 	}
 }
 
@@ -197,7 +226,7 @@ async function get(
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError(`Get issue ${idOrKey}`);
+		throw createAuthMissingError(`Atlassian credentials required to get issue ${idOrKey}`);
 	}
 
 	// Build query parameters
@@ -229,24 +258,20 @@ async function get(
 
 	try {
 		const rawData = await fetchAtlassian(credentials, path);
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as Issue;
-		}
-		// Validate response with Zod schema
-		return IssueSchema.parse(rawData);
+		return validateResponse(rawData, IssueSchema, `issue detail ${idOrKey}`);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				`API response validation failed: Invalid Jira issue detail response format for ${idOrKey}`,
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
-		throw error;
+		
+		// Unexpected errors need to be wrapped
+		methodLogger.error(`Unexpected error getting issue ${idOrKey}:`, error);
+		throw createApiError(
+			`Unexpected error retrieving Jira issue ${idOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error
+		);
 	}
 }
 
@@ -288,7 +313,7 @@ async function getComments(
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError(`Get comments for issue ${issueIdOrKey}`);
+		throw createAuthMissingError(`Atlassian credentials required to get comments for issue ${issueIdOrKey}`);
 	}
 
 	// Build query parameters
@@ -321,24 +346,20 @@ async function getComments(
 
 	try {
 		const rawData = await fetchAtlassian(credentials, path);
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as PageOfComments;
-		}
-		// Validate response with Zod schema
-		return PageOfCommentsSchema.parse(rawData);
+		return validateResponse(rawData, PageOfCommentsSchema, `issue comments ${issueIdOrKey}`);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				`API response validation failed: Invalid Jira comments response format for issue ${issueIdOrKey}`,
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
-		throw error;
+		
+		// Unexpected errors need to be wrapped
+		methodLogger.error(`Unexpected error getting comments for issue ${issueIdOrKey}:`, error);
+		throw createApiError(
+			`Unexpected error retrieving comments for Jira issue ${issueIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error
+		);
 	}
 }
 
@@ -391,7 +412,7 @@ async function addComment(
 		// Get configured credentials
 		const credentials = getAtlassianCredentials();
 		if (!credentials) {
-			throw createAuthMissingError('Add comment to issue');
+			throw createAuthMissingError(`Atlassian credentials required to add comment to issue ${issueIdOrKey}`);
 		}
 
 		// Build API endpoint
@@ -426,24 +447,20 @@ async function addComment(
 			body: requestBody,
 		});
 
-		// Skip validation in test environment
-		if (skipValidation) {
-			return response as z.infer<typeof IssueCommentSchema>;
-		}
-		// Validate response with Zod schema
-		return IssueCommentSchema.parse(response);
+		return validateResponse(response, IssueCommentSchema, `comment creation on issue ${issueIdOrKey}`);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				`API response validation failed: Invalid Jira comment creation response format for issue ${issueIdOrKey}`,
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
-		throw error;
+		
+		// Unexpected errors need to be wrapped
+		methodLogger.error(`Unexpected error adding comment to issue ${issueIdOrKey}:`, error);
+		throw createApiError(
+			`Unexpected error adding comment to Jira issue ${issueIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error
+		);
 	}
 }
 

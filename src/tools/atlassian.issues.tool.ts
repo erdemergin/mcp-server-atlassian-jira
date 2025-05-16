@@ -105,6 +105,9 @@ async function getIssue(args: GetIssueToolArgsType) {
 					text: result.content,
 				},
 			],
+			metadata: {
+				issueKey: args.issueIdOrKey
+			}
 		};
 	} catch (error) {
 		methodLogger.error('Failed to get issue details', error);
