@@ -21,6 +21,7 @@ import {
 	createApiError,
 	McpError,
 } from '../utils/error.util.js';
+import { validateResponse } from '../utils/validation.util.js';
 import { z } from 'zod';
 
 // Create a contextualized logger for this file
@@ -38,51 +39,12 @@ serviceLogger.debug('Jira issues service initialized');
  */
 const API_PATH = '/rest/api/3';
 
-// Toggle for testing - skip validation in test environments
-const skipValidation = process.env.NODE_ENV === 'test';
-
 /**
  * @namespace VendorAtlassianIssuesService
  * @description Service for interacting with Jira Issues API.
  * Provides methods for searching issues and retrieving issue details.
  * All methods require valid Atlassian credentials configured in the environment.
  */
-
-/**
- * Validates API response against a Zod schema
- * @param data The data to validate
- * @param schema The Zod schema to validate against
- * @param context Context for error messages (e.g., "issue details", "issue list")
- * @returns The validated data
- * @throws {McpError} If validation fails
- */
-function validateResponse<T, S>(
-	data: unknown,
-	schema: z.ZodType<T, z.ZodTypeDef, S>,
-	context: string,
-): T {
-	// Skip validation in test environment if the flag is set
-	if (skipValidation) {
-		return data as T;
-	}
-
-	try {
-		return schema.parse(data);
-	} catch (error) {
-		if (error instanceof z.ZodError) {
-			serviceLogger.error(
-				`Response validation failed for ${context}:`,
-				error.format(),
-			);
-			throw createApiError(
-				`API response validation failed: Invalid Jira ${context} format`,
-				500,
-				{ zodErrors: error.format() },
-			);
-		}
-		throw error; // Re-throw if it's not a Zod error
-	}
-}
 
 /**
  * Search for Jira issues using JQL and other criteria

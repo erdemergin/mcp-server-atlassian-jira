@@ -16,7 +16,7 @@ import {
 	ErrorType,
 	McpError,
 } from '../utils/error.util.js';
-import { z } from 'zod';
+import { validateResponse } from '../utils/validation.util.js';
 
 // Create a contextualized logger for this file
 const serviceLogger = Logger.forContext(
@@ -32,9 +32,6 @@ serviceLogger.debug('Jira projects service initialized');
  * @constant {string}
  */
 const API_PATH = '/rest/api/3';
-
-// Toggle for testing - skip validation in test environments
-const skipValidation = process.env.NODE_ENV === 'test';
 
 /**
  * @namespace VendorAtlassianProjectsService
@@ -139,24 +136,26 @@ async function list(
 
 	try {
 		const rawData = await fetchAtlassian(credentials, path);
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as ProjectsResponse;
-		}
-		// Validate response with Zod schema
-		return ProjectsResponseSchema.parse(rawData);
+		return validateResponse(
+			rawData,
+			ProjectsResponseSchema,
+			'projects list',
+			'projects.service',
+		);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				'API response validation failed: Invalid Jira projects response format',
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
-		throw error;
+
+		// Unexpected errors need to be wrapped
+		methodLogger.error('Unexpected error listing projects:', error);
+		throw new McpError(
+			`Unexpected error listing Jira projects: ${error instanceof Error ? error.message : String(error)}`,
+			ErrorType.UNEXPECTED_ERROR,
+			500,
+			error,
+		);
 	}
 }
 
@@ -229,24 +228,29 @@ async function get(
 
 	try {
 		const rawData = await fetchAtlassian(credentials, path);
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as ProjectDetailed;
-		}
-		// Validate response with Zod schema
-		return ProjectDetailedSchema.parse(rawData);
+		return validateResponse(
+			rawData,
+			ProjectDetailedSchema,
+			`project ${idOrKey}`,
+			'projects.service',
+		);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				`API response validation failed: Invalid Jira project detail response format for ${idOrKey}`,
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
-		throw error;
+
+		// Unexpected errors need to be wrapped
+		methodLogger.error(
+			`Unexpected error getting project ${idOrKey}:`,
+			error,
+		);
+		throw new McpError(
+			`Unexpected error retrieving Jira project ${idOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			ErrorType.UNEXPECTED_ERROR,
+			500,
+			error,
+		);
 	}
 }
 

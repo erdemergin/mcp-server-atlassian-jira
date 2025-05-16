@@ -1,37 +1,30 @@
-import {
-	getAtlassianCredentials,
-	fetchAtlassian,
-} from '../utils/transport.util.js';
 import { Logger } from '../utils/logger.util.js';
 import {
-	DevInfoResponse,
-	DevInfoSummaryResponse,
-	DevInfoResponseSchema,
-	DevInfoSummaryResponseSchema,
-} from './vendor.atlassian.issues.types.js';
+	fetchAtlassian,
+	getAtlassianCredentials,
+} from '../utils/transport.util.js';
 import {
-	createAuthMissingError,
-	ErrorType,
-	McpError,
-} from '../utils/error.util.js';
-import { z } from 'zod';
+	DevInfoSummaryResponse,
+	DevInfoSummaryResponseSchema,
+	DevInfoResponse,
+	DevInfoResponseSchema,
+} from './vendor.atlassian.issues.types.js';
+import { createAuthMissingError, McpError } from '../utils/error.util.js';
+import { validateResponse } from '../utils/validation.util.js';
 
 // Create a contextualized logger for this file
-const serviceLogger = Logger.forContext(
+const logger = Logger.forContext(
 	'services/vendor.atlassian.devinfo.service.ts',
 );
 
 // Log service initialization
-serviceLogger.debug('Jira development info service initialized');
+logger.debug('Jira development info service initialized');
 
 /**
  * Base API path for Dev Status API
  * @constant {string}
  */
 const API_PATH = '/rest/dev-status/latest';
-
-// Toggle for testing - skip validation in test environments
-const skipValidation = process.env.NODE_ENV === 'test';
 
 /**
  * Get development information summary for an issue
@@ -57,24 +50,16 @@ async function getSummary(issueId: string): Promise<DevInfoSummaryResponse> {
 		methodLogger.debug(`Calling Jira API: ${path}`);
 
 		const rawData = await fetchAtlassian(credentials, path);
-
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as DevInfoSummaryResponse;
-		}
-
-		// Validate response with Zod schema
-		return DevInfoSummaryResponseSchema.parse(rawData);
+		return validateResponse(
+			rawData,
+			DevInfoSummaryResponseSchema,
+			`dev info summary for issue ${issueId}`,
+			'devinfo.service',
+		);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				`API response validation failed: Invalid dev info summary response format for issue ${issueId}`,
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
 
 		methodLogger.error(
@@ -108,24 +93,16 @@ async function getCommits(issueId: string): Promise<DevInfoResponse> {
 		methodLogger.debug(`Calling Jira API: ${path}`);
 
 		const rawData = await fetchAtlassian(credentials, path);
-
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as DevInfoResponse;
-		}
-
-		// Validate response with Zod schema
-		return DevInfoResponseSchema.parse(rawData);
+		return validateResponse(
+			rawData,
+			DevInfoResponseSchema,
+			`dev info commits for issue ${issueId}`,
+			'devinfo.service',
+		);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				`API response validation failed: Invalid dev info commits response format for issue ${issueId}`,
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
 
 		methodLogger.error(
@@ -158,24 +135,16 @@ async function getBranches(issueId: string): Promise<DevInfoResponse> {
 		methodLogger.debug(`Calling Jira API: ${path}`);
 
 		const rawData = await fetchAtlassian(credentials, path);
-
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as DevInfoResponse;
-		}
-
-		// Validate response with Zod schema
-		return DevInfoResponseSchema.parse(rawData);
+		return validateResponse(
+			rawData,
+			DevInfoResponseSchema,
+			`dev info branches for issue ${issueId}`,
+			'devinfo.service',
+		);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				`API response validation failed: Invalid dev info branches response format for issue ${issueId}`,
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
 
 		methodLogger.error(
@@ -208,24 +177,16 @@ async function getPullRequests(issueId: string): Promise<DevInfoResponse> {
 		methodLogger.debug(`Calling Jira API: ${path}`);
 
 		const rawData = await fetchAtlassian(credentials, path);
-
-		// Skip validation in test environment
-		if (skipValidation) {
-			return rawData as DevInfoResponse;
-		}
-
-		// Validate response with Zod schema
-		return DevInfoResponseSchema.parse(rawData);
+		return validateResponse(
+			rawData,
+			DevInfoResponseSchema,
+			`dev info pull requests for issue ${issueId}`,
+			'devinfo.service',
+		);
 	} catch (error) {
-		// Handle Zod validation errors
-		if (error instanceof z.ZodError) {
-			methodLogger.error('Response validation failed:', error.format());
-			throw new McpError(
-				`API response validation failed: Invalid dev info pull requests response format for issue ${issueId}`,
-				ErrorType.VALIDATION_ERROR,
-				500,
-				{ zodErrors: error.format() },
-			);
+		// McpError is already properly structured from fetchAtlassian or validation
+		if (error instanceof McpError) {
+			throw error;
 		}
 
 		methodLogger.error(

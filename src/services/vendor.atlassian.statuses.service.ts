@@ -5,28 +5,20 @@ import {
 } from '../utils/transport.util.js';
 import {
 	JiraGlobalStatusesResponse,
-	JiraProjectStatusesResponse,
-	ListStatusesParams,
 	JiraGlobalStatusesResponseSchema,
+	JiraProjectStatusesResponse,
 	JiraProjectStatusesResponseSchema,
+	ListStatusesParams,
 } from './vendor.atlassian.statuses.types.js';
-import {
-	createAuthMissingError,
-	ErrorType,
-	McpError,
-} from '../utils/error.util.js';
-import { z } from 'zod';
+import { createAuthMissingError, McpError } from '../utils/error.util.js';
+import { validateResponse } from '../utils/validation.util.js';
 
+// Create a contextualized logger for this file
 const serviceLogger = Logger.forContext(
 	'services/vendor.atlassian.statuses.service.ts',
 );
 
-serviceLogger.debug('Jira statuses service initialized');
-
 const API_PATH = '/rest/api/3';
-
-// Toggle for testing - skip validation in test environments
-const skipValidation = process.env.NODE_ENV === 'test';
 
 /**
  * List available Jira statuses.
@@ -56,26 +48,23 @@ async function listStatuses(
 
 		try {
 			const rawData = await fetchAtlassian(credentials, path);
-			// Skip validation in test environment
-			if (skipValidation) {
-				return rawData as JiraProjectStatusesResponse;
-			}
-			// Validate response with Zod schema
-			return JiraProjectStatusesResponseSchema.parse(rawData);
+			return validateResponse(
+				rawData,
+				JiraProjectStatusesResponseSchema,
+				`project statuses for ${params.projectKeyOrId}`,
+				'statuses.service',
+			);
 		} catch (error) {
-			// Handle Zod validation errors
-			if (error instanceof z.ZodError) {
-				methodLogger.error(
-					'Response validation failed:',
-					error.format(),
-				);
-				throw new McpError(
-					`API response validation failed: Invalid Jira project statuses response format for ${params.projectKeyOrId}`,
-					ErrorType.VALIDATION_ERROR,
-					500,
-					{ zodErrors: error.format() },
-				);
+			// McpError is already properly structured from fetchAtlassian or validation
+			if (error instanceof McpError) {
+				throw error;
 			}
+
+			// Unexpected errors need to be wrapped
+			methodLogger.error(
+				`Unexpected error fetching statuses for project ${params.projectKeyOrId}:`,
+				error,
+			);
 			throw error;
 		}
 	} else {
@@ -84,26 +73,23 @@ async function listStatuses(
 
 		try {
 			const rawData = await fetchAtlassian(credentials, path);
-			// Skip validation in test environment
-			if (skipValidation) {
-				return rawData as JiraGlobalStatusesResponse;
-			}
-			// Validate response with Zod schema
-			return JiraGlobalStatusesResponseSchema.parse(rawData);
+			return validateResponse(
+				rawData,
+				JiraGlobalStatusesResponseSchema,
+				'global statuses',
+				'statuses.service',
+			);
 		} catch (error) {
-			// Handle Zod validation errors
-			if (error instanceof z.ZodError) {
-				methodLogger.error(
-					'Response validation failed:',
-					error.format(),
-				);
-				throw new McpError(
-					'API response validation failed: Invalid Jira global statuses response format',
-					ErrorType.VALIDATION_ERROR,
-					500,
-					{ zodErrors: error.format() },
-				);
+			// McpError is already properly structured from fetchAtlassian or validation
+			if (error instanceof McpError) {
+				throw error;
 			}
+
+			// Unexpected errors need to be wrapped
+			methodLogger.error(
+				'Unexpected error fetching global statuses:',
+				error,
+			);
 			throw error;
 		}
 	}
