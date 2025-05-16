@@ -1,3 +1,10 @@
+## [1.32.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.32.0...v1.32.1) (2025-05-16)
+
+
+### Bug Fixes
+
+* Update jira_add_comment tool description to correctly state Markdown support ([039c287](https://github.com/aashari/mcp-server-atlassian-jira/commit/039c287e6d3b40abd36e4c1f108ccf370367f494))
+
 # [1.32.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.31.0...v1.32.0) (2025-05-16)
 
 
