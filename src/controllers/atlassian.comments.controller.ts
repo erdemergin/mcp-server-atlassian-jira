@@ -2,7 +2,10 @@ import { Logger } from '../utils/logger.util.js';
 import { DEFAULT_PAGE_SIZE, applyDefaults } from '../utils/defaults.util.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { createAuthMissingError, createApiError } from '../utils/error.util.js';
-import { handleControllerError, buildErrorContext } from '../utils/error-handler.util.js';
+import {
+	handleControllerError,
+	buildErrorContext,
+} from '../utils/error-handler.util.js';
 import {
 	extractPaginationInfo,
 	PaginationType,
@@ -104,13 +107,16 @@ async function listComments(options: {
 		};
 	} catch (error) {
 		// Handle and propagate errors using standard error handler
-		throw handleControllerError(error, buildErrorContext(
-			'Issue Comments',
-			'listing',
-			'controllers/atlassian.comments.controller.ts@listComments',
-			options.issueIdOrKey,
-			options
-		));
+		throw handleControllerError(
+			error,
+			buildErrorContext(
+				'Issue Comments',
+				'listing',
+				'controllers/atlassian.comments.controller.ts@listComments',
+				options.issueIdOrKey,
+				options,
+			),
+		);
 	}
 }
 
@@ -142,7 +148,9 @@ async function addComment(options: {
 		// Check if credentials exist
 		const credentials = getAtlassianCredentials();
 		if (!credentials) {
-			throw createAuthMissingError('Atlassian credentials required to add issue comment');
+			throw createAuthMissingError(
+				'Atlassian credentials required to add issue comment',
+			);
 		}
 
 		// Extract the required parameters
@@ -160,21 +168,24 @@ async function addComment(options: {
 			adfBody = markdownToAdf(commentBody);
 		} catch (adfError) {
 			methodLogger.error('ADF conversion failed:', adfError);
-			
+
 			// Try fallback to simple plain text conversion
 			methodLogger.debug('Falling back to simple text conversion');
 			try {
 				adfBody = textToAdf(commentBody);
 			} catch (textAdfError) {
 				// If even the simple conversion fails, throw a validation error
-				methodLogger.error('Fallback text-to-ADF conversion failed:', textAdfError);
+				methodLogger.error(
+					'Fallback text-to-ADF conversion failed:',
+					textAdfError,
+				);
 				throw createApiError(
-					'Failed to convert comment to Jira-compatible format. Please simplify the comment content.', 
-					400, 
-					{ originalError: adfError, fallbackError: textAdfError }
+					'Failed to convert comment to Jira-compatible format. Please simplify the comment content.',
+					400,
+					{ originalError: adfError, fallbackError: textAdfError },
 				);
 			}
-			
+
 			// Log the fallback success
 			methodLogger.info('Used text fallback for ADF conversion');
 		}
@@ -209,20 +220,23 @@ async function addComment(options: {
 		};
 	} catch (error) {
 		// Handle and propagate errors using standard error handler
-		throw handleControllerError(error, buildErrorContext(
-			'Issue Comment',
-			'adding',
-			'controllers/atlassian.comments.controller.ts@addComment',
-			options.issueIdOrKey,
-			{
-				commentBodyLength: options.commentBody?.length || 0,
-				commentBodyPreview: options.commentBody ? 
-					(options.commentBody.length > 100 ? 
-						options.commentBody.substring(0, 100) + '...' : 
-						options.commentBody) : 
-					'<empty>'
-			}
-		));
+		throw handleControllerError(
+			error,
+			buildErrorContext(
+				'Issue Comment',
+				'adding',
+				'controllers/atlassian.comments.controller.ts@addComment',
+				options.issueIdOrKey,
+				{
+					commentBodyLength: options.commentBody?.length || 0,
+					commentBodyPreview: options.commentBody
+						? options.commentBody.length > 100
+							? options.commentBody.substring(0, 100) + '...'
+							: options.commentBody
+						: '<empty>',
+				},
+			),
+		);
 	}
 }
 

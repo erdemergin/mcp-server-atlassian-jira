@@ -70,7 +70,10 @@ function validateResponse<T, S>(
 		return schema.parse(data);
 	} catch (error) {
 		if (error instanceof z.ZodError) {
-			serviceLogger.error(`Response validation failed for ${context}:`, error.format());
+			serviceLogger.error(
+				`Response validation failed for ${context}:`,
+				error.format(),
+			);
 			throw createApiError(
 				`API response validation failed: Invalid Jira ${context} format`,
 				500,
@@ -120,7 +123,9 @@ async function search(
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError('Atlassian credentials required to search issues');
+		throw createAuthMissingError(
+			'Atlassian credentials required to search issues',
+		);
 	}
 
 	// Build query parameters
@@ -177,13 +182,13 @@ async function search(
 		if (error instanceof McpError) {
 			throw error;
 		}
-		
+
 		// Unexpected errors need to be wrapped
 		methodLogger.error('Unexpected error searching issues:', error);
 		throw createApiError(
 			`Unexpected error searching Jira issues: ${error instanceof Error ? error.message : String(error)}`,
 			500,
-			error
+			error,
 		);
 	}
 }
@@ -226,7 +231,9 @@ async function get(
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError(`Atlassian credentials required to get issue ${idOrKey}`);
+		throw createAuthMissingError(
+			`Atlassian credentials required to get issue ${idOrKey}`,
+		);
 	}
 
 	// Build query parameters
@@ -258,19 +265,23 @@ async function get(
 
 	try {
 		const rawData = await fetchAtlassian(credentials, path);
-		return validateResponse(rawData, IssueSchema, `issue detail ${idOrKey}`);
+		return validateResponse(
+			rawData,
+			IssueSchema,
+			`issue detail ${idOrKey}`,
+		);
 	} catch (error) {
 		// McpError is already properly structured from fetchAtlassian or validation
 		if (error instanceof McpError) {
 			throw error;
 		}
-		
+
 		// Unexpected errors need to be wrapped
 		methodLogger.error(`Unexpected error getting issue ${idOrKey}:`, error);
 		throw createApiError(
 			`Unexpected error retrieving Jira issue ${idOrKey}: ${error instanceof Error ? error.message : String(error)}`,
 			500,
-			error
+			error,
 		);
 	}
 }
@@ -313,7 +324,9 @@ async function getComments(
 
 	const credentials = getAtlassianCredentials();
 	if (!credentials) {
-		throw createAuthMissingError(`Atlassian credentials required to get comments for issue ${issueIdOrKey}`);
+		throw createAuthMissingError(
+			`Atlassian credentials required to get comments for issue ${issueIdOrKey}`,
+		);
 	}
 
 	// Build query parameters
@@ -346,19 +359,26 @@ async function getComments(
 
 	try {
 		const rawData = await fetchAtlassian(credentials, path);
-		return validateResponse(rawData, PageOfCommentsSchema, `issue comments ${issueIdOrKey}`);
+		return validateResponse(
+			rawData,
+			PageOfCommentsSchema,
+			`issue comments ${issueIdOrKey}`,
+		);
 	} catch (error) {
 		// McpError is already properly structured from fetchAtlassian or validation
 		if (error instanceof McpError) {
 			throw error;
 		}
-		
+
 		// Unexpected errors need to be wrapped
-		methodLogger.error(`Unexpected error getting comments for issue ${issueIdOrKey}:`, error);
+		methodLogger.error(
+			`Unexpected error getting comments for issue ${issueIdOrKey}:`,
+			error,
+		);
 		throw createApiError(
 			`Unexpected error retrieving comments for Jira issue ${issueIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
 			500,
-			error
+			error,
 		);
 	}
 }
@@ -412,7 +432,9 @@ async function addComment(
 		// Get configured credentials
 		const credentials = getAtlassianCredentials();
 		if (!credentials) {
-			throw createAuthMissingError(`Atlassian credentials required to add comment to issue ${issueIdOrKey}`);
+			throw createAuthMissingError(
+				`Atlassian credentials required to add comment to issue ${issueIdOrKey}`,
+			);
 		}
 
 		// Build API endpoint
@@ -447,19 +469,26 @@ async function addComment(
 			body: requestBody,
 		});
 
-		return validateResponse(response, IssueCommentSchema, `comment creation on issue ${issueIdOrKey}`);
+		return validateResponse(
+			response,
+			IssueCommentSchema,
+			`comment creation on issue ${issueIdOrKey}`,
+		);
 	} catch (error) {
 		// McpError is already properly structured from fetchAtlassian or validation
 		if (error instanceof McpError) {
 			throw error;
 		}
-		
+
 		// Unexpected errors need to be wrapped
-		methodLogger.error(`Unexpected error adding comment to issue ${issueIdOrKey}:`, error);
+		methodLogger.error(
+			`Unexpected error adding comment to issue ${issueIdOrKey}:`,
+			error,
+		);
 		throw createApiError(
 			`Unexpected error adding comment to Jira issue ${issueIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
 			500,
-			error
+			error,
 		);
 	}
 }

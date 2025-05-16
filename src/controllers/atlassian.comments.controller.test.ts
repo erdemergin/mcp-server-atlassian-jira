@@ -86,14 +86,9 @@ describe('Atlassian Comments Controller', () => {
 	});
 
 	describe('addComment', () => {
-		// Mock markdownToAdf for controlled error testing
-		let originalMarkdownToAdf: typeof adfUtil.markdownToAdf;
-		let originalTextToAdf: typeof adfUtil.textToAdf;
-
 		beforeEach(() => {
-			// Save the original functions
-			originalMarkdownToAdf = adfUtil.markdownToAdf;
-			originalTextToAdf = adfUtil.textToAdf;
+			// No need to save the original functions since we're using jest.spyOn
+			// which already handles restoration with mockRestore
 		});
 
 		afterEach(() => {
