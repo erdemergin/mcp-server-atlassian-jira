@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { validateResponse, extractAndValidate } from './validation.util.js';
-import { createApiError } from './error.util.js';
 
 // Mock createApiError to test error handling
 jest.mock('./error.util.js', () => ({
