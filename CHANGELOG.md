@@ -1,3 +1,15 @@
+# [1.31.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.30.2...v1.31.0) (2025-05-16)
+
+
+### Bug Fixes
+
+* improve error handling and fix TypeScript issues in tests ([c70aac7](https://github.com/aashari/mcp-server-atlassian-jira/commit/c70aac73ebcc8a76a1ddb086e66f6ad44dcf4453))
+
+
+### Features
+
+* standardize and enhance error handling for Jira API ([ab970ea](https://github.com/aashari/mcp-server-atlassian-jira/commit/ab970eab9898c0a43a5c8d79386355547a5a4f9f))
+
 ## [1.30.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.30.1...v1.30.2) (2025-05-14)
 
 
