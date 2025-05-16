@@ -134,7 +134,7 @@ function registerTools(server: McpServer) {
 	// Register the add comment tool
 	server.tool(
 		'jira_add_comment',
-		`Adds a new comment to a Jira issue identified by \`issueIdOrKey\`. Provide the comment text in \`commentBody\` parameter (plain text only, Markdown not supported). Returns a confirmation message with the newly created comment details. Use this tool to reply to issues or add new information. Requires Jira credentials to be configured.`,
+		`Adds a new comment to a Jira issue identified by \`issueIdOrKey\`. Provide the comment text in \`commentBody\` parameter. Markdown formatting (including headings, lists, code blocks, links) is supported and will be converted to Jira's rich text format (ADF). Returns a confirmation message with the newly created comment details. Use this tool to reply to issues or add new information. Requires Jira credentials to be configured.`,
 		AddCommentToolArgs.shape,
 		handleAddComment,
 	);
