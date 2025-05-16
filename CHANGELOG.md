@@ -1,3 +1,15 @@
+# [1.32.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.31.0...v1.32.0) (2025-05-16)
+
+
+### Bug Fixes
+
+* remove unused import in validation test ([8b0bd7d](https://github.com/aashari/mcp-server-atlassian-jira/commit/8b0bd7d9296007acfbfaab61a411d852c9b96890))
+
+
+### Features
+
+* add centralized validation utility ([487e76d](https://github.com/aashari/mcp-server-atlassian-jira/commit/487e76df309bcf16ca536ad87fb61f4a4f2fb35a))
+
 # [1.31.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.30.2...v1.31.0) (2025-05-16)
 
 
