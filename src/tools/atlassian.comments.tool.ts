@@ -126,7 +126,7 @@ function registerTools(server: McpServer) {
 	// Register the list comments tool
 	server.tool(
 		'jira_ls_comments',
-		`Lists comments for a specific Jira issue identified by \`issueIdOrKey\`. Comments are returned with author details, creation/edit dates, and complete content. Supports pagination via \`limit\` and \`startAt\`. Optionally sort results using \`orderBy\` (e.g., "created ASC" or "updated DESC"). Returns a formatted list of comments in Markdown format. Requires Jira credentials to be configured.`,
+		`Lists comments for a specific Jira issue identified by \`issueIdOrKey\`. Comments are returned with author details, creation/edit dates, and full content. Supports pagination via \`limit\` and \`startAt\`. Optionally sort results using \`orderBy\` — use \`created\` / \`updated\` for ascending order or prefix with \`-\` (e.g., \`-created\`, \`-updated\`) for descending. Returns a formatted list of comments in Markdown. Requires Jira credentials to be configured.`,
 		ListCommentsToolArgs.shape,
 		handleListComments,
 	);

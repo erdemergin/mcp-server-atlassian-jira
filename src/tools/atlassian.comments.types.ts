@@ -36,9 +36,13 @@ export const ListCommentsToolArgs = z.object({
 	...PaginationArgs,
 	orderBy: z
 		.string()
+		.regex(/^(-)?(created|updated)$/i, {
+			message:
+				'orderBy must be "created", "-created", "updated", or "-updated" (prefix with "-" for descending order).',
+		})
 		.optional()
 		.describe(
-			'Field and direction to sort results by (e.g., "created ASC" or "updated DESC").',
+			'Sort comments by field and direction. Use "created" or "updated" for ascending order, and "-created" or "-updated" for descending order.',
 		),
 });
 export type ListCommentsToolArgsType = z.infer<typeof ListCommentsToolArgs>;
