@@ -1,3 +1,10 @@
+## [1.32.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.32.1...v1.32.2) (2025-05-16)
+
+
+### Bug Fixes
+
+* clarify and validate orderBy parameter for jira_ls_comments tool ([a49124a](https://github.com/aashari/mcp-server-atlassian-jira/commit/a49124abc2d072f40831402da24993d89512b890))
+
 ## [1.32.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.32.0...v1.32.1) (2025-05-16)
 
 
