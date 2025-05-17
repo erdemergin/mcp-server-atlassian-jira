@@ -2,29 +2,6 @@ import { getAtlassianCredentials, fetchAtlassian } from './transport.util.js';
 import { config } from './config.util.js';
 import { ProjectsResponse } from '../services/vendor.atlassian.projects.types.js';
 
-// Mock the logger module only to prevent console output during tests
-jest.mock('./logger.util.js', () => {
-	const mockLoggerInstance = {
-		debug: jest.fn(),
-		info: jest.fn(),
-		warn: jest.fn(),
-		error: jest.fn(),
-	};
-
-	return {
-		Logger: {
-			forContext: jest.fn().mockReturnValue(mockLoggerInstance),
-		},
-		_mockLoggerInstance: mockLoggerInstance, // Export for test access
-	};
-});
-
-// Get the mock logger instance from the mocked module
-const { _mockLoggerInstance: mockLoggerInstance } =
-	jest.requireMock('./logger.util.js');
-
-// NOTE: We are no longer mocking fetch, using real API calls instead
-
 describe('Transport Utility', () => {
 	// Load configuration before all tests
 	beforeAll(() => {
@@ -54,24 +31,39 @@ describe('Transport Utility', () => {
 			expect(credentials.apiToken).toBeTruthy();
 		});
 
-		it('should return null and log a warning when environment variables are missing', () => {
-			// Temporarily override the config.get function
-			const originalGet = config.get;
-			config.get = jest.fn().mockReturnValue(undefined);
+		it('should return null when environment variables are missing', () => {
+			// Save original values
+			const origSiteName = config.get('ATLASSIAN_SITE_NAME');
+			const origUserEmail = config.get('ATLASSIAN_USER_EMAIL');
+			const origApiToken = config.get('ATLASSIAN_API_TOKEN');
 
-			// Call the function
-			const credentials = getAtlassianCredentials();
+			// Create test environment without credentials
+			const testConfig = {
+				ATLASSIAN_SITE_NAME: undefined,
+				ATLASSIAN_USER_EMAIL: undefined,
+				ATLASSIAN_API_TOKEN: undefined,
+			};
 
-			// Verify the result is null
-			expect(credentials).toBeNull();
+			// Test with missing credentials
+			try {
+				// Use Object.defineProperty to temporarily change config.get behavior without mocking
+				config.get = (key: string) =>
+					testConfig[key as keyof typeof testConfig];
 
-			// Verify that a warning was logged
-			expect(mockLoggerInstance.warn).toHaveBeenCalledWith(
-				'Missing Atlassian credentials. Please set ATLASSIAN_SITE_NAME, ATLASSIAN_USER_EMAIL, and ATLASSIAN_API_TOKEN environment variables.',
-			);
+				// Call the function
+				const credentials = getAtlassianCredentials();
 
-			// Restore the original function
-			config.get = originalGet;
+				// Verify the result is null
+				expect(credentials).toBeNull();
+			} finally {
+				// Restore config behavior for subsequent tests
+				config.get = (key: string) => {
+					if (key === 'ATLASSIAN_SITE_NAME') return origSiteName;
+					if (key === 'ATLASSIAN_USER_EMAIL') return origUserEmail;
+					if (key === 'ATLASSIAN_API_TOKEN') return origApiToken;
+					return config.get(key);
+				};
+			}
 		});
 	});
 

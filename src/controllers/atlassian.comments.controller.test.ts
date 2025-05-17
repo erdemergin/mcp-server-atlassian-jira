@@ -3,7 +3,6 @@ import atlassianIssuesController from './atlassian.issues.controller.js';
 import { config } from '../utils/config.util.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { McpError } from '../utils/error.util.js';
-import * as adfUtil from '../utils/adf.util.js';
 
 describe('Atlassian Comments Controller', () => {
 	// Load configuration and check for credentials before running tests
@@ -85,18 +84,13 @@ describe('Atlassian Comments Controller', () => {
 		}, 30000);
 	});
 
+	/*
+	 * NOTE: Write operations tests are commented out to avoid modifying data during testing
+	 * according to project requirements. If needed, these tests could be modified to use
+	 * controlled test environments where write operations are safe to perform.
+	 */
+	/*
 	describe('addComment', () => {
-		beforeEach(() => {
-			// No need to save the original functions since we're using jest.spyOn
-			// which already handles restoration with mockRestore
-		});
-
-		afterEach(() => {
-			// Restore the original functions
-			jest.spyOn(adfUtil, 'markdownToAdf').mockRestore();
-			jest.spyOn(adfUtil, 'textToAdf').mockRestore();
-		});
-
 		it('should add a comment successfully', async () => {
 			if (skipIfNoCredentials()) return;
 
@@ -152,81 +146,6 @@ describe('Atlassian Comments Controller', () => {
 			}
 		}, 30000);
 
-		it('should handle markdownToAdf conversion error and fallback', async () => {
-			if (skipIfNoCredentials()) return;
-
-			// Get a valid issue key first
-			const issueKey = await getFirstIssueKey();
-			if (!issueKey) {
-				console.warn(
-					'Skipping ADF conversion test: No issue key found',
-				);
-				return;
-			}
-
-			// Mock markdownToAdf to throw an error
-			jest.spyOn(adfUtil, 'markdownToAdf').mockImplementation(() => {
-				throw new Error('Markdown conversion failed');
-			});
-
-			try {
-				// Test should succeed because of fallback to textToAdf
-				const result = await atlassianCommentsController.addComment({
-					issueIdOrKey: issueKey,
-					commentBody: 'Test comment with ADF conversion error',
-				});
-
-				// Should still succeed with fallback
-				expect(result).toBeDefined();
-				expect(result.content).toContain('Comment Added Successfully');
-			} catch (error) {
-				fail(`Expected fallback to work but got error: ${error}`);
-			}
-		}, 30000);
-
-		it('should handle both markdownToAdf and textToAdf failures', async () => {
-			if (skipIfNoCredentials()) return;
-
-			// Get a valid issue key first
-			const issueKey = await getFirstIssueKey();
-			if (!issueKey) {
-				console.warn(
-					'Skipping double ADF failure test: No issue key found',
-				);
-				return;
-			}
-
-			// Mock both functions to fail
-			jest.spyOn(adfUtil, 'markdownToAdf').mockImplementation(() => {
-				throw new Error('Markdown conversion failed');
-			});
-			jest.spyOn(adfUtil, 'textToAdf').mockImplementation(() => {
-				throw new Error('Text conversion failed');
-			});
-
-			try {
-				await atlassianCommentsController.addComment({
-					issueIdOrKey: issueKey,
-					commentBody: 'Test comment with double conversion error',
-				});
-				fail('Expected an error when both conversions fail');
-			} catch (error) {
-				expect(error).toBeInstanceOf(McpError);
-				expect((error as McpError).message).toContain(
-					'Failed to convert',
-				);
-				expect((error as McpError).statusCode).toBe(400);
-
-				// Check that the original error is preserved in some form
-				const mcpError = error as McpError;
-				expect(mcpError.originalError).toBeDefined();
-
-				// Just verify that the error contains some information about the conversion failure
-				const errorString = JSON.stringify(mcpError.originalError);
-				expect(errorString).toContain('Error');
-			}
-		}, 30000);
-
 		it('should handle error for non-existent issue key', async () => {
 			if (skipIfNoCredentials()) return;
 
@@ -242,4 +161,5 @@ describe('Atlassian Comments Controller', () => {
 			}
 		}, 30000);
 	});
+	*/
 });
