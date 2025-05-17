@@ -9,6 +9,7 @@ import {
 } from './atlassian.projects.types.js';
 
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
+import { formatPagination } from '../utils/formatter.util.js';
 
 // Create a contextualized logger for this file
 const toolLogger = Logger.forContext('tools/atlassian.projects.tool.ts');
@@ -51,15 +52,20 @@ async function listProjects(args: ListProjectsToolArgsType) {
 			total: result.pagination?.total,
 		});
 
+		let finalText = result.content;
+		if (result.pagination) {
+			finalText += '\n\n' + formatPagination(result.pagination);
+		}
+
 		return {
 			content: [
 				{
 					type: 'text' as const,
-					text: result.content,
+					text: finalText,
 				},
 			],
 			metadata: {
-				pagination: result.pagination,
+				// pagination: result.pagination, // Removed
 			},
 		};
 	} catch (error) {
