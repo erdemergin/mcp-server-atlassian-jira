@@ -1,3 +1,10 @@
+## [1.33.3](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.33.2...v1.33.3) (2025-05-17)
+
+
+### Bug Fixes
+
+* remove empty metadata objects and update JSDocs for tool pagination ([d541075](https://github.com/aashari/mcp-server-atlassian-jira/commit/d541075f34db0b4b8ec97836d88ddbca0b8c7096))
+
 ## [1.33.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.33.1...v1.33.2) (2025-05-17)
 
 
