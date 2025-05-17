@@ -60,15 +60,15 @@ function registerListIssuesCommand(program: Command): void {
 		)
 		.option(
 			'-p, --project-key-or-id <keyOrId>',
-			'Filter by a specific project key or ID.',
+			'Filter by a specific project key or ID. If --jql is also provided, this will be ANDed with it (e.g., project = YOUR_KEY AND (YOUR_JQL)).',
 		)
 		.option(
 			'-s, --statuses <statuses...>',
-			'Filter by one or more status names (repeatable).',
+			'Filter by one or more status names (repeatable). If --jql is also provided, this will be ANDed with it (e.g., status IN ("To Do", "In Progress") AND (YOUR_JQL)).',
 		)
 		.option(
 			'-o, --order-by <field>',
-			'JQL ORDER BY clause (e.g., "priority DESC").',
+			'JQL ORDER BY clause (e.g., "priority DESC"). If not provided and a JQL query without ORDER BY is given, default sort is "updated DESC".',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
@@ -148,7 +148,7 @@ function registerGetIssueCommand(program: Command): void {
 			'Get detailed information about a specific Jira issue using its ID or key.',
 		)
 		.requiredOption(
-			'--issue-id-or-key <idOrKey>',
+			'-i, --issue-id-or-key <idOrKey>',
 			'The ID or key of the Jira issue to retrieve (e.g., "10001" or "PROJ-123"). This is required and must be a valid issue ID or key from your Jira instance.',
 		)
 		.action(async (options) => {

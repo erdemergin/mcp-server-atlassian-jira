@@ -45,7 +45,7 @@ function registerListCommentsCommand(program: Command): void {
 			'List comments for a specific Jira issue, with pagination support.',
 		)
 		.requiredOption(
-			'--issue-id-or-key <idOrKey>',
+			'-i, --issue-id-or-key <idOrKey>',
 			'The ID or key of the Jira issue to get comments from (e.g., "PROJ-123" or "10001"). This is required.',
 		)
 		.option(
@@ -54,11 +54,11 @@ function registerListCommentsCommand(program: Command): void {
 			'25',
 		)
 		.option(
-			'-s, --start-at <number>',
+			'-c, --start-at <number>',
 			'Index of the first comment to return (0-based offset, starts at 0). Used for pagination.',
 		)
 		.option(
-			'-o, --order-by <field>',
+			'-S, --order-by <field>',
 			'Field and direction to sort comments by (e.g., "created ASC" or "updated DESC").',
 		)
 		.action(async (options) => {
@@ -129,11 +129,11 @@ function registerAddCommentCommand(program: Command): void {
 		.command('add-comment')
 		.description('Add a new comment to a specific Jira issue.')
 		.requiredOption(
-			'--issue-id-or-key <idOrKey>',
+			'-i, --issue-id-or-key <idOrKey>',
 			'The ID or key of the Jira issue to add a comment to (e.g., "PROJ-123" or "10001"). This is required.',
 		)
 		.requiredOption(
-			'--body <text>',
+			'-m, --body <text>',
 			'The text content of the comment to add. This is required.',
 		)
 		.action(async (options) => {

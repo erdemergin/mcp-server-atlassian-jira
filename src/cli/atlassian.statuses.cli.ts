@@ -40,10 +40,10 @@ function registerListStatusesCommand(program: Command): void {
 	program
 		.command('ls-statuses')
 		.description(
-			'List available Jira statuses. Lists *all* statuses globally or for a specific project. Note: Does not support pagination (limit/cursor) due to API limitations.',
+			'List available Jira statuses. Lists *all* statuses globally or for a specific project. **Important:** This command returns all statuses in a single response - the underlying Jira API does not support pagination for this endpoint, so parameters like --limit or --start-at are not applicable.',
 		)
 		.option(
-			'--project-key-or-id <keyOrId>',
+			'-p, --project-key-or-id <keyOrId>',
 			"Optional project key or ID to filter statuses relevant to that project's workflows.",
 		)
 		.action(async (options) => {

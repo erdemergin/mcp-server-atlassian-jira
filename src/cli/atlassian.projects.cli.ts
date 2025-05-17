@@ -46,7 +46,7 @@ function registerListProjectsCommand(program: Command): void {
 			'List Jira projects with optional filtering and pagination.',
 		)
 		.option(
-			'-n, --name <name>',
+			'-n, --name <n>',
 			'Filter projects by name (case-insensitive partial match).',
 		)
 		.option(
@@ -55,11 +55,11 @@ function registerListProjectsCommand(program: Command): void {
 			'25',
 		)
 		.option(
-			'-s, --start-at <number>',
+			'-c, --start-at <number>',
 			"Index of the first item to return (0-based offset, starts at 0). Used for pagination with Jira's offset-based pagination.",
 		)
 		.option(
-			'-o, --order-by <field>',
+			'-S, --order-by <field>',
 			'Sort field, can be "name", "key", "id", or "lastIssueUpdatedTime" (default).',
 		)
 		.action(async (options) => {
@@ -133,7 +133,7 @@ function registerGetProjectCommand(program: Command): void {
 		.command('get-project')
 		.description('Get detailed information about a specific Jira project.')
 		.requiredOption(
-			'--project-key-or-id <projectKeyOrId>',
+			'-p, --project-key-or-id <projectKeyOrId>',
 			'The key or ID of the project to retrieve. This is required and must be a valid project key or numeric ID from your Jira instance.',
 		)
 		.action(async (options) => {

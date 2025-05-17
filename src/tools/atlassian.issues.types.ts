@@ -45,7 +45,7 @@ const ListIssuesToolArgs = z.object({
 		.string()
 		.optional()
 		.describe(
-			'Filter issues by a specific project key or ID (e.g., "PROJ" or "10001"). Will be combined with other filters using AND logic.',
+			'Filter issues by a specific project key or ID (e.g., "PROJ" or "10001"). If `jql` is also provided, this will be ANDed with it (e.g., `project = YOUR_KEY AND (YOUR_JQL)`). Will be combined with other filters using AND logic.',
 		),
 
 	/**
@@ -55,7 +55,7 @@ const ListIssuesToolArgs = z.object({
 		.array(z.string())
 		.optional()
 		.describe(
-			'Filter issues by specific status names (e.g., ["To Do", "In Progress"]). Requires exact names; use jira_ls_statuses to discover. Will be combined with other filters using AND logic.',
+			'Filter issues by specific status names (e.g., ["To Do", "In Progress"]). Requires exact names; use jira_ls_statuses to discover. If `jql` is also provided, this will be ANDed with it (e.g., `status IN ("To Do", "In Progress") AND (YOUR_JQL)`). Will be combined with other filters using AND logic.',
 		),
 
 	/**
@@ -65,7 +65,7 @@ const ListIssuesToolArgs = z.object({
 		.string()
 		.optional()
 		.describe(
-			'Specify the sorting order using JQL ORDER BY clause syntax (e.g., "priority DESC", "created ASC"). Overrides default sort (updated DESC).',
+			'Specify the sorting order using JQL ORDER BY clause syntax (e.g., "priority DESC", "created ASC"). If no `orderBy` is provided and a `jql` query without an ORDER BY clause is given, it defaults to `updated DESC`. If `jql` is empty, it also defaults to `ORDER BY updated DESC`.',
 		),
 
 	/**
