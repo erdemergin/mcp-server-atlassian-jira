@@ -1,3 +1,10 @@
+## [1.33.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.33.1...v1.33.2) (2025-05-17)
+
+
+### Bug Fixes
+
+* simplify status filtering and document case-sensitivity in Jira statuses ([d201279](https://github.com/aashari/mcp-server-atlassian-jira/commit/d2012792a915f47d9414c05832667f09cfb6a0ef))
+
 ## [1.33.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.33.0...v1.33.1) (2025-05-17)
 
 
