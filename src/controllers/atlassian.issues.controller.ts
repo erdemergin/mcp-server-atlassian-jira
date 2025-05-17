@@ -114,11 +114,25 @@ async function list(
 			jqlParts.push(`project = ${mergedOptions.projectKeyOrId}`);
 		}
 		if (mergedOptions.statuses && mergedOptions.statuses.length > 0) {
+			// Normalize status names by trimming and properly quoting them
+			// This still requires the correct status name but handles case and whitespace better
+			const normalizedStatuses = mergedOptions.statuses.map(
+				(status) =>
+					status.trim().toLowerCase() === 'to do'
+						? '"To Do"' // Special case for common "To Do" status
+						: status.trim().toLowerCase() === 'in progress'
+							? '"In Progress"' // Special case for common "In Progress" status
+							: `"${status.trim()}"`, // Normal case with proper quoting
+			);
+
 			const statusQuery =
-				mergedOptions.statuses.length === 1
-					? `status = "${mergedOptions.statuses[0]}"` // Quote status names
-					: `status IN (${mergedOptions.statuses.map((s) => `"${s}"`).join(', ')})`;
+				normalizedStatuses.length === 1
+					? `status = ${normalizedStatuses[0]}` // Already quoted in normalization
+					: `status IN (${normalizedStatuses.join(', ')})`;
 			jqlParts.push(statusQuery);
+
+			// Add a debug log to show the normalized status query
+			methodLogger.debug(`Status filter normalized to: ${statusQuery}`);
 		}
 
 		let finalJql = jqlParts.join(' AND ');
