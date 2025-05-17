@@ -144,6 +144,104 @@ interface IssuesData {
 }
 
 /**
+ * Get emoji for issue status
+ * Maps common Jira statuses to appropriate emoji for visual cues
+ *
+ * @param status - Status name from Jira
+ * @returns Emoji representing the status
+ */
+function getStatusEmoji(status: string | undefined): string {
+	if (!status) return '';
+
+	// Convert to lowercase for case-insensitive matching
+	const statusLower = status.toLowerCase();
+
+	// Map common statuses to emoji
+	if (
+		statusLower.includes('to do') ||
+		statusLower.includes('todo') ||
+		statusLower.includes('open') ||
+		statusLower.includes('new')
+	) {
+		return '⚪ '; // White circle for open/to do
+	} else if (
+		statusLower.includes('in progress') ||
+		statusLower.includes('started')
+	) {
+		return '🔵 '; // Blue circle for in progress
+	} else if (
+		statusLower.includes('done') ||
+		statusLower.includes('closed') ||
+		statusLower.includes('resolved') ||
+		statusLower.includes('complete')
+	) {
+		return '✅ '; // Checkmark for done/completed
+	} else if (
+		statusLower.includes('review') ||
+		statusLower.includes('testing')
+	) {
+		return '🔍 '; // Magnifying glass for review/testing
+	} else if (
+		statusLower.includes('block') ||
+		statusLower.includes('impediment')
+	) {
+		return '🛑 '; // Stop sign for blocked
+	} else if (statusLower.includes('backlog')) {
+		return '📋 '; // Clipboard for backlog
+	} else if (
+		statusLower.includes('cancel') ||
+		statusLower.includes("won't") ||
+		statusLower.includes('wont')
+	) {
+		return '❌ '; // X for canceled/won't do
+	}
+
+	// Default for unknown status
+	return '⚫ '; // Black circle for unknown status
+}
+
+/**
+ * Get emoji for issue priority
+ * Maps common Jira priority levels to appropriate emoji for visual cues
+ *
+ * @param priority - Priority name from Jira
+ * @returns Emoji representing the priority
+ */
+function getPriorityEmoji(priority: string | undefined): string {
+	if (!priority) return '';
+
+	// Convert to lowercase for case-insensitive matching
+	const priorityLower = priority.toLowerCase();
+
+	// Map common priority levels to emoji
+	if (
+		priorityLower.includes('highest') ||
+		priorityLower.includes('critical') ||
+		priorityLower.includes('blocker')
+	) {
+		return '🔴 '; // Red circle for highest/critical
+	} else if (priorityLower.includes('high')) {
+		return '🔺 '; // Red triangle for high
+	} else if (
+		priorityLower.includes('medium') ||
+		priorityLower.includes('normal')
+	) {
+		return '⚠️ '; // Warning for medium
+	} else if (priorityLower.includes('low')) {
+		return '🔽 '; // Down triangle for low
+	} else if (
+		priorityLower.includes('lowest') ||
+		priorityLower.includes('minor') ||
+		priorityLower.includes('trivial')
+	) {
+		return '⬇️ '; // Down arrow for lowest
+	}
+
+	// Default for unknown priority
+	return ''; // No emoji for unknown priority
+}
+
+/**
  * Format a list of issues for display
  * @param issuesData - Raw issues data from the API
  * @returns Formatted string with issues information in markdown format
@@ -174,8 +272,8 @@ export function formatIssuesList(issuesData: IssuesData): string {
 			Key: issue.key,
 			Summary: issue.fields.summary,
 			Type: issue.fields.issuetype?.name,
-			Status: issue.fields.status?.name,
-			Priority: issue.fields.priority?.name,
+			Status: `${getStatusEmoji(issue.fields.status?.name)}${issue.fields.status?.name}`,
+			Priority: `${getPriorityEmoji(issue.fields.priority?.name)}${issue.fields.priority?.name}`,
 			Project: issue.fields.project?.name,
 			Assignee: issue.fields.assignee?.displayName,
 			Reporter: issue.fields.reporter?.displayName,
@@ -216,7 +314,9 @@ export function formatIssueDetails(issueData: Issue): string {
 
 	// Add a brief summary line
 	if (issueData.fields.status) {
-		const summary = `> A ${issueData.fields.status.name.toLowerCase()} issue in the ${issueData.fields.project?.name} project.`;
+		const statusEmoji = getStatusEmoji(issueData.fields.status.name);
+		const priorityEmoji = getPriorityEmoji(issueData.fields.priority?.name);
+		const summary = `> ${statusEmoji}A ${issueData.fields.status.name.toLowerCase()} issue ${priorityEmoji ? `with ${priorityEmoji}${issueData.fields.priority?.name} priority ` : ''}in the ${issueData.fields.project?.name} project.`;
 		lines.push(summary);
 		lines.push('');
 	}
@@ -231,8 +331,8 @@ export function formatIssueDetails(issueData: Issue): string {
 			? `${issueData.fields.project.name} (${issueData.fields.project.key})`
 			: undefined,
 		Type: issueData.fields.issuetype?.name,
-		Status: issueData.fields.status?.name,
-		Priority: issueData.fields.priority?.name,
+		Status: `${getStatusEmoji(issueData.fields.status?.name)}${issueData.fields.status?.name}`,
+		Priority: `${getPriorityEmoji(issueData.fields.priority?.name)}${issueData.fields.priority?.name}`,
 	};
 
 	lines.push(formatBulletList(basicProperties, (key) => key));
@@ -449,11 +549,15 @@ export function formatIssueDetails(issueData: Issue): string {
 							'/rest/api/3/issue/',
 							'/browse/',
 						);
+						// Add status emoji to linked issues
+						const statusEmoji = getStatusEmoji(
+							targetIssueInfo.fields.status?.name,
+						);
 						// Try to use summary, fall back to Key + Status if not available
 						const displayTitle = targetIssueInfo.fields.summary
-							? targetIssueInfo.fields.summary
+							? `${statusEmoji}${targetIssueInfo.fields.summary}`
 							: targetIssueInfo.fields.status?.name
-								? `${targetIssueInfo.key} (${targetIssueInfo.fields.status.name})`
+								? `${statusEmoji}${targetIssueInfo.key} (${targetIssueInfo.fields.status.name})`
 								: targetIssueInfo.key;
 
 						linksList[targetIssueInfo.key] = {
