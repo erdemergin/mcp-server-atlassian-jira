@@ -20,10 +20,10 @@ toolLogger.debug('Jira issues tool module initialized');
  * MCP Tool: List Jira Issues
  *
  * Lists Jira issues with optional filtering by JQL query, fields, and limit.
- * Returns a formatted markdown response with issue details and pagination info.
+ * Returns a formatted markdown response with issue details and pagination info appended to content.
  *
  * @param {ListIssuesToolArgsType} args - Tool arguments for filtering issues
- * @returns {Promise<{ content: Array<{ type: 'text', text: string }>, metadata: { pagination: { startAt: number, limit: number, total: number } } }>} MCP response with formatted issues list
+ * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted issues list
  * @throws Will return error message if issue listing fails
  */
 async function listIssues(args: ListIssuesToolArgsType) {
@@ -66,9 +66,6 @@ async function listIssues(args: ListIssuesToolArgsType) {
 					text: finalText,
 				},
 			],
-			metadata: {
-				// pagination: result.pagination, // Removed
-			},
 		};
 	} catch (error) {
 		methodLogger.error('Failed to list issues', error);

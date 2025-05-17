@@ -21,10 +21,10 @@ toolLogger.debug('Jira projects tool module initialized');
  * MCP Tool: List Jira Projects
  *
  * Lists Jira projects with optional filtering.
- * Returns a formatted markdown response with project details and pagination info.
+ * Returns a formatted markdown response with project details and pagination info appended to content.
  *
  * @param {ListProjectsToolArgsType} args - Tool arguments for filtering projects
- * @returns {Promise<{ content: Array<{ type: 'text', text: string }>, metadata: { pagination: { startAt: number, limit: number, total: number } } }>} MCP response with formatted projects list
+ * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted projects list
  * @throws Will return error message if project listing fails
  */
 async function listProjects(args: ListProjectsToolArgsType) {
@@ -64,9 +64,6 @@ async function listProjects(args: ListProjectsToolArgsType) {
 					text: finalText,
 				},
 			],
-			metadata: {
-				// pagination: result.pagination, // Removed
-			},
 		};
 	} catch (error) {
 		methodLogger.error('Failed to list projects', error);
