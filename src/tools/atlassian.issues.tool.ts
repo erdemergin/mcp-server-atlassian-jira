@@ -134,8 +134,13 @@ function registerTools(server: McpServer) {
 	server.tool(
 		'jira_ls_issues',
 		`Searches for Jira issues using flexible filtering criteria. You can provide a full JQL query via \`jql\` for complex filtering, or use specific filters like \`projectKeyOrId\` and \`statuses\`. Sort results using \`orderBy\` (e.g., "priority DESC"). Supports pagination via \`limit\` and \`startAt\`. Returns a formatted list of matching issues including key, summary, type, status, priority, and project. Default sort is by last updated date. 
-+**Important Note:** JQL functions relying on user context (like \`currentUser()\`) may not work reliably with API token authentication and could cause errors; use specific account IDs (e.g., \`assignee = 'accountid:...'\`) instead when using JQL.
-**Note:** If \`jql\` is provided and already includes an ORDER BY clause, the \`orderBy\` parameter will be ignored. Requires Jira credentials to be configured.`,
+
+**Important Notes:**
+- Status names in \`statuses\` are **case-sensitive** and must match exactly how they appear in Jira (e.g., "In Progress", not "in progress"). Use \`jira_ls_statuses\` to find exact status names for your project.
+- JQL functions relying on user context (like \`currentUser()\`) may not work reliably with API token authentication and could cause errors; use specific account IDs (e.g., \`assignee = 'accountid:...'\`) instead when using JQL.
+- If \`jql\` is provided and already includes an ORDER BY clause, the \`orderBy\` parameter will be ignored. 
+
+Requires Jira credentials to be configured.`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);

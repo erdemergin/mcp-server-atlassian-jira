@@ -64,7 +64,7 @@ function registerListIssuesCommand(program: Command): void {
 		)
 		.option(
 			'-s, --statuses <statuses...>',
-			'Filter by one or more status names (repeatable). If --jql is also provided, this will be ANDed with it (e.g., status IN ("To Do", "In Progress") AND (YOUR_JQL)).',
+			'Filter by one or more status names (repeatable). Status names are case-sensitive and must match exactly as they appear in Jira (e.g., "In Progress", not "in progress"). Use the ls-statuses command first to find exact status names.',
 		)
 		.option(
 			'-o, --order-by <field>',
