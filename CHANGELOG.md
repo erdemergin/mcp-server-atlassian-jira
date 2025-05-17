@@ -1,3 +1,15 @@
+# [1.33.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.32.2...v1.33.0) (2025-05-17)
+
+
+### Bug Fixes
+
+* remove all mocks from tests to ensure all tests run against live APIs ([da0256b](https://github.com/aashari/mcp-server-atlassian-jira/commit/da0256b4840beaad0ee0808cf926d5fa77716d57))
+
+
+### Features
+
+* Add visual status and priority indicators to Jira issue display ([feae94f](https://github.com/aashari/mcp-server-atlassian-jira/commit/feae94fdb12eca9077a8d58ba1091ad99ec08d4c))
+
 ## [1.32.2](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.32.1...v1.32.2) (2025-05-16)
 
 
