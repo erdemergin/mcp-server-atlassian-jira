@@ -1,3 +1,10 @@
+## [1.33.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.33.0...v1.33.1) (2025-05-17)
+
+
+### Bug Fixes
+
+* improve status name handling in Jira issue filter to handle case differences ([122a05d](https://github.com/aashari/mcp-server-atlassian-jira/commit/122a05d7eddd86339918e81755ff692663b0ee25))
+
 # [1.33.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.32.2...v1.33.0) (2025-05-17)
 
 
