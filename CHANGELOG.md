@@ -1,3 +1,11 @@
+# [1.34.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.33.3...v1.34.0) (2025-05-18)
+
+
+### Features
+
+* consolidate output into ControllerResponse.content string ([6a4783c](https://github.com/aashari/mcp-server-atlassian-jira/commit/6a4783cbe944f23cc90e5ffad481a8d906423dba))
+* update remaining files to match ControllerResponse interface changes ([d6d4206](https://github.com/aashari/mcp-server-atlassian-jira/commit/d6d420601fcb43e4fcacfca8d0c9afc5610b7870))
+
 ## [1.33.3](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.33.2...v1.33.3) (2025-05-17)
 
 
