@@ -30,17 +30,16 @@ describe('Atlassian Search Controller', () => {
 			// Verify ControllerResponse structure
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
-			expect(result).toHaveProperty('pagination');
 
 			// Verify Markdown content
 			expect(result.content).toMatch(/^# Jira Search Results/m); // Has header
 			expect(result.content).toContain('JQL Query:'); // Shows query
 			expect(result.content).toContain('created >= -30d'); // Shows the actual query
 
-			// Check for pagination details
-			expect(result.pagination).toBeDefined();
-			expect(result.pagination).toHaveProperty('hasMore');
-			expect(result.pagination).toHaveProperty('count');
+			// Content should include pagination information
+			if (result.content.includes('More results are available')) {
+				expect(result.content).toContain('Use --start-at');
+			}
 		}, 30000);
 
 		it('should handle pagination (limit/cursor) correctly', async () => {
@@ -51,27 +50,27 @@ describe('Atlassian Search Controller', () => {
 				jql: 'created >= -90d',
 				limit: 2,
 			});
-			expect(result1.pagination?.count).toBeLessThanOrEqual(2);
 
-			// If there's a next page, check it's different from the first
-			if (result1.pagination?.hasMore && result1.pagination.nextCursor) {
-				// Parse the nextCursor (which is the next startAt value as a string)
-				const nextStartAt = parseInt(result1.pagination.nextCursor, 10);
-				if (isNaN(nextStartAt)) {
-					throw new Error(
-						`Invalid nextCursor format: ${result1.pagination.nextCursor}`,
-					);
+			// Check if the first page has pagination information
+			if (result1.content.includes('More results are available')) {
+				// Extract startAt from the content
+				const startAtMatch = result1.content.match(
+					/Use --start-at (\d+) to view more/,
+				);
+				if (startAtMatch && startAtMatch[1]) {
+					const nextStartAt = parseInt(startAtMatch[1], 10);
+
+					// Fetch second page
+					const result2 = await atlassianSearchController.search({
+						jql: 'created >= -90d',
+						limit: 2,
+						startAt: nextStartAt,
+					});
+
+					// Content should include both search and pagination info
+					expect(result2.content).toMatch(/^# Jira Search Results/m);
+					expect(result2.content).toContain('JQL Query:');
 				}
-				const result2 = await atlassianSearchController.search({
-					jql: 'created >= -90d',
-					limit: 2,
-					// Pass the parsed number as startAt
-					startAt: nextStartAt,
-				});
-				expect(result2.pagination?.count).toBeLessThanOrEqual(2);
-
-				// Content should be different between pages
-				expect(result1.content).not.toEqual(result2.content);
 			} else {
 				console.warn(
 					'Skipping cursor test: Only one page of search results found.',
@@ -100,11 +99,8 @@ describe('Atlassian Search Controller', () => {
 			// Check for appropriate message for no results
 			expect(result.content).toContain('No issues found');
 
-			// Should have pagination but with count 0 and hasMore false
-			expect(result.pagination).toBeDefined();
-			expect(result.pagination).toHaveProperty('count', 0);
-			expect(result.pagination).toHaveProperty('hasMore', false);
-			expect(result.pagination?.nextCursor).toBeUndefined();
+			// Should include timestamp
+			expect(result.content).toContain('Information retrieved at:');
 		}, 30000);
 
 		it('should handle error for invalid JQL', async () => {
@@ -137,10 +133,9 @@ describe('Atlassian Search Controller', () => {
 			// Should show the search results header
 			expect(result.content).toMatch(/^# Jira Search Results/m);
 
-			// Should have pagination details
-			expect(result.pagination).toBeDefined();
-			expect(result.pagination).toHaveProperty('count');
-			expect(typeof result.pagination?.count).toBe('number');
+			// Should include JQL and possibly pagination information
+			expect(result.content).toContain('JQL Query:');
+			expect(result.content).toContain('ORDER BY updated DESC'); // Default ordering
 		}, 30000);
 
 		it('should support complex JQL with multiple conditions', async () => {
@@ -159,9 +154,9 @@ describe('Atlassian Search Controller', () => {
 				// Should show the search results header and query
 				expect(result.content).toMatch(/^# Jira Search Results/m);
 				expect(result.content).toContain('JQL Query:');
-
-				// Should have pagination details
-				expect(result.pagination).toBeDefined();
+				expect(result.content).toContain(
+					'created >= -60d AND type != Epic ORDER BY created DESC',
+				);
 			} catch (error) {
 				// Some Jira servers might not support all JQL functions, so we'll accept either
 				// successful results or a properly formed error

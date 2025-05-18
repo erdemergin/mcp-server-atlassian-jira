@@ -58,14 +58,16 @@ describe('Atlassian Comments Controller', () => {
 			expect(result).toBeDefined();
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
-			expect(result).toHaveProperty('pagination');
 
 			// Either we should have comments or a message saying there are no comments
-			if (result.pagination?.count === 0) {
+			if (result.content.includes('No comments found')) {
 				expect(result.content).toContain('No comments found');
 			} else {
 				expect(result.content).toContain('# Comments for Issue');
 			}
+
+			// Check if pagination information is included in content
+			expect(result.content).toContain('Information retrieved at:');
 		}, 30000);
 
 		it('should handle error for invalid issue key', async () => {

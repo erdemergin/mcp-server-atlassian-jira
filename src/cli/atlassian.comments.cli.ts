@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import atlassianCommentsController from '../controllers/atlassian.comments.controller.js';
-import { formatPagination } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira issue comments.
@@ -10,16 +9,13 @@ import { formatPagination } from '../utils/formatter.util.js';
  * All commands require valid Atlassian credentials.
  */
 
-// Create a contextualized logger for this file
+// Create a logger context for this file
 const cliLogger = Logger.forContext('cli/atlassian.comments.cli.ts');
-
-// Log CLI module initialization
 cliLogger.debug('Jira comments CLI module initialized');
 
 /**
- * Register Jira Comments CLI commands with the Commander program
- * @param program - The Commander program instance to register commands with
- * @throws Error if command registration fails
+ * Register Jira Comments CLI commands
+ * @param program - Commander program
  */
 function register(program: Command): void {
 	const methodLogger = Logger.forContext(
@@ -35,42 +31,40 @@ function register(program: Command): void {
 }
 
 /**
- * Register the command for listing comments on a Jira issue
- * @param program - The Commander program instance
+ * Register the command for listing comments for a specific issue
+ * @param program - The Commander program
  */
 function registerListCommentsCommand(program: Command): void {
 	program
 		.command('ls-comments')
 		.description(
-			'List comments for a specific Jira issue, with pagination support.',
+			'List comments for a specific Jira issue, with pagination.',
 		)
 		.requiredOption(
 			'-i, --issue-id-or-key <idOrKey>',
-			'The ID or key of the Jira issue to get comments from (e.g., "PROJ-123" or "10001"). This is required.',
+			'ID or key of the issue to get comments for (e.g., "PROJ-123").',
 		)
 		.option(
 			'-l, --limit <number>',
-			'Maximum number of comments to return (1-100). Default is 25.',
-			'25',
+			'Maximum number of comments to return (1-100).',
 		)
 		.option(
-			'-c, --start-at <number>',
-			'Index of the first comment to return (0-based offset, starts at 0). Used for pagination.',
+			'-s, --start-at <number>',
+			'Index of the first comment to return (0-based).',
 		)
 		.option(
-			'-S, --order-by <field>',
-			'Field and direction to sort comments by (e.g., "created ASC" or "updated DESC").',
+			'-o, --order-by <sorting>',
+			'Sort field and direction (e.g., "created DESC" or "updated ASC").',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
 				'cli/atlassian.comments.cli.ts',
 				'ls-comments',
 			);
-
 			try {
-				actionLogger.debug('Processing command options:', options);
+				actionLogger.debug('Processing command options', options);
 
-				// Validate limit if provided
+				// Parse limit if provided
 				let limit: number | undefined;
 				if (options.limit) {
 					limit = parseInt(options.limit, 10);
@@ -81,9 +75,9 @@ function registerListCommentsCommand(program: Command): void {
 					}
 				}
 
-				// Validate startAt if provided
+				// Parse startAt if provided
 				let startAt: number | undefined;
-				if (options.startAt !== undefined) {
+				if (options.startAt) {
 					startAt = parseInt(options.startAt, 10);
 					if (isNaN(startAt) || startAt < 0) {
 						throw new Error(
@@ -92,91 +86,60 @@ function registerListCommentsCommand(program: Command): void {
 					}
 				}
 
-				const params = {
+				// Call the controller
+				const result = await atlassianCommentsController.listComments({
 					issueIdOrKey: options.issueIdOrKey,
 					limit,
 					startAt,
 					orderBy: options.orderBy,
-				};
+				});
 
-				actionLogger.debug('Fetching comments with params:', params);
-
-				const result =
-					await atlassianCommentsController.listComments(params);
-
-				actionLogger.debug('Successfully retrieved comments');
-
-				// Print the main content (already includes timestamp footer from formatter)
+				// Output the content
 				console.log(result.content);
-
-				// Conditionally print the standardized pagination footer
-				if (result.pagination) {
-					console.log('\n' + formatPagination(result.pagination));
-				}
 			} catch (error) {
-				actionLogger.error('Operation failed:', error);
+				actionLogger.error('Error listing comments', error);
 				handleCliError(error);
 			}
 		});
 }
 
 /**
- * Register the command for adding a comment to a Jira issue
- * @param program - The Commander program instance
+ * Register the command for adding a comment to a specific issue
+ * @param program - The Commander program
  */
 function registerAddCommentCommand(program: Command): void {
 	program
 		.command('add-comment')
-		.description('Add a new comment to a specific Jira issue.')
+		.description('Add a comment to a specific Jira issue.')
 		.requiredOption(
 			'-i, --issue-id-or-key <idOrKey>',
-			'The ID or key of the Jira issue to add a comment to (e.g., "PROJ-123" or "10001"). This is required.',
+			'ID or key of the issue to add a comment to (e.g., "PROJ-123").',
 		)
 		.requiredOption(
-			'-m, --body <text>',
-			'The text content of the comment to add. This is required.',
+			'-b, --body <text>',
+			'Content of the comment to add. Supports Markdown formatting.',
 		)
 		.action(async (options) => {
 			const actionLogger = Logger.forContext(
 				'cli/atlassian.comments.cli.ts',
 				'add-comment',
 			);
-
 			try {
-				actionLogger.debug('Processing command options:', options);
-
-				// Validate issue ID/key
-				if (
-					!options.issueIdOrKey ||
-					options.issueIdOrKey.trim() === ''
-				) {
-					throw new Error('Issue ID or key must not be empty.');
-				}
-
-				// Validate comment body
-				if (!options.body || options.body.trim() === '') {
-					throw new Error('Comment body must not be empty.');
-				}
-
-				const params = {
+				actionLogger.debug('Processing command options', {
 					issueIdOrKey: options.issueIdOrKey,
-					commentBody: options.body,
-				};
-
-				actionLogger.debug('Adding comment with params:', {
-					issueIdOrKey: params.issueIdOrKey,
-					commentBodyLength: params.commentBody.length,
+					bodyLength: options.body?.length || 0,
 				});
 
-				const result =
-					await atlassianCommentsController.addComment(params);
+				// Call the controller
+				const result = await atlassianCommentsController.addComment({
+					issueIdOrKey: options.issueIdOrKey,
+					commentBody: options.body,
+				});
 
-				actionLogger.debug('Successfully added comment');
-
-				// Print the main content (already includes timestamp footer from formatter)
+				// Output the content
 				console.log(result.content);
 			} catch (error) {
-				actionLogger.error('Operation failed:', error);
+				actionLogger.error('Error adding comment', error);
 				handleCliError(error);
 			}
 		});

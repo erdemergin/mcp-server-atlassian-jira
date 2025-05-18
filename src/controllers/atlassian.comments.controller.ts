@@ -17,6 +17,7 @@ import {
 	formatAddedCommentConfirmation,
 } from './atlassian.comments.formatter.js';
 import { markdownToAdf, textToAdf } from '../utils/adf.util.js';
+import { formatPagination } from '../utils/formatter.util.js';
 
 // Create a contextualized logger for this file
 const controllerLogger = Logger.forContext(
@@ -100,10 +101,19 @@ async function listComments(options: {
 			baseUrl,
 		);
 
+		// Combine formatted content with pagination information
+		let finalContent = formattedContent;
+		if (
+			pagination &&
+			(pagination.hasMore || pagination.count !== undefined)
+		) {
+			const paginationString = formatPagination(pagination);
+			finalContent += '\n\n' + paginationString;
+		}
+
 		// Return the controller response
 		return {
-			content: formattedContent,
-			pagination,
+			content: finalContent,
 		};
 	} catch (error) {
 		// Handle and propagate errors using standard error handler

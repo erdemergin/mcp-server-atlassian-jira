@@ -3,7 +3,7 @@ import { Logger } from '../utils/logger.util.js';
 import { handleCliError } from '../utils/error.util.js';
 import { ListIssuesToolArgsType } from '../tools/atlassian.issues.types.js';
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
-import { formatHeading, formatPagination } from '../utils/formatter.util.js';
+import { formatHeading } from '../utils/formatter.util.js';
 
 /**
  * CLI module for managing Jira issues.
@@ -125,11 +125,6 @@ function registerListIssuesCommand(program: Command): void {
 				// Print the main content
 				console.log(formatHeading('Issues', 2));
 				console.log(result.content);
-
-				// Conditionally print the standardized pagination footer
-				if (result.pagination) {
-					console.log('\n' + formatPagination(result.pagination));
-				}
 			} catch (error) {
 				actionLogger.error('Operation failed:', error);
 				handleCliError(error);
@@ -174,10 +169,8 @@ function registerGetIssueCommand(program: Command): void {
 					issueIdOrKey: options.issueIdOrKey,
 				});
 
-				// Print the main content (already includes timestamp footer from formatter)
+				// Print the content
 				console.log(result.content);
-
-				// No separate CLI pagination footer needed for 'get' commands
 			} catch (error) {
 				handleCliError(error);
 			}

@@ -43,19 +43,15 @@ async function search(
 		});
 
 		// Format the search results
-		const formattedContent = `# Jira Search Results\n\n${mergedOptions.jql ? `**JQL Query:** \`${mergedOptions.jql}\`\n\n` : ''}${result.content}`;
+		// Note: result.content from issues controller already includes JQL and pagination info
+		const formattedContent = `# Jira Search Results\n\n${result.content}`;
 
 		controllerLogger.debug(
 			'Successfully retrieved and formatted search results',
-			{
-				count: result.pagination?.count,
-				hasMore: result.pagination?.hasMore,
-			},
 		);
 
 		return {
 			content: formattedContent,
-			pagination: result.pagination,
 		};
 	} catch (error) {
 		return handleControllerError(error, {

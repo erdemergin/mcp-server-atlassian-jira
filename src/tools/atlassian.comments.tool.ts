@@ -18,20 +18,19 @@ toolLogger.debug('Jira comments tool module initialized');
 /**
  * MCP Tool: List Comments for a Jira Issue
  *
- * Lists comments for a specific Jira issue with pagination support.
- * Returns a formatted markdown response with comments list and pagination info.
+ * Lists comments for a specific Jira issue.
+ * Returns a formatted markdown response with comment details.
  *
- * @param {ListCommentsToolArgsType} args - Tool arguments containing the issue ID/key and optional pagination params
- * @returns {Promise<{ content: Array<{ type: 'text', text: string }>, metadata: { pagination: { startAt: number, limit: number, total: number } } }>} MCP response with formatted comments list
+ * @param {ListCommentsToolArgsType} args - Tool arguments for listing comments
+ * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted comments list
  * @throws Will return error message if comment listing fails
  */
-async function handleListComments(args: ListCommentsToolArgsType) {
+async function listComments(args: ListCommentsToolArgsType) {
 	const methodLogger = Logger.forContext(
 		'tools/atlassian.comments.tool.ts',
-		'handleListComments',
+		'listComments',
 	);
-
-	methodLogger.debug('Listing comments for issue', args);
+	methodLogger.debug('Listing Jira comments with args:', args);
 
 	try {
 		const result = await atlassianCommentsController.listComments({
@@ -41,11 +40,9 @@ async function handleListComments(args: ListCommentsToolArgsType) {
 			orderBy: args.orderBy,
 		});
 
-		methodLogger.debug('Successfully retrieved comments list', {
-			issueIdOrKey: args.issueIdOrKey,
-			hasPagination: !!result.pagination,
-		});
+		methodLogger.debug('Successfully retrieved comments list');
 
+		// Content already includes the pagination information
 		return {
 			content: [
 				{
@@ -53,12 +50,9 @@ async function handleListComments(args: ListCommentsToolArgsType) {
 					text: result.content,
 				},
 			],
-			metadata: {
-				pagination: result.pagination,
-			},
 		};
 	} catch (error) {
-		methodLogger.error('Failed to list issue comments', error);
+		methodLogger.error('Failed to list comments', error);
 		return formatErrorForMcpTool(error);
 	}
 }
@@ -67,21 +61,20 @@ async function handleListComments(args: ListCommentsToolArgsType) {
  * MCP Tool: Add Comment to a Jira Issue
  *
  * Adds a new comment to a specific Jira issue.
- * Returns a formatted markdown response confirming the comment was added.
+ * Returns a formatted markdown response confirming the addition.
  *
- * @param {AddCommentToolArgsType} args - Tool arguments containing the issue ID/key and comment content
- * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted confirmation
+ * @param {AddCommentToolArgsType} args - Tool arguments for adding a comment
+ * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with confirmation
  * @throws Will return error message if comment addition fails
  */
-async function handleAddComment(args: AddCommentToolArgsType) {
+async function addComment(args: AddCommentToolArgsType) {
 	const methodLogger = Logger.forContext(
 		'tools/atlassian.comments.tool.ts',
-		'handleAddComment',
+		'addComment',
 	);
-
-	methodLogger.debug('Adding comment to issue', {
+	methodLogger.debug('Adding comment to Jira issue:', {
 		issueIdOrKey: args.issueIdOrKey,
-		commentLength: args.commentBody.length,
+		bodyLength: args.commentBody?.length || 0,
 	});
 
 	try {
@@ -90,9 +83,7 @@ async function handleAddComment(args: AddCommentToolArgsType) {
 			commentBody: args.commentBody,
 		});
 
-		methodLogger.debug('Successfully added comment to issue', {
-			issueIdOrKey: args.issueIdOrKey,
-		});
+		methodLogger.debug('Successfully added comment');
 
 		return {
 			content: [
@@ -103,7 +94,7 @@ async function handleAddComment(args: AddCommentToolArgsType) {
 			],
 		};
 	} catch (error) {
-		methodLogger.error('Failed to add comment to issue', error);
+		methodLogger.error('Failed to add comment', error);
 		return formatErrorForMcpTool(error);
 	}
 }
@@ -111,7 +102,7 @@ async function handleAddComment(args: AddCommentToolArgsType) {
 /**
  * Register Atlassian Comments MCP Tools
  *
- * Registers the comment-related tools with the MCP server.
+ * Registers the list-comments and add-comment tools with the MCP server.
  * Each tool is registered with its schema, description, and handler function.
  *
  * @param {McpServer} server - The MCP server instance to register tools with
@@ -126,17 +117,17 @@ function registerTools(server: McpServer) {
 	// Register the list comments tool
 	server.tool(
 		'jira_ls_comments',
-		`Lists comments for a specific Jira issue identified by \`issueIdOrKey\`. Comments are returned with author details, creation/edit dates, and full content. Supports pagination via \`limit\` and \`startAt\`. Optionally sort results using \`orderBy\` — use \`created\` / \`updated\` for ascending order or prefix with \`-\` (e.g., \`-created\`, \`-updated\`) for descending. Returns a formatted list of comments in Markdown. Requires Jira credentials to be configured.`,
+		`Lists comments for a specific Jira issue identified by \`issueIdOrKey\`. Supports pagination via \`limit\` and \`startAt\`. Returns a formatted Markdown list of comments with author, date, and content. Pagination information including next page instructions is included in the returned text. Requires Jira credentials to be configured.`,
 		ListCommentsToolArgs.shape,
-		handleListComments,
+		listComments,
 	);
 
 	// Register the add comment tool
 	server.tool(
 		'jira_add_comment',
-		`Adds a new comment to a Jira issue identified by \`issueIdOrKey\`. Provide the comment text in \`commentBody\` parameter. Markdown formatting (including headings, lists, code blocks, links) is supported and will be converted to Jira's rich text format (ADF). Returns a confirmation message with the newly created comment details. Use this tool to reply to issues or add new information. Requires Jira credentials to be configured.`,
+		`Adds a new comment to a specific Jira issue identified by \`issueIdOrKey\`. The content of the comment is provided in \`commentBody\` and supports Markdown formatting which will be converted to Jira's Atlassian Document Format (ADF). Returns a confirmation message and link to the newly created comment. Requires Jira credentials to be configured.`,
 		AddCommentToolArgs.shape,
-		handleAddComment,
+		addComment,
 	);
 
 	methodLogger.debug('Successfully registered Atlassian Comments tools');

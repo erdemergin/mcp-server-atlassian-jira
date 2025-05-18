@@ -9,7 +9,6 @@ import {
 } from './atlassian.projects.types.js';
 
 import atlassianProjectsController from '../controllers/atlassian.projects.controller.js';
-import { formatPagination } from '../utils/formatter.util.js';
 
 // Create a contextualized logger for this file
 const toolLogger = Logger.forContext('tools/atlassian.projects.tool.ts');
@@ -21,7 +20,7 @@ toolLogger.debug('Jira projects tool module initialized');
  * MCP Tool: List Jira Projects
  *
  * Lists Jira projects with optional filtering.
- * Returns a formatted markdown response with project details and pagination info appended to content.
+ * Returns a formatted markdown response with project details and pagination info.
  *
  * @param {ListProjectsToolArgsType} args - Tool arguments for filtering projects
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted projects list
@@ -46,22 +45,14 @@ async function listProjects(args: ListProjectsToolArgsType) {
 
 		const result = await atlassianProjectsController.list(options);
 
-		methodLogger.debug('Successfully retrieved projects list', {
-			count: result.pagination?.count,
-			hasMore: result.pagination?.hasMore,
-			total: result.pagination?.total,
-		});
+		methodLogger.debug('Successfully retrieved projects list');
 
-		let finalText = result.content;
-		if (result.pagination) {
-			finalText += '\n\n' + formatPagination(result.pagination);
-		}
-
+		// Content already includes pagination information
 		return {
 			content: [
 				{
 					type: 'text' as const,
-					text: finalText,
+					text: result.content,
 				},
 			],
 		};
@@ -131,7 +122,7 @@ function registerTools(server: McpServer) {
 	// Register the list projects tool
 	server.tool(
 		'jira_ls_projects',
-		`Lists Jira projects accessible to the user, optionally filtering by name/key (\`name\`) or sorting (\`orderBy\`). Use this to discover available projects and find project keys/IDs needed for other tools (like \`jira_get_project\` or \`jira_list_issues\`). Supports pagination via \`limit\` and \`startAt\`. Returns a formatted list of projects including key, name, type, style, lead, and URL. **Note:** Default sort is by most recently updated issue time. Requires Jira credentials to be configured.`,
+		`Lists Jira projects accessible to the user, optionally filtering by name/key (\`name\`) or sorting (\`orderBy\`). Use this to discover available projects and find project keys/IDs needed for other tools (like \`jira_get_project\` or \`jira_list_issues\`). Supports pagination via \`limit\` and \`startAt\`. Returns a formatted list of projects including key, name, type, style, lead, and URL. Pagination information including next page instructions is included in the returned text. **Note:** Default sort is by most recently updated issue time. Requires Jira credentials to be configured.`,
 		ListProjectsToolArgs.shape,
 		listProjects,
 	);

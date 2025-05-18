@@ -48,13 +48,7 @@ export function formatCommentsList(
 	baseUrl?: string,
 ): string {
 	if (!comments || comments.length === 0) {
-		return (
-			'No comments found for this issue.' +
-			'\n\n' +
-			formatSeparator() +
-			'\n' +
-			`*Information retrieved at: ${formatDate(new Date())}*`
-		);
+		return 'No comments found for this issue.';
 	}
 
 	const lines: string[] = [
@@ -110,12 +104,10 @@ export function formatCommentsList(
 		}
 	});
 
-	// Add footer with information and links
-	lines.push('\n\n' + formatSeparator());
-	lines.push(`*Information retrieved at: ${formatDate(new Date())}*`);
-
 	// Add link to view the issue if base URL is provided
 	if (baseUrl) {
+		lines.push('\n\n' + formatSeparator());
+		lines.push(`*Information retrieved at: ${formatDate(new Date())}*`);
 		const issueUrl = `${baseUrl}/browse/${issueIdOrKey}`;
 		lines.push(`*View this issue in Jira: ${issueUrl}*`);
 	}

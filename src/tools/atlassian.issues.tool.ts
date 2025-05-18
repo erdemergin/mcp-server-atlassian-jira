@@ -8,7 +8,6 @@ import {
 	GetIssueToolArgsType,
 } from './atlassian.issues.types.js';
 import atlassianIssuesController from '../controllers/atlassian.issues.controller.js';
-import { formatPagination } from '../utils/formatter.util.js';
 
 // Create a contextualized logger for this file
 const toolLogger = Logger.forContext('tools/atlassian.issues.tool.ts');
@@ -19,8 +18,9 @@ toolLogger.debug('Jira issues tool module initialized');
 /**
  * MCP Tool: List Jira Issues
  *
- * Lists Jira issues with optional filtering by JQL query, fields, and limit.
- * Returns a formatted markdown response with issue details and pagination info appended to content.
+ * Lists Jira issues with optional filtering using JQL.
+ * Returns a formatted markdown response with issue details. The response
+ * includes the executed JQL query and pagination information.
  *
  * @param {ListIssuesToolArgsType} args - Tool arguments for filtering issues
  * @returns {Promise<{ content: Array<{ type: 'text', text: string }> }>} MCP response with formatted issues list
@@ -34,36 +34,17 @@ async function listIssues(args: ListIssuesToolArgsType) {
 	methodLogger.debug('Listing Jira issues with filters:', args);
 
 	try {
-		// Map tool args to controller options, using startAt and statuses
-		const options: ListIssuesToolArgsType = {
-			jql: args.jql,
-			projectKeyOrId: args.projectKeyOrId,
-			statuses: args.statuses,
-			orderBy: args.orderBy,
-			limit: args.limit,
-			startAt: args.startAt,
-		};
+		// This is a pass-through function, so we pass all args directly to the controller
+		const result = await atlassianIssuesController.list(args);
 
-		methodLogger.debug('Calling controller with options:', options);
+		methodLogger.debug('Successfully retrieved issues list');
 
-		const result = await atlassianIssuesController.list(options);
-
-		methodLogger.debug('Successfully retrieved issues list', {
-			count: result.pagination?.count,
-			hasMore: result.pagination?.hasMore,
-			total: result.pagination?.total,
-		});
-
-		let finalText = result.content;
-		if (result.pagination) {
-			finalText += '\n\n' + formatPagination(result.pagination);
-		}
-
+		// Content already includes JQL query and pagination information
 		return {
 			content: [
 				{
 					type: 'text' as const,
-					text: finalText,
+					text: result.content,
 				},
 			],
 		};
@@ -89,17 +70,13 @@ async function getIssue(args: GetIssueToolArgsType) {
 		'getIssue',
 	);
 
-	methodLogger.debug(
-		`Retrieving issue details for ID/key: ${args.issueIdOrKey}`,
-	);
+	methodLogger.debug(`Retrieving issue details for: ${args.issueIdOrKey}`);
 
 	try {
 		const result = await atlassianIssuesController.get({
 			issueIdOrKey: args.issueIdOrKey,
 		});
-		methodLogger.debug(
-			'Successfully retrieved issue details from controller',
-		);
+		methodLogger.debug('Successfully retrieved issue details');
 
 		return {
 			content: [
@@ -108,9 +85,6 @@ async function getIssue(args: GetIssueToolArgsType) {
 					text: result.content,
 				},
 			],
-			metadata: {
-				issueKey: args.issueIdOrKey,
-			},
 		};
 	} catch (error) {
 		methodLogger.error('Failed to get issue details', error);
@@ -121,7 +95,7 @@ async function getIssue(args: GetIssueToolArgsType) {
 /**
  * Register Atlassian Issues MCP Tools
  *
- * Registers the issue-related tools with the MCP server.
+ * Registers the list-issues and get-issue tools with the MCP server.
  * Each tool is registered with its schema, description, and handler function.
  *
  * @param {McpServer} server - The MCP server instance to register tools with
@@ -136,14 +110,7 @@ function registerTools(server: McpServer) {
 	// Register the list issues tool
 	server.tool(
 		'jira_ls_issues',
-		`Searches for Jira issues using flexible filtering criteria. You can provide a full JQL query via \`jql\` for complex filtering, or use specific filters like \`projectKeyOrId\` and \`statuses\`. Sort results using \`orderBy\` (e.g., "priority DESC"). Supports pagination via \`limit\` and \`startAt\`. Returns a formatted list of matching issues including key, summary, type, status, priority, and project. Default sort is by last updated date. 
-
-**Important Notes:**
-- Status names in \`statuses\` are **case-sensitive** and must match exactly how they appear in Jira (e.g., "In Progress", not "in progress"). Use \`jira_ls_statuses\` to find exact status names for your project.
-- JQL functions relying on user context (like \`currentUser()\`) may not work reliably with API token authentication and could cause errors; use specific account IDs (e.g., \`assignee = 'accountid:...'\`) instead when using JQL.
-- If \`jql\` is provided and already includes an ORDER BY clause, the \`orderBy\` parameter will be ignored. 
-
-Requires Jira credentials to be configured.`,
+		`Searches for Jira issues using JQL and other filters. Supports filtering by project (\`projectKeyOrId\`), statuses (\`statuses\`), or advanced JQL queries (\`jql\`). Includes pagination via \`limit\` and \`startAt\`. Returns formatted issue summaries including key, type, status, summary, and assignee. The response includes the executed JQL query and pagination information with instructions for viewing the next page. Requires Jira credentials to be configured.`,
 		ListIssuesToolArgs.shape,
 		listIssues,
 	);
@@ -151,7 +118,7 @@ Requires Jira credentials to be configured.`,
 	// Register the get issue details tool
 	server.tool(
 		'jira_get_issue',
-		`Retrieves comprehensive details for a specific Jira issue identified by \`issueIdOrKey\`. Returns the issue's description, status, priority, assignee, reporter, comments, attachments, and linked issues as formatted Markdown. Also includes linked development information (commits, branches, PRs) when available. Use this after finding an issue key to get its complete context. Requires Jira credentials to be configured.`,
+		`Retrieves comprehensive details about a specific Jira issue using its ID or key (\`issueIdOrKey\`). Returns formatted issue information including summary, description, status, reporter, assignee, comments summary, and related development information (commits, branches, pull requests) if available. Requires Jira credentials to be configured.`,
 		GetIssueToolArgs.shape,
 		getIssue,
 	);
