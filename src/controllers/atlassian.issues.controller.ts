@@ -27,6 +27,7 @@ import {
 	DevInfoResponse,
 	DevInfoSummaryResponse,
 } from '../services/vendor.atlassian.issues.types.js';
+import { formatPagination } from '../utils/formatter.util.js';
 
 /**
  * Controller for managing Jira issues.
@@ -188,9 +189,24 @@ async function list(
 
 		const formattedIssues = formatIssuesList(formatterInput);
 
+		// Create JQL info section
+		const jqlInfoText = `**Executed JQL Query:** \`${finalJql}\``;
+
+		// Combine JQL info and issues content
+		const finalContent = jqlInfoText + '\n\n' + formattedIssues;
+
+		// Combine formatted content with pagination information
+		let contentWithPagination = finalContent;
+		if (
+			pagination &&
+			(pagination.hasMore || pagination.count !== undefined)
+		) {
+			const paginationString = formatPagination(pagination);
+			contentWithPagination += '\n\n' + paginationString;
+		}
+
 		return {
-			content: formattedIssues,
-			pagination,
+			content: contentWithPagination,
 		};
 	} catch (error) {
 		throw handleControllerError(

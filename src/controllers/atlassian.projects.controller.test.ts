@@ -2,7 +2,7 @@ import atlassianProjectsController from './atlassian.projects.controller.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { config } from '../utils/config.util.js';
 import { McpError } from '../utils/error.util.js'; // Import McpError
-import { formatSeparator, formatDate } from '../utils/formatter.util.js'; // Add imports
+import { formatSeparator } from '../utils/formatter.util.js'; // Add imports
 
 describe('Atlassian Projects Controller', () => {
 	// Load configuration and check for credentials before all tests
@@ -29,25 +29,10 @@ describe('Atlassian Projects Controller', () => {
 			expect(result).toBeDefined();
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
-			expect(result).toHaveProperty('pagination');
-
-			// Check pagination object structure and basic types
-			expect(result.pagination).toBeDefined();
-			expect(result.pagination).toHaveProperty('hasMore');
-			expect(typeof result.pagination?.hasMore).toBe('boolean');
-			expect(result.pagination).toHaveProperty('count');
-			expect(typeof result.pagination?.count).toBe('number');
-			expect(result.pagination).toHaveProperty('total');
-			expect(typeof result.pagination?.total).toBe('number');
-			if (result.pagination?.hasMore) {
-				expect(result.pagination).toHaveProperty('nextCursor');
-				expect(typeof result.pagination?.nextCursor).toBe('string');
-			}
 
 			// Check that content does NOT contain pagination string anymore
-			expect(result.content).not.toContain('Showing');
-			expect(result.content).not.toContain('Next StartAt');
-			expect(result.content).not.toContain(`total items`);
+			expect(result.content).toContain('Showing');
+			expect(result.content).toContain('total items');
 
 			// Basic Markdown content checks - check for expected formatting from live data
 			if (
@@ -67,31 +52,31 @@ describe('Atlassian Projects Controller', () => {
 			const result1 = await atlassianProjectsController.list({
 				limit: 1,
 			});
-			expect(result1.pagination?.count).toBeLessThanOrEqual(1);
 
-			// If there's a next page, fetch it
-			if (result1.pagination?.hasMore && result1.pagination.nextCursor) {
-				// Parse the nextCursor (which is the next startAt value as a string)
-				const nextStartAt = parseInt(result1.pagination.nextCursor, 10);
-				if (isNaN(nextStartAt)) {
-					throw new Error(
-						`Invalid nextCursor format for startAt: ${result1.pagination.nextCursor}`,
-					);
-				}
-				const result2 = await atlassianProjectsController.list({
-					limit: 1,
-					// Pass the parsed number as startAt
-					startAt: nextStartAt,
-				});
-				expect(result2.pagination?.count).toBeLessThanOrEqual(1);
-				// Check if content is different (simple check)
-				if (
-					result1.content !==
-						'No Jira projects found matching your criteria.' &&
-					result2.content !==
-						'No Jira projects found matching your criteria.'
-				) {
-					expect(result1.content).not.toEqual(result2.content);
+			// Check if content contains pagination information
+			if (result1.content.includes('More results are available')) {
+				// Get the next startAt value from the content
+				const startAtMatch = result1.content.match(
+					/Use --start-at (\d+) to view more/,
+				);
+				if (startAtMatch && startAtMatch[1]) {
+					const nextStartAt = parseInt(startAtMatch[1], 10);
+
+					// Fetch second page
+					const result2 = await atlassianProjectsController.list({
+						limit: 1,
+						startAt: nextStartAt,
+					});
+
+					// If both results have content, they should be different
+					if (
+						result1.content !==
+							'No Jira projects found matching your criteria.' &&
+						result2.content !==
+							'No Jira projects found matching your criteria.'
+					) {
+						expect(result1.content).not.toEqual(result2.content);
+					}
 				}
 			} else {
 				console.warn(
@@ -131,13 +116,14 @@ describe('Atlassian Projects Controller', () => {
 				limit: 5,
 			});
 
-			expect(result.pagination?.count).toBeLessThanOrEqual(5);
+			// Check if the content is well-formed
 			if (
 				result.content !==
 				'No Jira projects found matching your criteria.'
 			) {
 				expect(result.content).toMatch(/^# Jira Projects/m);
-				// Further checks could involve verifying sorting/filtering in Markdown, but that's complex
+				// Content should contain pagination information
+				expect(result.content).toContain('Information retrieved at:');
 			}
 		}, 30000);
 
@@ -155,21 +141,15 @@ describe('Atlassian Projects Controller', () => {
 			expect(typeof result.content).toBe('string');
 
 			// Check specific empty result message including the standard footer
-			expect(result.content).toBe(
-				'No Jira projects found matching your criteria.\n\n' +
-					formatSeparator() +
-					'\n' +
-					`*Information retrieved at: ${formatDate(new Date())}*`,
+			expect(result.content).toContain(
+				'No Jira projects found matching your criteria',
 			);
-			// Verify pagination properties for empty result
-			expect(result.pagination).toHaveProperty('count', 0);
-			expect(result.pagination?.hasMore).toBe(false);
-			expect(result.pagination?.total).toBe(0);
-			expect(result.pagination?.nextCursor).toBeUndefined();
+			expect(result.content).toContain(formatSeparator());
+			expect(result.content).toContain('Information retrieved at:');
 
 			// Check that content does NOT contain pagination string
-			expect(result.content).not.toContain('Showing');
-			expect(result.content).not.toContain('Next StartAt');
+			expect(result.content).toContain('Showing');
+			expect(result.content).toContain('total items');
 		}, 30000);
 
 		it('should handle various filtering combinations', async () => {
@@ -211,11 +191,9 @@ describe('Atlassian Projects Controller', () => {
 			// Verify response (might find 0 or 1 projects due to exact matching)
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
-			expect(result).toHaveProperty('pagination');
-			expect(result.pagination).toHaveProperty('count');
 
 			// If we found exactly the project we filtered for, its key should be in the content
-			if (result.pagination?.count === 1) {
+			if (result.content.includes(projectKey)) {
 				expect(result.content).toContain(`**Key**: ${projectKey}`);
 			}
 		}, 30000);
@@ -231,21 +209,16 @@ describe('Atlassian Projects Controller', () => {
 				limit: 10,
 			});
 
-			expect(result.content).toBe(
-				'No Jira projects found matching your criteria.\n\n' +
-					formatSeparator() +
-					'\n' +
-					`*Information retrieved at: ${formatDate(new Date())}*`,
-			); // Check actual empty message
-			expect(result.pagination).toBeDefined();
-			expect(result.pagination?.hasMore).toBe(false);
-			expect(result.pagination?.count).toBe(0);
-			expect(result.pagination?.total).toBe(0);
-			expect(result.pagination?.nextCursor).toBeUndefined();
+			// Check actual empty message and formatting
+			expect(result.content).toContain(
+				'No Jira projects found matching your criteria',
+			);
+			expect(result.content).toContain(formatSeparator());
+			expect(result.content).toContain('Information retrieved at:');
 
 			// Check that content does NOT contain pagination string anymore
-			expect(result.content).not.toContain('Showing');
-			expect(result.content).not.toContain('Next StartAt');
+			expect(result.content).toContain('Showing');
+			expect(result.content).toContain('total items');
 		}, 30000);
 	});
 
@@ -297,7 +270,6 @@ describe('Atlassian Projects Controller', () => {
 			// Verify the ControllerResponse structure
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
-			expect(result).not.toHaveProperty('pagination'); // 'get' shouldn't have pagination
 
 			// Verify Markdown content
 			expect(result.content).toMatch(/^# Project:/m); // Main heading for project details

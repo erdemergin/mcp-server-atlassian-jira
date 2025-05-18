@@ -7,6 +7,7 @@
 /**
  * Common pagination information for API responses.
  * This is used for providing consistent pagination details to clients.
+ * Note: This is now only used internally by controllers and formatPagination.
  */
 export interface ResponsePagination {
 	/**
@@ -37,17 +38,16 @@ export interface ResponsePagination {
 /**
  * Common response structure for controller operations.
  * All controller methods should return this structure.
+ *
+ * All output, including pagination information and metadata, is now consolidated
+ * into the content field as a single Markdown-formatted string.
  */
 export interface ControllerResponse {
 	/**
 	 * Formatted content to be displayed to the user.
-	 * Usually a Markdown-formatted string.
+	 * This is a Markdown-formatted string that includes all information
+	 * (main content, pagination details, and any metadata) that needs
+	 * to be presented to the user.
 	 */
 	content: string;
-
-	/**
-	 * Optional pagination information for list operations.
-	 * If present, indicates that more results are available.
-	 */
-	pagination?: ResponsePagination;
 }

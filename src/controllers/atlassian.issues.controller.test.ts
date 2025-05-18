@@ -2,7 +2,7 @@ import atlassianIssuesController from './atlassian.issues.controller.js';
 import { config } from '../utils/config.util.js';
 import { getAtlassianCredentials } from '../utils/transport.util.js';
 import { McpError } from '../utils/error.util.js';
-import { formatSeparator, formatDate } from '../utils/formatter.util.js';
+import { formatSeparator } from '../utils/formatter.util.js';
 
 describe('Atlassian Issues Controller', () => {
 	// Load configuration and check for credentials before running tests
@@ -31,25 +31,10 @@ describe('Atlassian Issues Controller', () => {
 			expect(result).toBeDefined();
 			expect(result).toHaveProperty('content');
 			expect(typeof result.content).toBe('string');
-			expect(result).toHaveProperty('pagination');
-
-			// Check pagination object structure and basic types
-			expect(result.pagination).toBeDefined();
-			expect(result.pagination).toHaveProperty('hasMore');
-			expect(typeof result.pagination?.hasMore).toBe('boolean');
-			expect(result.pagination).toHaveProperty('count');
-			expect(typeof result.pagination?.count).toBe('number');
-			expect(result.pagination).toHaveProperty('total');
-			expect(typeof result.pagination?.total).toBe('number');
-			if (result.pagination?.hasMore) {
-				expect(result.pagination).toHaveProperty('nextCursor');
-				expect(typeof result.pagination?.nextCursor).toBe('string');
-			}
 
 			// Check that content does NOT contain pagination string
-			expect(result.content).not.toContain('Showing');
-			expect(result.content).not.toContain('Next StartAt');
-			expect(result.content).not.toContain(`total issues`);
+			expect(result.content).toContain('Showing');
+			expect(result.content).toContain('total items');
 
 			// Check basic markdown content - check for expected formatting from live data
 			if (result.content !== 'No issues found matching your criteria.') {
@@ -71,12 +56,12 @@ describe('Atlassian Issues Controller', () => {
 			expect(result).toBeDefined();
 			expect(typeof result.content).toBe('string');
 
-			// Check if pagination is handled correctly
-			if (result.pagination && result.pagination.hasMore) {
-				expect(result.pagination.nextCursor).toBeDefined();
-				expect(
-					parseInt(result.pagination.nextCursor as string, 10),
-				).toBe(10);
+			// Pagination info should now be in the content
+			expect(result.content).toContain('JQL Query:');
+
+			// Check if content contains pagination information
+			if (result.content.includes('More results are available')) {
+				expect(result.content).toContain('Use --start-at');
 			}
 		}, 30000);
 
@@ -108,7 +93,6 @@ describe('Atlassian Issues Controller', () => {
 				expect(result).toBeDefined();
 				expect(typeof result.content).toBe('string');
 				expect(result.content).toContain('# Jira Issues');
-				expect(result.pagination).toBeDefined();
 			} catch (error) {
 				// Some Jira instances may not support all JQL terms or fields
 				// So we'll accept errors that are properly formatted
@@ -130,21 +114,16 @@ describe('Atlassian Issues Controller', () => {
 			expect(typeof result.content).toBe('string');
 
 			// Check for appropriate message for no results (actual formatter output)
-			expect(result.content).toBe(
-				'No issues found.\n\n' +
-					formatSeparator() +
-					'\n' +
-					`*Information retrieved at: ${formatDate(new Date())}*`,
-			);
-			expect(result.pagination).toBeDefined();
-			expect(result.pagination?.hasMore).toBe(false);
-			expect(result.pagination?.count).toBe(0);
-			expect(result.pagination?.total).toBe(0);
-			expect(result.pagination?.nextCursor).toBeUndefined();
+			expect(result.content).toContain('No issues found.');
+
+			// Content should include the JQL query and formatted timestamp
+			expect(result.content).toContain(`summary ~ "${uniqueTerm}"`);
+			expect(result.content).toContain(formatSeparator());
+			expect(result.content).toContain('Information retrieved at:');
 
 			// Check that content does NOT contain pagination string
-			expect(result.content).not.toContain('Showing');
-			expect(result.content).not.toContain('Next StartAt');
+			expect(result.content).toContain('Showing');
+			expect(result.content).toContain('total items');
 		}, 30000);
 
 		it('should handle error for invalid JQL', async () => {
