@@ -1,3 +1,10 @@
+## [1.35.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.35.0...v1.35.1) (2025-05-19)
+
+
+### Bug Fixes
+
+* remove unused extractAndValidate function ([c9bbe74](https://github.com/aashari/mcp-server-atlassian-jira/commit/c9bbe74d8c0a08b5834cf672ca00cc8c7ee6e769))
+
 # [1.35.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.34.0...v1.35.0) (2025-05-19)
 
 
