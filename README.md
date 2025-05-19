@@ -1,56 +1,42 @@
 # Atlassian Jira MCP Server
 
-This project provides a Model Context Protocol (MCP) server that acts as a bridge between AI assistants (like Anthropic's Claude, Cursor AI, or other MCP-compatible clients) and your Atlassian Jira instance. It allows AI to securely access and interact with your projects, issues, and other Jira resources in real time.
+A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Jira Cloud. Enables AI systems (e.g., LLMs like Claude or Cursor AI) to securely interact with your Jira projects, issues, comments, and related development information in real time.
 
----
-
-# Overview
-
-## What is MCP?
-
-Model Context Protocol (MCP) is an open standard that allows AI systems to securely and contextually connect with external tools and data sources.
-
-This server implements MCP specifically for Jira Cloud, bridging your Jira data with AI assistants.
+[![NPM Version](https://img.shields.io/npm/v/@aashari/mcp-server-atlassian-jira)](https://www.npmjs.com/package/@aashari/mcp-server-atlassian-jira)
+[![Build Status](https://img.shields.io/github/workflow/status/aashari/mcp-server-atlassian-jira/CI)](https://github.com/aashari/mcp-server-atlassian-jira/actions)
 
 ## Why Use This Server?
 
-- **Minimal Input, Maximum Output Philosophy**: Simple identifiers like `projectKeyOrId` and `issueIdOrKey` are all you need. Each tool returns comprehensive details without requiring extra flags.
+- **Minimal Input, Maximum Output**: Simple identifiers provide comprehensive details without requiring extra flags.
+- **Complete Jira Context**: Access projects, issues, comments, and metadata to understand your work context.
+- **Rich Development Information**: Get insights into branches, commits, and pull requests linked to issues.
+- **Secure Local Authentication**: Run locally with your credentials, never storing tokens on remote servers.
+- **Intuitive Markdown Responses**: Well-structured, consistent Markdown formatting for all outputs.
 
-- **Complete Jira Context**: Provide your AI assistant with full visibility into projects, issues, comments, and all relevant metadata to understand your work context.
+## What is MCP?
 
-- **Rich Development Information**: Get detailed insights into branches, commits, and pull requests linked to issues, creating a bridge between your issue tracking and code repositories.
-
-- **Secure Local Authentication**: Credentials are never stored in the server. The server runs locally, so your tokens never leave your machine and you can request only the permissions you need.
-
-- **Intuitive Markdown Responses**: All responses use well-structured Markdown for readability with consistent formatting and navigational links.
-
----
-
-# Getting Started
+Model Context Protocol (MCP) is an open standard for securely connecting AI systems to external tools and data sources. This server implements MCP for Jira Cloud, enabling AI assistants to interact with your Jira instance programmatically.
 
 ## Prerequisites
 
 - **Node.js** (>=18.x): [Download](https://nodejs.org/)
 - **Atlassian Account** with access to Jira Cloud
 
----
+## Setup
 
-## Step 1: Get Your Atlassian API Token
+### Step 1: Get Your Atlassian API Token
 
-1. Go to your Atlassian API token management page:
-   [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+1. Go to your Atlassian API token management page: [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
 2. Click **Create API token**.
 3. Give it a descriptive **Label** (e.g., `mcp-jira-access`).
 4. Click **Create**.
 5. **Copy the generated API token** immediately. You won't be able to see it again.
 
----
+### Step 2: Configure Credentials
 
-## Step 2: Configure Credentials
+#### Option A: MCP Config File (Recommended)
 
-### Method A: MCP Config File (Recommended)
-
-Create or edit `~/.mcp/configs.json`:
+Edit or create `~/.mcp/configs.json`:
 
 ```json
 {
@@ -68,26 +54,32 @@ Create or edit `~/.mcp/configs.json`:
 - `<YOUR_ATLASSIAN_EMAIL>`: Your Atlassian account email.
 - `<YOUR_COPIED_API_TOKEN>`: The API token from Step 1.
 
-**Note:** For backward compatibility, the server will also recognize configurations under the full package name (`@aashari/mcp-server-atlassian-jira`), the unscoped package name (`mcp-server-atlassian-jira`), or the `atlassian-jira` format if the recommended `jira` key is not found. However, using the short `jira` key is preferred for new configurations.
-
-### Method B: Environment Variables
-
-Pass credentials directly when running the server:
+#### Option B: Environment Variables
 
 ```bash
-ATLASSIAN_SITE_NAME="<YOUR_SITE_NAME>" \
-ATLASSIAN_USER_EMAIL="<YOUR_EMAIL>" \
-ATLASSIAN_API_TOKEN="<YOUR_API_TOKEN>" \
-npx -y @aashari/mcp-server-atlassian-jira
+export ATLASSIAN_SITE_NAME="<YOUR_SITE_NAME>"
+export ATLASSIAN_USER_EMAIL="<YOUR_EMAIL>"
+export ATLASSIAN_API_TOKEN="<YOUR_API_TOKEN>"
 ```
 
----
+### Step 3: Install and Run
 
-## Step 3: Connect Your AI Assistant
+#### Quick Start with `npx`
 
-Configure your MCP-compatible client to launch this server.
+```bash
+npx -y @aashari/mcp-server-atlassian-jira ls-projects
+```
 
-**Claude / Cursor Configuration:**
+#### Global Installation
+
+```bash
+npm install -g @aashari/mcp-server-atlassian-jira
+mcp-atlassian-jira ls-projects
+```
+
+### Step 4: Connect to AI Assistant
+
+Configure your MCP-compatible client (e.g., Claude, Cursor AI):
 
 ```json
 {
@@ -100,33 +92,29 @@ Configure your MCP-compatible client to launch this server.
 }
 ```
 
-This configuration launches the server automatically at runtime.
+## MCP Tools
 
----
+MCP tools use `snake_case` names, `camelCase` parameters, and return Markdown-formatted responses.
 
-# Tools
+- **jira_ls_projects**: Lists accessible Jira projects (`name`: str opt, `limit`: num opt, `startAt`: num opt, `orderBy`: str opt). Use: View available projects.
+- **jira_get_project**: Gets detailed project information (`projectKeyOrId`: str req). Use: Access project components and metadata.
+- **jira_ls_issues**: Searches for Jira issues (`jql`: str opt, `projectKeyOrId`: str opt, `statuses`: str[] opt, `orderBy`: str opt, `limit`: num opt, `startAt`: num opt). Use: Find issues matching criteria.
+- **jira_get_issue**: Gets comprehensive issue details (`issueIdOrKey`: str req). Use: View issue with comments and development info.
+- **jira_ls_comments**: Lists comments for an issue (`issueIdOrKey`: str req, `limit`: num opt, `startAt`: num opt, `orderBy`: str opt). Use: Read issue discussion.
+- **jira_add_comment**: Adds comment to an issue (`issueIdOrKey`: str req, `commentBody`: str req). Use: Add feedback to issues.
+- **jira_ls_statuses**: Lists available workflow statuses (`projectKeyOrId`: str opt). Use: Check valid status transitions.
 
-This section covers the MCP tools available when using this server with an AI assistant. Note that MCP tools use `snake_case` for tool names and `camelCase` for parameters.
+<details>
+<summary><b>MCP Tool Examples (Click to expand)</b></summary>
 
-## `jira_ls_projects`
+### `jira_ls_projects`
 
-Lists Jira projects accessible to the user with optional filtering and pagination.
-
-**Parameters:**
-
-- `name` (string, optional): Filter projects by name (case-insensitive partial match)
-- `limit` (number, optional): Maximum number of projects to return (1-100, default: 25)
-- `startAt` (number, optional): Index of the first project to return (0-based offset)
-- `orderBy` (string, optional): Sort field - can be "name", "key", "id", or "lastIssueUpdatedTime" (default)
-
-**Example:**
-
+**Basic List Projects:**
 ```json
 {}
 ```
 
-_or:_
-
+**Filtered Projects:**
 ```json
 {
 	"name": "Platform",
@@ -135,55 +123,26 @@ _or:_
 }
 ```
 
-> "Show me all my Jira projects."
+### `jira_get_project`
 
----
-
-## `jira_get_project`
-
-Gets comprehensive details for a specific project, including components, versions, and metadata.
-
-**Parameters:**
-
-- `projectKeyOrId` (string, required): The key (e.g., "DEV") or numeric ID (e.g., "10001") of the project
-
-**Example:**
-
+**Get Project by Key:**
 ```json
 { "projectKeyOrId": "DEV" }
 ```
 
-_or:_
-
+**Get Project by ID:**
 ```json
 { "projectKeyOrId": "10001" }
 ```
 
-> "Tell me about the DEV project in Jira."
+### `jira_ls_issues`
 
----
-
-## `jira_ls_issues`
-
-Searches for Jira issues using flexible filtering criteria, with pagination support.
-
-**Parameters:**
-
-- `jql` (string, optional): JQL query to filter issues (e.g., "project = DEV AND status = 'In Progress'")
-- `projectKeyOrId` (string, optional): Filter by a specific project key or ID
-- `statuses` (string[], optional): Filter by one or more status names
-- `orderBy` (string, optional): JQL ORDER BY clause (e.g., "priority DESC")
-- `limit` (number, optional): Maximum number of issues to return (1-100, default: 25)
-- `startAt` (number, optional): Index of the first issue to return (0-based offset)
-
-**Example:**
-
+**Search with JQL:**
 ```json
 { "jql": "project = DEV AND status = 'In Progress'" }
 ```
 
-_or:_
-
+**Filter by Project and Status:**
 ```json
 {
 	"projectKeyOrId": "DEV",
@@ -192,53 +151,21 @@ _or:_
 }
 ```
 
-> "Find open bugs assigned to me in the DEV project."
+### `jira_get_issue`
 
----
-
-## `jira_get_issue`
-
-Gets comprehensive details for a specific issue, including description, comments, and linked development information.
-
-**Parameters:**
-
-- `issueIdOrKey` (string, required): The key (e.g., "PROJ-123") or numeric ID (e.g., "10001") of the issue
-
-**Example:**
-
+**Get Issue Details:**
 ```json
 { "issueIdOrKey": "PROJ-123" }
 ```
 
-_or:_
+### `jira_ls_comments`
 
-```json
-{ "issueIdOrKey": "10001" }
-```
-
-> "Show me all details and linked commits for issue PROJ-123."
-
----
-
-## `jira_ls_comments`
-
-Lists all comments for a specific Jira issue with pagination.
-
-**Parameters:**
-
-- `issueIdOrKey` (string, required): The key or ID of the issue to get comments from
-- `limit` (number, optional): Maximum number of comments to return (1-100, default: 25)
-- `startAt` (number, optional): Index of the first comment to return (0-based offset)
-- `orderBy` (string, optional): Field and direction to sort comments by (e.g., "created ASC" or "updated DESC")
-
-**Example:**
-
+**List Comments:**
 ```json
 { "issueIdOrKey": "PROJ-123" }
 ```
 
-_or:_
-
+**Sorted Comments:**
 ```json
 {
 	"issueIdOrKey": "PROJ-123",
@@ -247,21 +174,9 @@ _or:_
 }
 ```
 
-> "Show me all comments on issue PROJ-123."
+### `jira_add_comment`
 
----
-
-## `jira_add_comment`
-
-Adds a new comment to a specific Jira issue.
-
-**Parameters:**
-
-- `issueIdOrKey` (string, required): The key or ID of the issue to add a comment to
-- `commentBody` (string, required): The text content of the comment to add (plain text only)
-
-**Example:**
-
+**Add Comment:**
 ```json
 {
 	"issueIdOrKey": "PROJ-123",
@@ -269,178 +184,196 @@ Adds a new comment to a specific Jira issue.
 }
 ```
 
-> "Add a comment to PROJ-123 saying we'll implement the fix next sprint."
+### `jira_ls_statuses`
 
----
-
-## `jira_ls_statuses`
-
-Lists all available Jira statuses, either globally or for a specific project.
-
-**Parameters:**
-
-- `projectKeyOrId` (string, optional): Project key or ID to filter statuses relevant to that project's workflows
-
-**Example:**
-
+**List All Statuses:**
 ```json
 {}
 ```
 
-_or:_
-
+**Project-Specific Statuses:**
 ```json
 { "projectKeyOrId": "DEV" }
 ```
 
-> "What are the available statuses in our Jira instance?"
+</details>
 
----
+## CLI Commands
 
-# Command-Line Interface (CLI)
+CLI commands use `kebab-case`. Run `--help` for details (e.g., `mcp-atlassian-jira ls-projects --help`).
 
-The CLI uses kebab-case for commands (e.g., `ls-projects`) and options (e.g., `--project-key-or-id`).
+- **ls-projects**: Lists Jira projects (`--name`, `--limit`, `--start-at`, `--order-by`). Ex: `mcp-atlassian-jira ls-projects`.
+- **get-project**: Gets project details (`--project-key-or-id`). Ex: `mcp-atlassian-jira get-project --project-key-or-id DEV`.
+- **ls-issues**: Searches for issues (`--jql`, `--project-key-or-id`, `--statuses`, `--order-by`, `--limit`, `--start-at`). Ex: `mcp-atlassian-jira ls-issues --project-key-or-id DEV`.
+- **get-issue**: Gets issue details (`--issue-id-or-key`). Ex: `mcp-atlassian-jira get-issue --issue-id-or-key PROJ-123`.
+- **ls-comments**: Lists comments (`--issue-id-or-key`, `--limit`, `--start-at`, `--order-by`). Ex: `mcp-atlassian-jira ls-comments --issue-id-or-key PROJ-123`.
+- **add-comment**: Adds comment (`--issue-id-or-key`, `--body`). Ex: `mcp-atlassian-jira add-comment --issue-id-or-key PROJ-123 --body "Comment text"`.
+- **ls-statuses**: Lists statuses (`--project-key-or-id`). Ex: `mcp-atlassian-jira ls-statuses`.
 
-## Quick Use with `npx`
+<details>
+<summary><b>CLI Command Examples (Click to expand)</b></summary>
 
-```bash
-npx -y @aashari/mcp-server-atlassian-jira ls-projects
-npx -y @aashari/mcp-server-atlassian-jira get-issue --issue-id-or-key PROJ-123
-npx -y @aashari/mcp-server-atlassian-jira ls-issues --jql "project = DEV AND status = 'In Progress'"
-npx -y @aashari/mcp-server-atlassian-jira ls-comments --issue-id-or-key PROJ-123
-npx -y @aashari/mcp-server-atlassian-jira add-comment --issue-id-or-key PROJ-123 --body "This issue has been prioritized for the next sprint."
-npx -y @aashari/mcp-server-atlassian-jira ls-statuses --project-key-or-id DEV
-```
+### List Projects
 
-## Install Globally
-
-```bash
-npm install -g @aashari/mcp-server-atlassian-jira
-```
-
-Then run directly:
-
+**Basic List:**
 ```bash
 mcp-atlassian-jira ls-projects
+```
+
+**Filtered List:**
+```bash
+mcp-atlassian-jira ls-projects --name "Platform" --limit 10 --order-by "name"
+```
+
+### Get Project
+
+```bash
+mcp-atlassian-jira get-project --project-key-or-id DEV
+```
+
+### List Issues
+
+**With JQL:**
+```bash
+mcp-atlassian-jira ls-issues --jql "project = DEV AND status = 'In Progress'"
+```
+
+**With Filters:**
+```bash
+mcp-atlassian-jira ls-issues --project-key-or-id DEV --statuses "In Progress" "To Do" --limit 15
+```
+
+### Get Issue
+
+```bash
 mcp-atlassian-jira get-issue --issue-id-or-key PROJ-123
-mcp-atlassian-jira ls-comments --issue-id-or-key PROJ-123
 ```
 
-## Available Commands
-
-The following CLI commands are available:
-
-### `ls-projects`
-
-Lists Jira projects with optional filtering and pagination.
+### List Comments
 
 ```bash
-mcp-atlassian-jira ls-projects [options]
-
-Options:
-  -n, --name <value>       Filter projects by name (case-insensitive partial match)
-  -l, --limit <number>     Maximum number of items to return (1-100). Default is 25
-  -s, --start-at <number>  Index of the first item to return (0-based offset)
-  -o, --order-by <field>   Sort field (name, key, id, or lastIssueUpdatedTime)
+mcp-atlassian-jira ls-comments --issue-id-or-key PROJ-123 --order-by "created DESC"
 ```
 
-### `get-project`
-
-Gets detailed information about a specific Jira project.
+### Add Comment
 
 ```bash
-mcp-atlassian-jira get-project --project-key-or-id <value>
-
-Options:
-  --project-key-or-id <value>  The key or ID of the project to retrieve (required)
+mcp-atlassian-jira add-comment --issue-id-or-key PROJ-123 --body "This issue has been prioritized for the next sprint."
 ```
 
-### `ls-issues`
-
-Searches for Jira issues using JQL or specific filters, with pagination.
+### List Statuses
 
 ```bash
-mcp-atlassian-jira ls-issues [options]
-
-Options:
-  -l, --limit <number>                Maximum number of items to return (1-100). Default is 25
-  -c, --start-at <number>             Index of the first item to return (0-based offset)
-  -q, --jql <jql>                     Filter issues using JQL syntax
-  -p, --project-key-or-id <keyOrId>   Filter by a specific project key or ID
-  -s, --statuses <statuses...>        Filter by one or more status names (repeatable)
-  -o, --order-by <field>              JQL ORDER BY clause (e.g., "priority DESC")
+mcp-atlassian-jira ls-statuses --project-key-or-id DEV
 ```
 
-### `get-issue`
+</details>
 
-Gets detailed information about a specific Jira issue.
+## Response Format
+
+All responses are Markdown-formatted, including:
+
+- **Title**: Tool name and action performed.
+- **Content**: Structured data with headers, tables, and code blocks.
+- **Pagination**: Information about total results and navigation to additional pages.
+- **Links**: References to related resources when applicable.
+
+<details>
+<summary><b>Response Format Examples (Click to expand)</b></summary>
+
+### Project List Response
+
+```markdown
+# Jira Projects
+
+Showing **4** projects matching "Platform" out of 15 total projects.
+
+| Key | Name | Lead | Issues |
+|---|---|---|---|
+| [PLAT](#) | Platform Services | Maria Johnson | 204 issues |
+| [PLTX](#) | Platform Extensions | Chris Smith | 156 issues |
+| [PAPI](#) | Platform API | Dev Team | 87 issues |
+| [PINT](#) | Platform Integrations | Alex Wong | 42 issues |
+
+*Retrieved from mycompany.atlassian.net on 2025-05-19 14:22 UTC*
+```
+
+### Issue Details Response
+
+```markdown
+# Issue: PROJ-123
+
+**[PROJ-123](https://mycompany.atlassian.net/browse/PROJ-123): Implement OAuth2 authentication flow**
+
+**Project:** [PROJ](#) (Project Name)
+**Type:** 🛠️ Task
+**Status:** 🟡 In Progress
+**Priority:** 🔼 High
+**Assignee:** Jane Doe
+**Reporter:** John Smith
+**Created:** 2025-05-01
+**Updated:** 2025-05-18
+
+## Description
+
+We need to implement the OAuth2 authentication flow with the following requirements:
+
+- Support authorization code flow
+- Implement PKCE extension
+- Store refresh tokens securely
+- Add automatic token refresh
+
+## Comments (3)
+
+### John Smith - 2025-05-01
+Initial requirements attached. See the authentication flow diagram.
+
+### Jane Doe - 2025-05-15
+I've started implementation. Questions about token expiration and storage.
+
+### Project Lead - 2025-05-18
+Looks good so far. Please add unit tests for token refresh logic.
+
+## Development Information
+
+**Branch:** feature/oauth2-auth
+**Commits:** 7 commits by Jane Doe
+**Pull Request:** [PR-45](https://github.com/mycompany/project/pull/45) (Open)
+
+*Retrieved on 2025-05-19 14:25 UTC*
+```
+
+</details>
+
+## Development
 
 ```bash
-mcp-atlassian-jira get-issue --issue-id-or-key <value>
+# Clone repository
+git clone https://github.com/aashari/mcp-server-atlassian-jira.git
+cd mcp-server-atlassian-jira
 
-Options:
-  --issue-id-or-key <value>  The ID or key of the Jira issue to retrieve (required)
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run dev:server
+
+# Run tests
+npm test
 ```
 
-### `ls-comments`
+## Contributing
 
-Lists comments for a specific Jira issue with pagination support.
+Contributions are welcome! Please:
 
-```bash
-mcp-atlassian-jira ls-comments --issue-id-or-key <value> [options]
+1. Fork the repository.
+2. Create a feature branch (`git checkout -b feature/xyz`).
+3. Commit changes (`git commit -m "Add xyz feature"`).
+4. Push to the branch (`git push origin feature/xyz`).
+5. Open a pull request.
 
-Options:
-  --issue-id-or-key <value>   The ID or key of the Jira issue to get comments from (required)
-  -l, --limit <number>        Maximum number of comments to return (1-100). Default is 25
-  -s, --start-at <number>     Index of the first comment to return (0-based offset)
-  -o, --order-by <field>      Field and direction to sort comments by
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
-### `add-comment`
+## License
 
-Adds a new comment to a specific Jira issue.
-
-```bash
-mcp-atlassian-jira add-comment --issue-id-or-key <value> --body <text>
-
-Options:
-  --issue-id-or-key <value>   The ID or key of the Jira issue to add a comment to (required)
-  --body <text>               The text content of the comment to add (required)
-```
-
-### `ls-statuses`
-
-Lists available Jira statuses globally or for a specific project.
-
-```bash
-mcp-atlassian-jira ls-statuses [options]
-
-Options:
-  --project-key-or-id <keyOrId>  Optional project key or ID to filter statuses
-```
-
-## Discover More CLI Options
-
-Use `--help` to see flags and usage for all available commands:
-
-```bash
-mcp-atlassian-jira --help
-```
-
-Or get detailed help for a specific command:
-
-```bash
-mcp-atlassian-jira ls-projects --help
-mcp-atlassian-jira get-project --help
-mcp-atlassian-jira ls-issues --help
-mcp-atlassian-jira get-issue --help
-mcp-atlassian-jira ls-comments --help
-mcp-atlassian-jira add-comment --help
-mcp-atlassian-jira ls-statuses --help
-```
-
----
-
-# License
-
-[ISC License](https://opensource.org/licenses/ISC)
+[ISC License](LICENSE)
