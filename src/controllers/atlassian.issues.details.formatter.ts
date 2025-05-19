@@ -3,7 +3,7 @@
  */
 
 import { Issue } from '../services/vendor.atlassian.issues.types.js';
-import { adfToMarkdown } from '../utils/adf.util.js';
+import { adfToMarkdown } from '../utils/adf-to-markdown.util.js';
 import {
 	formatUrl,
 	formatHeading,

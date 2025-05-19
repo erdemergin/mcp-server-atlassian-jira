@@ -1,4 +1,4 @@
-import { adfToMarkdown } from '../utils/adf.util.js';
+import { adfToMarkdown } from '../utils/adf-to-markdown.util.js';
 import {
 	formatHeading,
 	formatBulletList,

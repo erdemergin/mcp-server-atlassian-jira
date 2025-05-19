@@ -13,11 +13,9 @@ import {
 import { ControllerResponse } from '../types/common.types.js';
 import atlassianIssuesService from '../services/vendor.atlassian.issues.service.js';
 import atlassianDevInfoService from '../services/vendor.atlassian.devinfo.service.js';
-import {
-	formatIssuesList,
-	formatIssueDetails,
-	formatDevelopmentInfo,
-} from './atlassian.issues.formatter.js';
+import { formatIssuesList } from './atlassian.issues.list.formatter.js';
+import { formatIssueDetails } from './atlassian.issues.details.formatter.js';
+import { formatDevelopmentInfo } from './atlassian.issues.development.formatter.js';
 import { SearchIssuesParams } from '../services/vendor.atlassian.issues.types.js';
 import {
 	GetIssueToolArgsType,

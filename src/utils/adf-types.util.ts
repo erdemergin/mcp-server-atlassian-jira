@@ -2,7 +2,7 @@
  * Type definitions for Atlassian Document Format (ADF) processing
  */
 
-import { AdfDocument as ImportedAdfDocument } from '../../services/vendor.atlassian.issues.types.js';
+import { AdfDocument as ImportedAdfDocument } from '../services/vendor.atlassian.issues.types.js';
 
 /**
  * Interface for ADF node

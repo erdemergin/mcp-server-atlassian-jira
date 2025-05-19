@@ -1,4 +1,4 @@
-import { adfToMarkdown } from './adf.util.js';
+import { adfToMarkdown } from './adf-to-markdown.util.js';
 
 describe('ADF Utility', () => {
 	describe('adfToMarkdown', () => {

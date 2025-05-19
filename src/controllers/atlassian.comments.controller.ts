@@ -16,7 +16,8 @@ import {
 	formatCommentsList,
 	formatAddedCommentConfirmation,
 } from './atlassian.comments.formatter.js';
-import { markdownToAdf, textToAdf } from '../utils/adf.util.js';
+import { markdownToAdf } from '../utils/adf-from-markdown.util.js';
+import { textToAdf } from '../utils/adf-from-text.util.js';
 import { formatPagination } from '../utils/formatter.util.js';
 
 // Create a contextualized logger for this file

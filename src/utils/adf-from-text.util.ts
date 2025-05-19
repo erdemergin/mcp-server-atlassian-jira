@@ -2,10 +2,10 @@
  * Converts plain text to Atlassian Document Format (ADF)
  */
 
-import { Logger } from '../logger.util.js';
-import { AdfDocument, AdfNode } from './types.js';
+import { Logger } from './logger.util.js';
+import { AdfDocument, AdfNode } from './adf-types.util.js';
 
-const fromTextLogger = Logger.forContext('utils/adf/from-text.ts');
+const fromTextLogger = Logger.forContext('utils/adf-from-text.util.ts');
 
 /**
  * Convert plain text to ADF

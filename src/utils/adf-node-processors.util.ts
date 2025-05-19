@@ -2,7 +2,7 @@
  * Helper functions for processing different ADF node types
  */
 
-import { AdfNode } from './types.js';
+import { AdfNode } from './adf-types.util.js';
 
 /**
  * Process ADF content nodes
@@ -99,7 +99,7 @@ export function processParagraph(node: AdfNode): string {
 
 	// Process each child node and join them with proper spacing
 	return node.content
-		.map((childNode, index) => {
+		.map((childNode: AdfNode, index: number) => {
 			// Add a space between text nodes if needed
 			const needsSpace =
 				index > 0 &&
@@ -124,7 +124,7 @@ export function processHeading(node: AdfNode): string {
 	const level = typeof node.attrs.level === 'number' ? node.attrs.level : 1;
 	const headingMarker = '#'.repeat(level);
 	const content = node.content
-		.map((childNode) => processAdfNode(childNode))
+		.map((childNode: AdfNode) => processAdfNode(childNode))
 		.join('');
 
 	return `${headingMarker} ${content}`;
@@ -138,7 +138,7 @@ export function processBulletList(node: AdfNode): string {
 		return '';
 	}
 
-	return node.content.map((item) => processAdfNode(item)).join('\n');
+	return node.content.map((item: AdfNode) => processAdfNode(item)).join('\n');
 }
 
 /**
@@ -150,7 +150,7 @@ export function processOrderedList(node: AdfNode): string {
 	}
 
 	return node.content
-		.map((item, index) => {
+		.map((item: AdfNode, index: number) => {
 			const processedItem = processAdfNode(item);
 			// Replace the first "- " with "1. ", "2. ", etc.
 			return processedItem.replace(/^- /, `${index + 1}. `);
@@ -167,7 +167,7 @@ export function processListItem(node: AdfNode): string {
 	}
 
 	const content = node.content
-		.map((childNode) => {
+		.map((childNode: AdfNode) => {
 			const processed = processAdfNode(childNode);
 			// For nested lists, add indentation
 			if (
@@ -176,7 +176,7 @@ export function processListItem(node: AdfNode): string {
 			) {
 				return processed
 					.split('\n')
-					.map((line) => `  ${line}`)
+					.map((line: string) => `  ${line}`)
 					.join('\n');
 			}
 			return processed;
@@ -196,7 +196,7 @@ export function processCodeBlock(node: AdfNode): string {
 
 	const language = node.attrs?.language || '';
 	const code = node.content
-		.map((childNode) => processAdfNode(childNode))
+		.map((childNode: AdfNode) => processAdfNode(childNode))
 		.join('');
 
 	return `\`\`\`${language}\n${code}\n\`\`\``;
@@ -211,13 +211,13 @@ export function processBlockquote(node: AdfNode): string {
 	}
 
 	const content = node.content
-		.map((childNode) => processAdfNode(childNode))
+		.map((childNode: AdfNode) => processAdfNode(childNode))
 		.join('\n\n');
 
 	// Add > to each line
 	return content
 		.split('\n')
-		.map((line) => `> ${line}`)
+		.map((line: string) => `> ${line}`)
 		.join('\n');
 }
 
@@ -230,7 +230,7 @@ export function processMediaGroup(node: AdfNode): string {
 	}
 
 	return node.content
-		.map((mediaNode) => {
+		.map((mediaNode: AdfNode) => {
 			if (mediaNode.type === 'media' && mediaNode.attrs) {
 				const { id, type } = mediaNode.attrs;
 				if (type === 'file') {
@@ -279,18 +279,18 @@ export function processTable(node: AdfNode): string {
 	const rows: string[][] = [];
 
 	// Process table rows
-	node.content.forEach((row) => {
+	node.content.forEach((row: AdfNode) => {
 		if (row.type === 'tableRow' && row.content) {
 			const cells: string[] = [];
 
-			row.content.forEach((cell) => {
+			row.content.forEach((cell: AdfNode) => {
 				if (
 					(cell.type === 'tableCell' ||
 						cell.type === 'tableHeader') &&
 					cell.content
 				) {
 					const cellContent = cell.content
-						.map((cellNode) => processAdfNode(cellNode))
+						.map((cellNode: AdfNode) => processAdfNode(cellNode))
 						.join('');
 					cells.push(cellContent.trim());
 				}

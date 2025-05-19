@@ -2,9 +2,9 @@
  * Converts Markdown to Atlassian Document Format (ADF)
  */
 
-import { Logger } from '../logger.util.js';
-import { AdfDocument, AdfNode } from './types.js';
-import { textToAdf } from './from-text.js';
+import { Logger } from './logger.util.js';
+import { AdfDocument, AdfNode } from './adf-types.util.js';
+import { textToAdf } from './adf-from-text.util.js';
 
 const fromMarkdownLogger = Logger.forContext('utils/adf/from-markdown.ts');
 
