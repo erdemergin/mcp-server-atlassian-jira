@@ -75,9 +75,8 @@ async function getProject(args: GetProjectToolArgsType) {
 	);
 
 	try {
-		const result = await atlassianProjectsController.get({
-			projectKeyOrId: args.projectKeyOrId,
-		});
+		// Pass args directly to the controller
+		const result = await atlassianProjectsController.get(args);
 		methodLogger.debug(
 			'Successfully retrieved project details from controller',
 		);
