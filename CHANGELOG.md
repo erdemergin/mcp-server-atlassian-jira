@@ -1,3 +1,12 @@
+## [1.35.4](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.35.3...v1.35.4) (2025-05-21)
+
+
+### Bug Fixes
+
+* Move business logic to controllers and pass args directly in the Jira project ([1c2410e](https://github.com/aashari/mcp-server-atlassian-jira/commit/1c2410ea2f51e3ac0539d5ccf4a2d166a14de70e))
+* update dependencies ([e0762bf](https://github.com/aashari/mcp-server-atlassian-jira/commit/e0762bf4c3aa70e47aefaa70fcfbc5e3ed718326))
+* Update getProject tool function to pass args directly to controller ([aa3c6fc](https://github.com/aashari/mcp-server-atlassian-jira/commit/aa3c6fc48b98bbbc2caca05b9ac84a17f59fac95))
+
 ## [1.35.3](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.35.2...v1.35.3) (2025-05-21)
 
 
