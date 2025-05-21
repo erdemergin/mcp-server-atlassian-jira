@@ -22,9 +22,7 @@ async function handleListStatuses(args: ListStatusesToolArgsType) {
 	methodLogger.debug('Listing Jira statuses with arguments:', args);
 
 	try {
-		const result = await atlassianStatusesController.listStatuses({
-			projectKeyOrId: args.projectKeyOrId,
-		});
+		const result = await atlassianStatusesController.listStatuses(args);
 
 		methodLogger.debug('Successfully retrieved statuses');
 

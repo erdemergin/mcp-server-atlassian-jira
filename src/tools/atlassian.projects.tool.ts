@@ -34,16 +34,8 @@ async function listProjects(args: ListProjectsToolArgsType) {
 	methodLogger.debug('Listing Jira projects with filters:', args);
 
 	try {
-		const options: ListProjectsToolArgsType = {
-			name: args.name,
-			limit: args.limit,
-			startAt: args.startAt,
-			orderBy: args.orderBy,
-		};
-
-		methodLogger.debug('Calling controller with options:', options);
-
-		const result = await atlassianProjectsController.list(options);
+		// Pass args directly to the controller
+		const result = await atlassianProjectsController.list(args);
 
 		methodLogger.debug('Successfully retrieved projects list');
 

@@ -73,9 +73,8 @@ async function getIssue(args: GetIssueToolArgsType) {
 	methodLogger.debug(`Retrieving issue details for: ${args.issueIdOrKey}`);
 
 	try {
-		const result = await atlassianIssuesController.get({
-			issueIdOrKey: args.issueIdOrKey,
-		});
+		// Pass args directly to the controller
+		const result = await atlassianIssuesController.get(args);
 		methodLogger.debug('Successfully retrieved issue details');
 
 		return {

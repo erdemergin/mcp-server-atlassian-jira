@@ -33,12 +33,7 @@ async function listComments(args: ListCommentsToolArgsType) {
 	methodLogger.debug('Listing Jira comments with args:', args);
 
 	try {
-		const result = await atlassianCommentsController.listComments({
-			issueIdOrKey: args.issueIdOrKey,
-			limit: args.limit,
-			startAt: args.startAt,
-			orderBy: args.orderBy,
-		});
+		const result = await atlassianCommentsController.listComments(args);
 
 		methodLogger.debug('Successfully retrieved comments list');
 
@@ -78,10 +73,7 @@ async function addComment(args: AddCommentToolArgsType) {
 	});
 
 	try {
-		const result = await atlassianCommentsController.addComment({
-			issueIdOrKey: args.issueIdOrKey,
-			commentBody: args.commentBody,
-		});
+		const result = await atlassianCommentsController.addComment(args);
 
 		methodLogger.debug('Successfully added comment');
 
