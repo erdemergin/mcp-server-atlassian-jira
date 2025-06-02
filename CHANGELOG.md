@@ -1,3 +1,10 @@
+## [1.35.6](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.35.5...v1.35.6) (2025-06-02)
+
+
+### Bug Fixes
+
+* replace Unix-specific chmod with cross-platform ensure-executable script ([5bec5dd](https://github.com/aashari/mcp-server-atlassian-jira/commit/5bec5dd15ef382027093c518c19a5fd1236fdee5))
+
 ## [1.35.5](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.35.4...v1.35.5) (2025-06-02)
 
 
