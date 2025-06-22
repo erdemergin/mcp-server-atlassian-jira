@@ -1,3 +1,10 @@
+## [1.37.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.37.0...v1.37.1) (2025-06-22)
+
+
+### Bug Fixes
+
+* change default transport from HTTP to STDIO for proper MCP client integration ([505d0a1](https://github.com/aashari/mcp-server-atlassian-jira/commit/505d0a18f9c984de8ef52a2138970f90b69b7d5a))
+
 # [1.37.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.36.1...v1.37.0) (2025-06-22)
 
 
