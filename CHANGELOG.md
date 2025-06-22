@@ -1,3 +1,10 @@
+# [1.37.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.36.1...v1.37.0) (2025-06-22)
+
+
+### Features
+
+* add JIRA worklog CRUD operations support ([a5aed8f](https://github.com/aashari/mcp-server-atlassian-jira/commit/a5aed8f365508f1ddf888b439e93a35b19f6f4f4))
+
 ## [1.36.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.36.0...v1.36.1) (2025-06-22)
 
 
