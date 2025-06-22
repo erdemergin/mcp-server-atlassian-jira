@@ -276,6 +276,11 @@ export async function fetchAtlassian<T>(
 			methodLogger.debug(`Non-JSON response received:`, { error });
 		}
 
+		// Handle 204 No Content responses
+		if (response.status === 204) {
+			return undefined as unknown as T;
+		}
+
 		return response.json() as Promise<T>;
 	} catch (error) {
 		methodLogger.error(`Request failed`, error);

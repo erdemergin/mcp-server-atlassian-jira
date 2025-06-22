@@ -176,7 +176,7 @@ export interface AddCommentParams {
 /**
  * Issue worklog schema
  */
-const IssueWorklogSchema = z.object({
+export const IssueWorklogSchema = z.object({
 	id: z.string(),
 	self: z.string(),
 	author: z.object({

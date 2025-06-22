@@ -455,4 +455,342 @@ async function addComment(
 	}
 }
 
-export default { search, get, getComments, addComment };
+/**
+ * Get worklogs for a specific Jira issue
+ *
+ * Retrieves the list of worklogs for an issue with pagination support.
+ * Time tracking must be enabled in Jira for this operation to work.
+ *
+ * @async
+ * @memberof VendorAtlassianIssuesService
+ * @param {string} issueIdOrKey - The ID or key of the issue to get worklogs for
+ * @param {ListWorklogsParams} [params={}] - Optional parameters for customizing the response
+ * @param {number} [params.startAt] - Pagination start index
+ * @param {number} [params.maxResults] - Maximum number of results to return
+ * @param {string[]} [params.expand] - Worklog data to expand in response
+ * @returns {Promise<any>} Promise containing the worklogs with pagination information
+ * @throws {Error} If Atlassian credentials are missing or API request fails
+ * @example
+ * // Get worklogs for an issue with pagination
+ * const worklogs = await getWorklogs('ABC-123', {
+ *   maxResults: 10,
+ *   expand: ['properties']
+ * });
+ */
+async function getWorklogs(
+	issueIdOrKey: string,
+	params: {
+		startAt?: number;
+		maxResults?: number;
+		expand?: string[];
+	} = {},
+): Promise<any> {
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'getWorklogs',
+	);
+	methodLogger.debug(
+		`Getting worklogs for issue ${issueIdOrKey} with params:`,
+		params,
+	);
+
+	const credentials = getAtlassianCredentials();
+	if (!credentials) {
+		throw createAuthMissingError(
+			`Atlassian credentials required to get worklogs for issue ${issueIdOrKey}`,
+		);
+	}
+
+	// Build query parameters
+	const queryParams = new URLSearchParams();
+
+	// Pagination
+	if (params.startAt !== undefined) {
+		queryParams.set('startAt', params.startAt.toString());
+	}
+	if (params.maxResults !== undefined) {
+		queryParams.set('maxResults', params.maxResults.toString());
+	}
+
+	// Expansion
+	if (params.expand?.length) {
+		queryParams.set('expand', params.expand.join(','));
+	}
+
+	const queryString = queryParams.toString()
+		? `?${queryParams.toString()}`
+		: '';
+	const path = `${API_PATH}/issue/${issueIdOrKey}/worklog${queryString}`;
+
+	methodLogger.debug(`Calling Jira API: ${path}`);
+
+	try {
+		const rawData = await fetchAtlassian(credentials, path);
+		// For worklogs, we don't have a specific schema validation yet
+		// so we'll return the raw data
+		return rawData;
+	} catch (error) {
+		// McpError is already properly structured from fetchAtlassian
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		// Unexpected errors need to be wrapped
+		methodLogger.error(
+			`Unexpected error getting worklogs for issue ${issueIdOrKey}:`,
+			error,
+		);
+		throw createApiError(
+			`Unexpected error retrieving worklogs for Jira issue ${issueIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error,
+		);
+	}
+}
+
+/**
+ * Add a worklog to a specific Jira issue
+ *
+ * Creates a new worklog on the specified issue with time spent and optional comment.
+ * Time tracking must be enabled in Jira for this operation to work.
+ *
+ * @async
+ * @memberof VendorAtlassianIssuesService
+ * @param {string} issueIdOrKey - The ID or key of the issue to add a worklog to
+ * @param {any} worklogData - Parameters for the worklog to add
+ * @returns {Promise<any>} Promise containing the created worklog information
+ * @throws {Error} If Atlassian credentials are missing or API request fails
+ * @example
+ * // Add a worklog with time spent and comment
+ * const worklog = await addWorklog('ABC-123', {
+ *   timeSpentSeconds: 7200,
+ *   comment: { ... }, // ADF format
+ *   started: "2024-01-22T10:00:00.000+0000"
+ * });
+ */
+async function addWorklog(
+	issueIdOrKey: string,
+	worklogData: any,
+): Promise<any> {
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'addWorklog',
+	);
+
+	try {
+		methodLogger.debug('Adding worklog to issue', issueIdOrKey, {
+			timeSpentSeconds: worklogData.timeSpentSeconds,
+			hasComment: !!worklogData.comment,
+		});
+
+		// Get configured credentials
+		const credentials = getAtlassianCredentials();
+		if (!credentials) {
+			throw createAuthMissingError(
+				`Atlassian credentials required to add worklog to issue ${issueIdOrKey}`,
+			);
+		}
+
+		// Build API endpoint
+		const apiEndpoint = `${API_PATH}/issue/${issueIdOrKey}/worklog`;
+
+		// Handle query parameters for estimate adjustment
+		const queryParams = new URLSearchParams();
+		if (worklogData.adjustEstimate) {
+			queryParams.set('adjustEstimate', worklogData.adjustEstimate);
+			if (worklogData.newEstimate) {
+				queryParams.set('newEstimate', worklogData.newEstimate);
+			}
+			if (worklogData.reduceBy) {
+				queryParams.set('reduceBy', worklogData.reduceBy);
+			}
+		}
+
+		// Prepare request URL
+		const url = `${apiEndpoint}${
+			queryParams.toString() ? `?${queryParams.toString()}` : ''
+		}`;
+
+		// Prepare request body - remove query params from body
+		const requestBody = {
+			timeSpentSeconds: worklogData.timeSpentSeconds,
+			...(worklogData.comment ? { comment: worklogData.comment } : {}),
+			...(worklogData.started ? { started: worklogData.started } : {}),
+			...(worklogData.visibility
+				? { visibility: worklogData.visibility }
+				: {}),
+		};
+
+		methodLogger.debug('Calling Jira API:', url);
+
+		// Make the API call
+		const response = await fetchAtlassian(credentials, url, {
+			method: 'POST',
+			body: requestBody,
+		});
+
+		return response;
+	} catch (error) {
+		// McpError is already properly structured from fetchAtlassian
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		// Unexpected errors need to be wrapped
+		methodLogger.error(
+			`Unexpected error adding worklog to issue ${issueIdOrKey}:`,
+			error,
+		);
+		throw createApiError(
+			`Unexpected error adding worklog to Jira issue ${issueIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error,
+		);
+	}
+}
+
+/**
+ * Update an existing worklog
+ *
+ * Updates a worklog on the specified issue with new time spent, comment, or start time.
+ *
+ * @async
+ * @memberof VendorAtlassianIssuesService
+ * @param {string} issueIdOrKey - The ID or key of the issue
+ * @param {string} worklogId - The ID of the worklog to update
+ * @param {any} updateData - Parameters for the worklog update
+ * @returns {Promise<any>} Promise containing the updated worklog information
+ * @throws {Error} If Atlassian credentials are missing or API request fails
+ */
+async function updateWorklog(
+	issueIdOrKey: string,
+	worklogId: string,
+	updateData: any,
+): Promise<any> {
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'updateWorklog',
+	);
+
+	try {
+		methodLogger.debug(
+			`Updating worklog ${worklogId} on issue ${issueIdOrKey}`,
+		);
+
+		const credentials = getAtlassianCredentials();
+		if (!credentials) {
+			throw createAuthMissingError(
+				`Atlassian credentials required to update worklog ${worklogId} on issue ${issueIdOrKey}`,
+			);
+		}
+
+		const url = `${API_PATH}/issue/${issueIdOrKey}/worklog/${worklogId}`;
+
+		methodLogger.debug('Calling Jira API:', url);
+
+		const response = await fetchAtlassian(credentials, url, {
+			method: 'PUT',
+			body: updateData,
+		});
+
+		return response;
+	} catch (error) {
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		methodLogger.error(
+			`Unexpected error updating worklog ${worklogId} on issue ${issueIdOrKey}:`,
+			error,
+		);
+		throw createApiError(
+			`Unexpected error updating worklog ${worklogId} on Jira issue ${issueIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error,
+		);
+	}
+}
+
+/**
+ * Delete a worklog from a Jira issue
+ *
+ * Removes a worklog from the specified issue with optional estimate adjustment.
+ *
+ * @async
+ * @memberof VendorAtlassianIssuesService
+ * @param {string} issueIdOrKey - The ID or key of the issue
+ * @param {string} worklogId - The ID of the worklog to delete
+ * @param {any} [params={}] - Optional parameters for estimate adjustment
+ * @returns {Promise<void>} Promise that resolves when the worklog is deleted
+ * @throws {Error} If Atlassian credentials are missing or API request fails
+ */
+async function deleteWorklog(
+	issueIdOrKey: string,
+	worklogId: string,
+	params: any = {},
+): Promise<void> {
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'deleteWorklog',
+	);
+
+	try {
+		methodLogger.debug(
+			`Deleting worklog ${worklogId} from issue ${issueIdOrKey}`,
+		);
+
+		const credentials = getAtlassianCredentials();
+		if (!credentials) {
+			throw createAuthMissingError(
+				`Atlassian credentials required to delete worklog ${worklogId} from issue ${issueIdOrKey}`,
+			);
+		}
+
+		// Build query parameters for estimate adjustment
+		const queryParams = new URLSearchParams();
+		if (params.adjustEstimate) {
+			queryParams.set('adjustEstimate', params.adjustEstimate);
+			if (params.newEstimate) {
+				queryParams.set('newEstimate', params.newEstimate);
+			}
+			if (params.increaseBy) {
+				queryParams.set('increaseBy', params.increaseBy);
+			}
+		}
+
+		const url = `${API_PATH}/issue/${issueIdOrKey}/worklog/${worklogId}${
+			queryParams.toString() ? `?${queryParams.toString()}` : ''
+		}`;
+
+		methodLogger.debug('Calling Jira API:', url);
+
+		await fetchAtlassian(credentials, url, {
+			method: 'DELETE',
+		});
+	} catch (error) {
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		methodLogger.error(
+			`Unexpected error deleting worklog ${worklogId} from issue ${issueIdOrKey}:`,
+			error,
+		);
+		throw createApiError(
+			`Unexpected error deleting worklog ${worklogId} from Jira issue ${issueIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error,
+		);
+	}
+}
+
+export default {
+	search,
+	get,
+	getComments,
+	addComment,
+	getWorklogs,
+	addWorklog,
+	updateWorklog,
+	deleteWorklog,
+};
