@@ -1,3 +1,10 @@
+# [1.36.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.35.6...v1.36.0) (2025-06-22)
+
+
+### Features
+
+* migrate from deprecated SSE to dual transport support (STDIO + HTTP) ([3fb5b21](https://github.com/aashari/mcp-server-atlassian-jira/commit/3fb5b2176275cf33b2e4ab595f1c9f04e2030d21))
+
 ## [1.35.6](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.35.5...v1.35.6) (2025-06-02)
 
 
