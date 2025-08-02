@@ -171,9 +171,9 @@ async function main() {
 
 	// CLI mode - if any arguments are provided
 	if (process.argv.length > 2) {
-		mainLogger.info('Starting in CLI mode');
+		mainLogger.info(`Starting ${PACKAGE_NAME} v${VERSION} in CLI mode`);
 		await runCli(process.argv.slice(2));
-		mainLogger.info('CLI execution completed');
+		mainLogger.info('CLI execution completed successfully');
 		return;
 	}
 
