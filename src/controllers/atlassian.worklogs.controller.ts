@@ -213,7 +213,7 @@ async function addWorklog(
 		}
 
 		// Build request parameters
-		const params: any = {
+		const params: Record<string, unknown> = {
 			timeSpentSeconds,
 			started: options.started,
 		};
@@ -294,7 +294,7 @@ async function updateWorklog(
 		}
 
 		// Build update parameters
-		const params: any = {};
+		const params: Record<string, unknown> = {};
 
 		// Convert time spent to seconds if provided
 		if (options.timeSpent) {
@@ -386,7 +386,7 @@ async function deleteWorklog(
 		}
 
 		// Build delete parameters
-		const params: any = {};
+		const params: Record<string, unknown> = {};
 
 		// Handle estimate adjustment
 		if (options.adjustEstimate) {

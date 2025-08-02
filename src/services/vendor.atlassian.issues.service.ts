@@ -484,7 +484,7 @@ async function getWorklogs(
 		maxResults?: number;
 		expand?: string[];
 	} = {},
-): Promise<any> {
+): Promise<unknown> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
 		'getWorklogs',
@@ -570,8 +570,8 @@ async function getWorklogs(
  */
 async function addWorklog(
 	issueIdOrKey: string,
-	worklogData: any,
-): Promise<any> {
+	worklogData: Record<string, unknown>,
+): Promise<unknown> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
 		'addWorklog',
@@ -665,8 +665,8 @@ async function addWorklog(
 async function updateWorklog(
 	issueIdOrKey: string,
 	worklogId: string,
-	updateData: any,
-): Promise<any> {
+	updateData: Record<string, unknown>,
+): Promise<unknown> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
 		'updateWorklog',
@@ -727,7 +727,7 @@ async function updateWorklog(
 async function deleteWorklog(
 	issueIdOrKey: string,
 	worklogId: string,
-	params: any = {},
+	params: Record<string, unknown> = {},
 ): Promise<void> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
