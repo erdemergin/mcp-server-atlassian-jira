@@ -63,15 +63,11 @@ export function markdownToAdf(markdown: string): AdfDocument {
 					const headingText = headingMatch[2];
 
 					// Create proper ADF heading node with appropriate level
+					// Process inline markdown within heading text
 					adfDoc.content.push({
 						type: 'heading',
 						attrs: { level },
-						content: [
-							{
-								type: 'text',
-								text: headingText,
-							},
-						],
+						content: parseMarkdownText(headingText),
 					});
 				}
 				continue;

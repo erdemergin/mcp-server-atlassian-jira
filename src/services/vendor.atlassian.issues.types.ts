@@ -578,6 +578,123 @@ export type DevInfoSummaryResponse = z.infer<
 	typeof DevInfoSummaryResponseSchema
 >;
 
+/**
+ * Field metadata for creating issues
+ */
+const CreateMetaFieldSchema = z.object({
+	required: z.boolean(),
+	name: z.string(),
+	key: z.string().optional(),
+	fieldId: z.string().optional(),
+	schema: z.object({
+		type: z.string(),
+		system: z.string().optional(),
+		custom: z.string().optional(),
+		customId: z.number().optional(),
+		items: z.string().optional(),
+	}),
+	hasDefaultValue: z.boolean().optional(),
+	operations: z.array(z.string()).optional(),
+	allowedValues: z.array(z.unknown()).optional(),
+	defaultValue: z.unknown().optional(),
+});
+export type CreateMetaField = z.infer<typeof CreateMetaFieldSchema>;
+
+/**
+ * Issue type metadata for creating issues
+ */
+const CreateMetaIssueTypeSchema = z.object({
+	self: z.string(),
+	id: z.string(),
+	description: z.string(),
+	iconUrl: z.string(),
+	name: z.string(),
+	subtask: z.boolean(),
+	hierarchyLevel: z.number().optional(),
+	fields: z.record(CreateMetaFieldSchema),
+});
+export type CreateMetaIssueType = z.infer<typeof CreateMetaIssueTypeSchema>;
+
+/**
+ * Create metadata response for a specific issue type
+ */
+const CreateMetaResponseSchema = z.object({
+	expand: z.string().optional(),
+	projects: z
+		.array(
+			z.object({
+				self: z.string(),
+				id: z.string(),
+				key: z.string(),
+				name: z.string(),
+				issuetypes: z.array(CreateMetaIssueTypeSchema),
+			}),
+		)
+		.optional(),
+	// For single issue type endpoint
+	self: z.string().optional(),
+	id: z.string().optional(),
+	description: z.string().optional(),
+	iconUrl: z.string().optional(),
+	name: z.string().optional(),
+	subtask: z.boolean().optional(),
+	hierarchyLevel: z.number().optional(),
+	fields: z.record(CreateMetaFieldSchema).optional(),
+});
+export type CreateMetaResponse = z.infer<typeof CreateMetaResponseSchema>;
+
+/**
+ * Parameters for getting create metadata
+ */
+export interface GetCreateMetaParams {
+	projectKeys?: string[];
+	projectIds?: string[];
+	issuetypeIds?: string[];
+	issuetypeNames?: string[];
+	expand?: string[];
+}
+
+/**
+ * Issue creation data
+ */
+export interface CreateIssueData {
+	fields: Record<string, unknown>;
+	update?: Record<string, unknown[]>;
+	historyMetadata?: Record<string, unknown>;
+	properties?: Array<{
+		key: string;
+		value: unknown;
+	}>;
+}
+
+/**
+ * Parameters for creating an issue
+ */
+export interface CreateIssueParams extends CreateIssueData {
+	updateHistory?: boolean;
+}
+
+/**
+ * Response from creating an issue
+ */
+const CreateIssueResponseSchema = z.object({
+	id: z.string(),
+	key: z.string(),
+	self: z.string(),
+	transition: z
+		.object({
+			status: z.number(),
+			errorCollection: z
+				.object({
+					errorMessages: z.array(z.string()),
+					errors: z.record(z.string()),
+				})
+				.optional(),
+		})
+		.optional(),
+});
+export type CreateIssueResponse = z.infer<typeof CreateIssueResponseSchema>;
+
 // Export schemas needed by the service implementation
 export {
 	IssueSchema,
@@ -588,4 +705,6 @@ export {
 	PageOfCommentsSchema,
 	IssueCommentSchema,
 	CommentBodySchema,
+	CreateMetaResponseSchema,
+	CreateIssueResponseSchema,
 };

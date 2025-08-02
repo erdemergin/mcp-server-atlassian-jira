@@ -19,6 +19,12 @@ import {
 	IssueWorklogContainer,
 	IssueWorklogContainerSchema,
 	IssueWorklogSchema,
+	CreateMetaResponse,
+	CreateMetaResponseSchema,
+	GetCreateMetaParams,
+	CreateIssueParams,
+	CreateIssueResponse,
+	CreateIssueResponseSchema,
 } from './vendor.atlassian.issues.types.js';
 import {
 	createAuthMissingError,
@@ -827,6 +833,150 @@ async function deleteWorklog(
 	}
 }
 
+/**
+ * Get create metadata for project issue types
+ *
+ * @param projectIdOrKey - Project ID or key
+ * @param issueTypeId - Optional specific issue type ID
+ * @param params - Optional parameters for filtering
+ * @returns Promise containing create metadata
+ */
+async function getCreateMeta(
+	projectIdOrKey: string,
+	issueTypeId?: string,
+	params: GetCreateMetaParams = {},
+): Promise<CreateMetaResponse> {
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'getCreateMeta',
+	);
+	methodLogger.debug(
+		`Getting create metadata for project ${projectIdOrKey}${issueTypeId ? `, issue type ${issueTypeId}` : ''}`,
+		params,
+	);
+
+	const credentials = getAtlassianCredentials();
+	if (!credentials) {
+		throw createAuthMissingError(
+			`Atlassian credentials required to get create metadata for project ${projectIdOrKey}`,
+		);
+	}
+
+	try {
+		// Use the new endpoint for specific issue type if provided
+		let path: string;
+		if (issueTypeId) {
+			path = `${API_PATH}/issue/createmeta/${projectIdOrKey}/issuetypes/${issueTypeId}`;
+		} else {
+			// Use the legacy endpoint for all issue types in the project
+			const queryParams = new URLSearchParams();
+			queryParams.set('projectKeys', projectIdOrKey);
+			queryParams.set('expand', 'projects.issuetypes.fields');
+
+			if (params.issuetypeIds?.length) {
+				queryParams.set('issuetypeIds', params.issuetypeIds.join(','));
+			}
+			if (params.issuetypeNames?.length) {
+				queryParams.set(
+					'issuetypeNames',
+					params.issuetypeNames.join(','),
+				);
+			}
+
+			path = `${API_PATH}/issue/createmeta?${queryParams.toString()}`;
+		}
+
+		methodLogger.debug(`Calling Jira API: ${path}`);
+
+		const rawData = await fetchAtlassian(credentials, path);
+		return validateResponse(
+			rawData,
+			CreateMetaResponseSchema,
+			'create metadata',
+		);
+	} catch (error) {
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		methodLogger.error('Unexpected error getting create metadata:', error);
+		throw createApiError(
+			`Unexpected error getting create metadata for project ${projectIdOrKey}: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error,
+		);
+	}
+}
+
+/**
+ * Create a new Jira issue
+ *
+ * @param params - Issue creation parameters with fields data
+ * @returns Promise containing the created issue response
+ */
+async function createIssue(
+	params: CreateIssueParams,
+): Promise<CreateIssueResponse> {
+	const methodLogger = Logger.forContext(
+		'services/vendor.atlassian.issues.service.ts',
+		'createIssue',
+	);
+	methodLogger.debug('Creating new issue with params:', params);
+
+	const credentials = getAtlassianCredentials();
+	if (!credentials) {
+		throw createAuthMissingError(
+			'Atlassian credentials required to create issue',
+		);
+	}
+
+	try {
+		// Build query parameters
+		const queryParams = new URLSearchParams();
+		if (params.updateHistory !== undefined) {
+			queryParams.set('updateHistory', params.updateHistory.toString());
+		}
+
+		const queryString = queryParams.toString()
+			? `?${queryParams.toString()}`
+			: '';
+		const path = `${API_PATH}/issue${queryString}`;
+
+		methodLogger.debug(`Calling Jira API: ${path}`);
+
+		const requestBody = {
+			fields: params.fields,
+			...(params.update && { update: params.update }),
+			...(params.historyMetadata && {
+				historyMetadata: params.historyMetadata,
+			}),
+			...(params.properties && { properties: params.properties }),
+		};
+
+		const rawData = await fetchAtlassian(credentials, path, {
+			method: 'POST',
+			body: requestBody,
+		});
+
+		return validateResponse(
+			rawData,
+			CreateIssueResponseSchema,
+			'create issue',
+		);
+	} catch (error) {
+		if (error instanceof McpError) {
+			throw error;
+		}
+
+		methodLogger.error('Unexpected error creating issue:', error);
+		throw createApiError(
+			`Unexpected error creating Jira issue: ${error instanceof Error ? error.message : String(error)}`,
+			500,
+			error,
+		);
+	}
+}
+
 export default {
 	search,
 	get,
@@ -836,4 +986,6 @@ export default {
 	addWorklog,
 	updateWorklog,
 	deleteWorklog,
+	getCreateMeta,
+	createIssue,
 };
