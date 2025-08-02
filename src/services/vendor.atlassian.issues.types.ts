@@ -210,7 +210,7 @@ export const IssueWorklogSchema = z.object({
 /**
  * Issue worklog container schema - Jira API sometimes returns this as an object with nested arrays instead of a direct array
  */
-const IssueWorklogContainerSchema = z
+export const IssueWorklogContainerSchema = z
 	.object({
 		worklogs: z.array(IssueWorklogSchema).optional(),
 		maxResults: z.number().optional(),
@@ -218,6 +218,9 @@ const IssueWorklogContainerSchema = z
 		startAt: z.number().optional(),
 	})
 	.passthrough();
+
+export type IssueWorklog = z.infer<typeof IssueWorklogSchema>;
+export type IssueWorklogContainer = z.infer<typeof IssueWorklogContainerSchema>;
 
 /**
  * Issue time tracking schema

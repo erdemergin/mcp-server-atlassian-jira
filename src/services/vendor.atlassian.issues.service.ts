@@ -15,6 +15,10 @@ import {
 	IssueCommentSchema,
 	ListCommentsParams,
 	AddCommentParams,
+	IssueWorklog,
+	IssueWorklogContainer,
+	IssueWorklogContainerSchema,
+	IssueWorklogSchema,
 } from './vendor.atlassian.issues.types.js';
 import {
 	createAuthMissingError,
@@ -23,6 +27,40 @@ import {
 } from '../utils/error.util.js';
 import { validateResponse } from '../utils/validation.util.js';
 import { z } from 'zod';
+
+// Worklog types for API interactions
+interface WorklogCreateData {
+	timeSpentSeconds?: number;
+	timeSpent?: string;
+	started?: string;
+	comment?: string | { type: string; version: number; content: unknown[] };
+	visibility?: {
+		type: string;
+		identifier?: string;
+		value?: string;
+	};
+	adjustEstimate?: string;
+	newEstimate?: string;
+	reduceBy?: string;
+}
+
+interface WorklogUpdateData {
+	timeSpentSeconds?: number;
+	timeSpent?: string;
+	started?: string;
+	comment?: string | { type: string; version: number; content: unknown[] };
+	visibility?: {
+		type: string;
+		identifier?: string;
+		value?: string;
+	};
+}
+
+interface WorklogDeleteParams {
+	adjustEstimate?: string;
+	newEstimate?: string;
+	increaseBy?: string;
+}
 
 // Create a contextualized logger for this file
 const serviceLogger = Logger.forContext(
@@ -468,7 +506,7 @@ async function addComment(
  * @param {number} [params.startAt] - Pagination start index
  * @param {number} [params.maxResults] - Maximum number of results to return
  * @param {string[]} [params.expand] - Worklog data to expand in response
- * @returns {Promise<any>} Promise containing the worklogs with pagination information
+ * @returns {Promise<IssueWorklogContainer>} Promise containing the worklogs with pagination information
  * @throws {Error} If Atlassian credentials are missing or API request fails
  * @example
  * // Get worklogs for an issue with pagination
@@ -484,7 +522,7 @@ async function getWorklogs(
 		maxResults?: number;
 		expand?: string[];
 	} = {},
-): Promise<unknown> {
+): Promise<IssueWorklogContainer> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
 		'getWorklogs',
@@ -526,9 +564,12 @@ async function getWorklogs(
 
 	try {
 		const rawData = await fetchAtlassian(credentials, path);
-		// For worklogs, we don't have a specific schema validation yet
-		// so we'll return the raw data
-		return rawData;
+		// Validate response against schema
+		return validateResponse(
+			rawData,
+			IssueWorklogContainerSchema,
+			'getWorklogs',
+		);
 	} catch (error) {
 		// McpError is already properly structured from fetchAtlassian
 		if (error instanceof McpError) {
@@ -557,8 +598,8 @@ async function getWorklogs(
  * @async
  * @memberof VendorAtlassianIssuesService
  * @param {string} issueIdOrKey - The ID or key of the issue to add a worklog to
- * @param {any} worklogData - Parameters for the worklog to add
- * @returns {Promise<any>} Promise containing the created worklog information
+ * @param {WorklogCreateData} worklogData - Parameters for the worklog to add
+ * @returns {Promise<IssueWorklog>} Promise containing the created worklog information
  * @throws {Error} If Atlassian credentials are missing or API request fails
  * @example
  * // Add a worklog with time spent and comment
@@ -570,8 +611,8 @@ async function getWorklogs(
  */
 async function addWorklog(
 	issueIdOrKey: string,
-	worklogData: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-): Promise<unknown> {
+	worklogData: WorklogCreateData,
+): Promise<IssueWorklog> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
 		'addWorklog',
@@ -629,7 +670,8 @@ async function addWorklog(
 			body: requestBody,
 		});
 
-		return response;
+		// Validate response against schema
+		return validateResponse(response, IssueWorklogSchema, 'addWorklog');
 	} catch (error) {
 		// McpError is already properly structured from fetchAtlassian
 		if (error instanceof McpError) {
@@ -658,15 +700,15 @@ async function addWorklog(
  * @memberof VendorAtlassianIssuesService
  * @param {string} issueIdOrKey - The ID or key of the issue
  * @param {string} worklogId - The ID of the worklog to update
- * @param {any} updateData - Parameters for the worklog update
- * @returns {Promise<any>} Promise containing the updated worklog information
+ * @param {WorklogUpdateData} updateData - Parameters for the worklog update
+ * @returns {Promise<IssueWorklog>} Promise containing the updated worklog information
  * @throws {Error} If Atlassian credentials are missing or API request fails
  */
 async function updateWorklog(
 	issueIdOrKey: string,
 	worklogId: string,
-	updateData: any, // eslint-disable-line @typescript-eslint/no-explicit-any
-): Promise<unknown> {
+	updateData: WorklogUpdateData,
+): Promise<IssueWorklog> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
 		'updateWorklog',
@@ -693,7 +735,8 @@ async function updateWorklog(
 			body: updateData,
 		});
 
-		return response;
+		// Validate response against schema
+		return validateResponse(response, IssueWorklogSchema, 'updateWorklog');
 	} catch (error) {
 		if (error instanceof McpError) {
 			throw error;
@@ -720,14 +763,14 @@ async function updateWorklog(
  * @memberof VendorAtlassianIssuesService
  * @param {string} issueIdOrKey - The ID or key of the issue
  * @param {string} worklogId - The ID of the worklog to delete
- * @param {any} [params={}] - Optional parameters for estimate adjustment
+ * @param {WorklogDeleteParams} [params={}] - Optional parameters for estimate adjustment
  * @returns {Promise<void>} Promise that resolves when the worklog is deleted
  * @throws {Error} If Atlassian credentials are missing or API request fails
  */
 async function deleteWorklog(
 	issueIdOrKey: string,
 	worklogId: string,
-	params: any = {}, // eslint-disable-line @typescript-eslint/no-explicit-any
+	params: WorklogDeleteParams = {},
 ): Promise<void> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',

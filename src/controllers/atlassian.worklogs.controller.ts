@@ -28,6 +28,25 @@ import { formatPagination } from '../utils/formatter.util.js';
 import { markdownToAdf } from '../utils/adf-from-markdown.util.js';
 import { textToAdf } from '../utils/adf-from-text.util.js';
 
+// Types for worklog API parameters
+interface WorklogApiParams {
+	timeSpentSeconds?: number;
+	started?: string;
+	comment?: string | { type: string; version: number; content: unknown[] };
+	visibility?: {
+		type: string;
+		identifier?: string;
+		value?: string;
+	};
+}
+
+interface WorklogEstimateParams {
+	adjustEstimate?: string;
+	newEstimate?: string;
+	reduceBy?: string;
+	increaseBy?: string;
+}
+
 // Create a contextualized logger for this file
 const controllerLogger = Logger.forContext(
 	'controllers/atlassian.worklogs.controller.ts',
@@ -124,7 +143,7 @@ async function listWorklogs(
 		);
 
 		methodLogger.debug(
-			`Retrieved ${worklogsData.worklogs.length} worklogs out of ${worklogsData.total} total`,
+			`Retrieved ${worklogsData.worklogs?.length || 0} worklogs out of ${worklogsData.total || 0} total`,
 		);
 
 		// Extract pagination info
@@ -136,7 +155,7 @@ async function listWorklogs(
 
 		// Format worklogs
 		const formattedWorklogs = formatWorklogsList(
-			worklogsData.worklogs,
+			worklogsData.worklogs || [],
 			mergedOptions.issueIdOrKey,
 		);
 
@@ -213,8 +232,7 @@ async function addWorklog(
 		}
 
 		// Build request parameters
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const params: any = {
+		const params: WorklogApiParams & WorklogEstimateParams = {
 			timeSpentSeconds,
 			started: options.started,
 		};
@@ -295,8 +313,7 @@ async function updateWorklog(
 		}
 
 		// Build update parameters
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const params: any = {};
+		const params: WorklogApiParams = {};
 
 		// Convert time spent to seconds if provided
 		if (options.timeSpent) {
@@ -388,8 +405,7 @@ async function deleteWorklog(
 		}
 
 		// Build delete parameters
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const params: any = {};
+		const params: WorklogEstimateParams = {};
 
 		// Handle estimate adjustment
 		if (options.adjustEstimate) {
