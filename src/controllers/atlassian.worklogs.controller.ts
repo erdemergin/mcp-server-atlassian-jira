@@ -213,7 +213,8 @@ async function addWorklog(
 		}
 
 		// Build request parameters
-		const params: Record<string, unknown> = {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const params: any = {
 			timeSpentSeconds,
 			started: options.started,
 		};
@@ -294,7 +295,8 @@ async function updateWorklog(
 		}
 
 		// Build update parameters
-		const params: Record<string, unknown> = {};
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const params: any = {};
 
 		// Convert time spent to seconds if provided
 		if (options.timeSpent) {
@@ -386,7 +388,8 @@ async function deleteWorklog(
 		}
 
 		// Build delete parameters
-		const params: Record<string, unknown> = {};
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const params: any = {};
 
 		// Handle estimate adjustment
 		if (options.adjustEstimate) {

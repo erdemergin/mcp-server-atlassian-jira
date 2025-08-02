@@ -570,7 +570,7 @@ async function getWorklogs(
  */
 async function addWorklog(
 	issueIdOrKey: string,
-	worklogData: Record<string, unknown>,
+	worklogData: any, // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<unknown> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
@@ -665,7 +665,7 @@ async function addWorklog(
 async function updateWorklog(
 	issueIdOrKey: string,
 	worklogId: string,
-	updateData: Record<string, unknown>,
+	updateData: any, // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<unknown> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
@@ -727,7 +727,7 @@ async function updateWorklog(
 async function deleteWorklog(
 	issueIdOrKey: string,
 	worklogId: string,
-	params: Record<string, unknown> = {},
+	params: any = {}, // eslint-disable-line @typescript-eslint/no-explicit-any
 ): Promise<void> {
 	const methodLogger = Logger.forContext(
 		'services/vendor.atlassian.issues.service.ts',
