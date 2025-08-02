@@ -1,3 +1,17 @@
+# [1.38.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.37.1...v1.38.0) (2025-08-02)
+
+
+### Bug Fixes
+
+* properly type worklog API interactions ([30af904](https://github.com/aashari/mcp-server-atlassian-jira/commit/30af9042b8b4a5f5d426482ed76a8a57527034cd))
+* restore any types for Jira API worklog integration ([2cf1db3](https://github.com/aashari/mcp-server-atlassian-jira/commit/2cf1db3ef9dea3d74c4b15f6d770dc488b090751))
+* standardize dependencies and fix TypeScript linting issues ([7292592](https://github.com/aashari/mcp-server-atlassian-jira/commit/7292592186f714ed0187aafb043faf4cf5e9a866))
+
+
+### Features
+
+* enhance CLI startup logging with package info ([3ebe190](https://github.com/aashari/mcp-server-atlassian-jira/commit/3ebe1907931b8e985ecbe2f73cd39fff6ec86253))
+
 ## [1.37.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.37.0...v1.37.1) (2025-06-22)
 
 
