@@ -1,3 +1,23 @@
+# [2.0.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.38.0...v2.0.0) (2025-08-02)
+
+
+### Features
+
+* add issue creation tools and fix markdown heading processing ([17f7c6a](https://github.com/aashari/mcp-server-atlassian-jira/commit/17f7c6a44dd06583e2d3dd8a7be72c69a11831c7))
+
+
+### BREAKING CHANGES
+
+* None - these are new additive features
+
+Tools added:
+- jira_get_create_meta: Discover project-specific requirements
+- jira_create_issue: Create issues with full field support
+
+Bug fixes:
+- Markdown headings now properly process bold, italic, code, links
+- Eliminates literal ** characters in Jira heading display
+
 # [1.38.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.37.1...v1.38.0) (2025-08-02)
 
 
