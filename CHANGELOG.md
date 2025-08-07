@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v2.0.0...v2.0.1) (2025-08-07)
+
+
+### Bug Fixes
+
+* transform README to end-user focused and correct configuration ([c6c1361](https://github.com/aashari/mcp-server-atlassian-jira/commit/c6c1361b3f2e1882f1da7167b02eaa86002857bb))
+
 # [2.0.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v1.38.0...v2.0.0) (2025-08-02)
 
 
