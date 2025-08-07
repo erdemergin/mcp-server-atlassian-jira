@@ -1,427 +1,252 @@
-# Atlassian Jira MCP Server
+# Connect AI to Your Jira Projects
 
-A Node.js/TypeScript Model Context Protocol (MCP) server for Atlassian Jira Cloud. Enables AI systems (e.g., LLMs like Claude or Cursor AI) to securely interact with your Jira projects, issues, comments, and related development information in real time.
+Transform how you manage and track your work by connecting Claude, Cursor AI, and other AI assistants directly to your Jira projects, issues, and workflows. Get instant project insights, streamline issue management, and enhance your team collaboration.
 
 [![NPM Version](https://img.shields.io/npm/v/@aashari/mcp-server-atlassian-jira)](https://www.npmjs.com/package/@aashari/mcp-server-atlassian-jira)
-[![Build Status](https://img.shields.io/github/workflow/status/aashari/mcp-server-atlassian-jira/CI)](https://github.com/aashari/mcp-server-atlassian-jira/actions)
 
-## Why Use This Server?
+## What You Can Do
 
-- **Minimal Input, Maximum Output**: Simple identifiers provide comprehensive details without requiring extra flags.
-- **Complete Jira Context**: Access projects, issues, comments, and metadata to understand your work context.
-- **Rich Development Information**: Get insights into branches, commits, and pull requests linked to issues.
-- **Secure Local Authentication**: Run locally with your credentials, never storing tokens on remote servers.
-- **Intuitive Markdown Responses**: Well-structured, consistent Markdown formatting for all outputs.
+✅ **Ask AI about your projects**: *"What are the active issues in the DEV project?"*  
+✅ **Get issue insights**: *"Show me details about PROJ-123 including comments"*  
+✅ **Track project progress**: *"List all high priority issues assigned to me"*  
+✅ **Manage issue comments**: *"Add a comment to PROJ-456 about the test results"*  
+✅ **Search across projects**: *"Find all bugs in progress across my projects"*  
+✅ **Check workflow status**: *"What are the available statuses for the DEV project?"*  
 
-## What is MCP?
+## Perfect For
 
-Model Context Protocol (MCP) is an open standard for securely connecting AI systems to external tools and data sources. This server implements MCP for Jira Cloud, enabling AI assistants to interact with your Jira instance programmatically.
+- **Developers** who need quick access to issue details and development context
+- **Project Managers** tracking progress, priorities, and team assignments  
+- **Scrum Masters** managing sprints and workflow states
+- **Team Leads** monitoring project health and issue resolution
+- **QA Engineers** tracking bugs and testing status
+- **Anyone** who wants to interact with Jira using natural language
 
-## Prerequisites
+## Quick Start
 
-- **Node.js** (>=18.x): [Download](https://nodejs.org/)
-- **Atlassian Account** with access to Jira Cloud
+Get up and running in 2 minutes:
 
-## Setup
+### 1. Get Your Jira Credentials
 
-### Step 1: Get Your Atlassian API Token
+Generate a Jira API Token:
+1. Go to [Atlassian API Tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+2. Click **Create API token**
+3. Give it a name like **"AI Assistant"**
+4. **Copy the generated token** immediately (you won't see it again!)
 
-1. Go to your Atlassian API token management page: [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
-2. Click **Create API token**.
-3. Give it a descriptive **Label** (e.g., `mcp-jira-access`).
-4. Click **Create**.
-5. **Copy the generated API token** immediately. You won't be able to see it again.
+### 2. Try It Instantly
 
-### Step 2: Configure Credentials
+```bash
+# Set your credentials
+export ATLASSIAN_SITE_NAME="your-company"  # for your-company.atlassian.net
+export ATLASSIAN_USER_EMAIL="your.email@company.com"
+export ATLASSIAN_API_TOKEN="your_api_token"
 
-#### Option A: MCP Config File (Recommended)
+# List your Jira projects
+npx -y @aashari/mcp-server-atlassian-jira ls-projects
 
-Edit or create `~/.mcp/configs.json`:
+# Get details about a specific project
+npx -y @aashari/mcp-server-atlassian-jira get-project --project-key-or-id DEV
+
+# Search for issues
+npx -y @aashari/mcp-server-atlassian-jira ls-issues --project-key-or-id DEV
+```
+
+## Connect to AI Assistants
+
+### For Claude Desktop Users
+
+Add this to your Claude configuration file (`~/.claude/claude_desktop_config.json`):
 
 ```json
 {
-	"jira": {
-		"environments": {
-			"ATLASSIAN_SITE_NAME": "<YOUR_SITE_NAME>",
-			"ATLASSIAN_USER_EMAIL": "<YOUR_ATLASSIAN_EMAIL>",
-			"ATLASSIAN_API_TOKEN": "<YOUR_COPIED_API_TOKEN>"
-		}
-	}
+  "mcpServers": {
+    "jira": {
+      "command": "npx",
+      "args": ["-y", "@aashari/mcp-server-atlassian-jira"],
+      "env": {
+        "ATLASSIAN_SITE_NAME": "your-company",
+        "ATLASSIAN_USER_EMAIL": "your.email@company.com",
+        "ATLASSIAN_API_TOKEN": "your_api_token"
+      }
+    }
+  }
 }
 ```
 
-- `<YOUR_SITE_NAME>`: Your Jira site name (e.g., `mycompany` for `mycompany.atlassian.net`).
-- `<YOUR_ATLASSIAN_EMAIL>`: Your Atlassian account email.
-- `<YOUR_COPIED_API_TOKEN>`: The API token from Step 1.
+Restart Claude Desktop, and you'll see "🔗 jira" in the status bar.
 
-#### Option B: Environment Variables
+### For Other AI Assistants
 
-```bash
-export ATLASSIAN_SITE_NAME="<YOUR_SITE_NAME>"
-export ATLASSIAN_USER_EMAIL="<YOUR_EMAIL>"
-export ATLASSIAN_API_TOKEN="<YOUR_API_TOKEN>"
-```
-
-### Step 3: Install and Run
-
-#### Quick Start with `npx`
-
-```bash
-npx -y @aashari/mcp-server-atlassian-jira ls-projects
-```
-
-#### Global Installation
+Most AI assistants support MCP. Install the server globally:
 
 ```bash
 npm install -g @aashari/mcp-server-atlassian-jira
-mcp-atlassian-jira ls-projects
 ```
 
-### Step 4: Connect to AI Assistant
+Then configure your AI assistant to use the MCP server with STDIO transport.
 
-Configure your MCP-compatible client (e.g., Claude, Cursor AI):
+### Alternative: Configuration File
+
+Create `~/.mcp/configs.json` for system-wide configuration:
 
 ```json
 {
-	"mcpServers": {
-		"jira": {
-			"command": "npx",
-			"args": ["-y", "@aashari/mcp-server-atlassian-jira"]
-		}
-	}
+  "jira": {
+    "environments": {
+      "ATLASSIAN_SITE_NAME": "your-company",
+      "ATLASSIAN_USER_EMAIL": "your.email@company.com",
+      "ATLASSIAN_API_TOKEN": "your_api_token"
+    }
+  }
 }
 ```
 
-## MCP Tools
-
-MCP tools use `snake_case` names, `camelCase` parameters, and return Markdown-formatted responses.
-
-- **jira_ls_projects**: Lists accessible Jira projects (`name`: str opt, `limit`: num opt, `startAt`: num opt, `orderBy`: str opt). Use: View available projects.
-- **jira_get_project**: Gets detailed project information (`projectKeyOrId`: str req). Use: Access project components and metadata.
-- **jira_ls_issues**: Searches for Jira issues (`jql`: str opt, `projectKeyOrId`: str opt, `statuses`: str[] opt, `orderBy`: str opt, `limit`: num opt, `startAt`: num opt). Use: Find issues matching criteria.
-- **jira_get_issue**: Gets comprehensive issue details (`issueIdOrKey`: str req). Use: View issue with comments and development info.
-- **jira_ls_comments**: Lists comments for an issue (`issueIdOrKey`: str req, `limit`: num opt, `startAt`: num opt, `orderBy`: str opt). Use: Read issue discussion.
-- **jira_add_comment**: Adds comment to an issue (`issueIdOrKey`: str req, `commentBody`: str req). Use: Add feedback to issues.
-- **jira_ls_statuses**: Lists available workflow statuses (`projectKeyOrId`: str opt). Use: Check valid status transitions.
-
-<details>
-<summary><b>MCP Tool Examples (Click to expand)</b></summary>
-
-### `jira_ls_projects`
-
-**Basic List Projects:**
-```json
-{}
-```
-
-**Filtered Projects:**
-```json
-{
-	"name": "Platform",
-	"limit": 10,
-	"orderBy": "name"
-}
-```
-
-### `jira_get_project`
-
-**Get Project by Key:**
-```json
-{ "projectKeyOrId": "DEV" }
-```
-
-**Get Project by ID:**
-```json
-{ "projectKeyOrId": "10001" }
-```
-
-### `jira_ls_issues`
-
-**Search with JQL:**
-```json
-{ "jql": "project = DEV AND status = 'In Progress'" }
-```
-
-**Filter by Project and Status:**
-```json
-{
-	"projectKeyOrId": "DEV",
-	"statuses": ["In Progress", "To Do"],
-	"limit": 15
-}
-```
-
-### `jira_get_issue`
-
-**Get Issue Details:**
-```json
-{ "issueIdOrKey": "PROJ-123" }
-```
-
-### `jira_ls_comments`
-
-**List Comments:**
-```json
-{ "issueIdOrKey": "PROJ-123" }
-```
-
-**Sorted Comments:**
-```json
-{
-	"issueIdOrKey": "PROJ-123",
-	"limit": 10,
-	"orderBy": "created DESC"
-}
-```
-
-### `jira_add_comment`
-
-**Add Comment:**
-```json
-{
-	"issueIdOrKey": "PROJ-123",
-	"commentBody": "Thanks for the update. I'll review this by end of day."
-}
-```
-
-### `jira_ls_statuses`
-
-**List All Statuses:**
-```json
-{}
-```
-
-**Project-Specific Statuses:**
-```json
-{ "projectKeyOrId": "DEV" }
-```
+**Alternative config keys:** The system also accepts `"atlassian-jira"`, `"@aashari/mcp-server-atlassian-jira"`, or `"mcp-server-atlassian-jira"` instead of `"jira"`.
 
-</details>
+## Real-World Examples
 
-## Transport Modes
+### 📋 Explore Your Projects
 
-This server supports two transport modes for different integration scenarios:
+Ask your AI assistant:
+- *"List all projects I have access to"*
+- *"Show me details about the DEV project"*  
+- *"What projects contain the word 'Platform'?"*
+- *"Get project information for PROJ-123"*
 
-### STDIO Transport (Default for MCP Clients)
-- Traditional subprocess communication via stdin/stdout
-- Ideal for local AI assistant integrations (Claude Desktop, Cursor AI)
-- Uses pipe-based communication for direct MCP protocol exchange
+### 🔍 Search and Track Issues
 
-```bash
-# Run with STDIO transport (default for AI assistants)
-TRANSPORT_MODE=stdio npx @aashari/mcp-server-atlassian-jira
+Ask your AI assistant:
+- *"Find all high priority issues in the DEV project"*
+- *"Show me issues assigned to me that are in progress"*
+- *"Search for bugs reported in the last week"*
+- *"List all open issues for the mobile team"*
 
-# Using npm scripts (after installation)
-npm run mcp:stdio
-```
+### 📝 Manage Issue Details
 
-### HTTP Transport (Default for Server Mode)
-- Modern HTTP-based transport with Server-Sent Events (SSE)
-- Supports multiple concurrent connections
-- Better for web-based integrations and development
-- Runs on port 3000 by default (configurable via PORT env var)
-- Endpoint: http://localhost:3000/mcp
-- Health check: http://localhost:3000/
+Ask your AI assistant:
+- *"Get full details about issue PROJ-456 including comments"*
+- *"Show me the development information for PROJ-789"*
+- *"What's the current status and assignee of PROJ-123?"*
+- *"Display all comments on the authentication bug"*
 
-```bash
-# Run with HTTP transport (default when no CLI args)
-TRANSPORT_MODE=http npx @aashari/mcp-server-atlassian-jira
+### 💬 Issue Communication
 
-# Using npm scripts (after installation)
-npm run mcp:http
+Ask your AI assistant:
+- *"Add a comment to PROJ-456: 'Code review completed, ready for testing'"*
+- *"Comment on the login issue that it's been deployed to staging"*
+- *"Add testing results to issue PROJ-789"*
 
-# Test with MCP Inspector
-npm run mcp:inspect
-```
+### 🔄 Workflow Management
 
-### Environment Variables
+Ask your AI assistant:
+- *"What are the available statuses in the DEV project?"*
+- *"Show me all possible workflow states"*
+- *"What status options are available for project MOBILE?"*
+- *"List the workflow states for issue transitions"*
 
-**Transport Configuration:**
-- `TRANSPORT_MODE`: Set to `stdio` or `http` (default: `http` for server mode, `stdio` for MCP clients)
-- `PORT`: HTTP server port (default: 3000)
-- `DEBUG`: Enable debug logging (default: false)
+## Troubleshooting
 
-**Authentication:**
-- `ATLASSIAN_JIRA_URL`: Your Jira instance URL
-- `ATLASSIAN_USER_EMAIL`: Your Atlassian account email
-- `ATLASSIAN_API_TOKEN`: Your Atlassian API token
+### "Authentication failed" or "403 Forbidden"
 
-## CLI Commands
+1. **Check your API Token permissions**:
+   - Go to [Atlassian API Tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
+   - Make sure your token is still active and hasn't expired
 
-CLI commands use `kebab-case`. Run `--help` for details (e.g., `mcp-atlassian-jira ls-projects --help`).
+2. **Verify your site name format**:
+   - If your Jira URL is `https://mycompany.atlassian.net`
+   - Your site name should be just `mycompany`
 
-- **ls-projects**: Lists Jira projects (`--name`, `--limit`, `--start-at`, `--order-by`). Ex: `mcp-atlassian-jira ls-projects`.
-- **get-project**: Gets project details (`--project-key-or-id`). Ex: `mcp-atlassian-jira get-project --project-key-or-id DEV`.
-- **ls-issues**: Searches for issues (`--jql`, `--project-key-or-id`, `--statuses`, `--order-by`, `--limit`, `--start-at`). Ex: `mcp-atlassian-jira ls-issues --project-key-or-id DEV`.
-- **get-issue**: Gets issue details (`--issue-id-or-key`). Ex: `mcp-atlassian-jira get-issue --issue-id-or-key PROJ-123`.
-- **ls-comments**: Lists comments (`--issue-id-or-key`, `--limit`, `--start-at`, `--order-by`). Ex: `mcp-atlassian-jira ls-comments --issue-id-or-key PROJ-123`.
-- **add-comment**: Adds comment (`--issue-id-or-key`, `--body`). Ex: `mcp-atlassian-jira add-comment --issue-id-or-key PROJ-123 --body "Comment text"`.
-- **ls-statuses**: Lists statuses (`--project-key-or-id`). Ex: `mcp-atlassian-jira ls-statuses`.
+3. **Test your credentials**:
+   ```bash
+   # Test your credentials work
+   npx -y @aashari/mcp-server-atlassian-jira ls-projects
+   ```
 
-<details>
-<summary><b>CLI Command Examples (Click to expand)</b></summary>
+### "Project not found" or "Issue not found"
 
-### List Projects
+1. **Check project key spelling**:
+   ```bash
+   # List your projects to see the correct keys
+   npx -y @aashari/mcp-server-atlassian-jira ls-projects
+   ```
 
-**Basic List:**
-```bash
-mcp-atlassian-jira ls-projects
-```
+2. **Verify access permissions**:
+   - Make sure you have access to the project in your browser
+   - Some projects may be restricted to certain users
 
-**Filtered List:**
-```bash
-mcp-atlassian-jira ls-projects --name "Platform" --limit 10 --order-by "name"
-```
+### "No results found" when searching
 
-### Get Project
+1. **Try different search terms**:
+   - Use project keys instead of project names
+   - Try broader search criteria
 
-```bash
-mcp-atlassian-jira get-project --project-key-or-id DEV
-```
+2. **Check issue permissions**:
+   - You can only access issues you have permission to view
+   - Ask your admin if you should have access to specific projects
 
-### List Issues
+### Claude Desktop Integration Issues
 
-**With JQL:**
-```bash
-mcp-atlassian-jira ls-issues --jql "project = DEV AND status = 'In Progress'"
-```
+1. **Restart Claude Desktop** after updating the config file
+2. **Check the status bar** for the "🔗 jira" indicator
+3. **Verify config file location**:
+   - macOS: `~/.claude/claude_desktop_config.json`
+   - Windows: `%APPDATA%\\Claude\\claude_desktop_config.json`
 
-**With Filters:**
-```bash
-mcp-atlassian-jira ls-issues --project-key-or-id DEV --statuses "In Progress" "To Do" --limit 15
-```
+### Getting Help
 
-### Get Issue
+If you're still having issues:
+1. Run a simple test command to verify everything works
+2. Check the [GitHub Issues](https://github.com/aashari/mcp-server-atlassian-jira/issues) for similar problems
+3. Create a new issue with your error message and setup details
 
-```bash
-mcp-atlassian-jira get-issue --issue-id-or-key PROJ-123
-```
+## Frequently Asked Questions
 
-### List Comments
+### What permissions do I need?
 
-```bash
-mcp-atlassian-jira ls-comments --issue-id-or-key PROJ-123 --order-by "created DESC"
-```
+Your Atlassian account needs:
+- **Access to Jira** with the appropriate permissions for the projects you want to query
+- **API token** with appropriate permissions (automatically granted when you create one)
 
-### Add Comment
+### Can I use this with Jira Server (on-premise)?
 
-```bash
-mcp-atlassian-jira add-comment --issue-id-or-key PROJ-123 --body "This issue has been prioritized for the next sprint."
-```
+Currently, this tool only supports **Jira Cloud**. Jira Server/Data Center support may be added in future versions.
 
-### List Statuses
+### How do I find my site name?
 
-```bash
-mcp-atlassian-jira ls-statuses --project-key-or-id DEV
-```
+Your site name is the first part of your Jira URL:
+- URL: `https://mycompany.atlassian.net` → Site name: `mycompany`
+- URL: `https://acme-corp.atlassian.net` → Site name: `acme-corp`
 
-</details>
+### What AI assistants does this work with?
 
-## Response Format
+Any AI assistant that supports the Model Context Protocol (MCP):
+- Claude Desktop (most popular)
+- Cursor AI
+- Continue.dev
+- Many others
 
-All responses are Markdown-formatted, including:
+### Is my data secure?
 
-- **Title**: Tool name and action performed.
-- **Content**: Structured data with headers, tables, and code blocks.
-- **Pagination**: Information about total results and navigation to additional pages.
-- **Links**: References to related resources when applicable.
+Yes! This tool:
+- Runs entirely on your local machine
+- Uses your own Jira credentials
+- Never sends your data to third parties
+- Only accesses what you give it permission to access
 
-<details>
-<summary><b>Response Format Examples (Click to expand)</b></summary>
+### Can I search across multiple projects?
 
-### Project List Response
+Yes! When you don't specify a project, searches will look across all projects you have access to. You can also use JQL queries for advanced cross-project searches.
 
-```markdown
-# Jira Projects
+## Support
 
-Showing **4** projects matching "Platform" out of 15 total projects.
+Need help? Here's how to get assistance:
 
-| Key | Name | Lead | Issues |
-|---|---|---|---|
-| [PLAT](#) | Platform Services | Maria Johnson | 204 issues |
-| [PLTX](#) | Platform Extensions | Chris Smith | 156 issues |
-| [PAPI](#) | Platform API | Dev Team | 87 issues |
-| [PINT](#) | Platform Integrations | Alex Wong | 42 issues |
+1. **Check the troubleshooting section above** - most common issues are covered there
+2. **Visit our GitHub repository** for documentation and examples: [github.com/aashari/mcp-server-atlassian-jira](https://github.com/aashari/mcp-server-atlassian-jira)
+3. **Report issues** at [GitHub Issues](https://github.com/aashari/mcp-server-atlassian-jira/issues)
+4. **Start a discussion** for feature requests or general questions
 
-*Retrieved from mycompany.atlassian.net on 2025-05-19 14:22 UTC*
-```
+---
 
-### Issue Details Response
-
-```markdown
-# Issue: PROJ-123
-
-**[PROJ-123](https://mycompany.atlassian.net/browse/PROJ-123): Implement OAuth2 authentication flow**
-
-**Project:** [PROJ](#) (Project Name)
-**Type:** 🛠️ Task
-**Status:** 🟡 In Progress
-**Priority:** 🔼 High
-**Assignee:** Jane Doe
-**Reporter:** John Smith
-**Created:** 2025-05-01
-**Updated:** 2025-05-18
-
-## Description
-
-We need to implement the OAuth2 authentication flow with the following requirements:
-
-- Support authorization code flow
-- Implement PKCE extension
-- Store refresh tokens securely
-- Add automatic token refresh
-
-## Comments (3)
-
-### John Smith - 2025-05-01
-Initial requirements attached. See the authentication flow diagram.
-
-### Jane Doe - 2025-05-15
-I've started implementation. Questions about token expiration and storage.
-
-### Project Lead - 2025-05-18
-Looks good so far. Please add unit tests for token refresh logic.
-
-## Development Information
-
-**Branch:** feature/oauth2-auth
-**Commits:** 7 commits by Jane Doe
-**Pull Request:** [PR-45](https://github.com/mycompany/project/pull/45) (Open)
-
-*Retrieved on 2025-05-19 14:25 UTC*
-```
-
-</details>
-
-## Development
-
-```bash
-# Clone repository
-git clone https://github.com/aashari/mcp-server-atlassian-jira.git
-cd mcp-server-atlassian-jira
-
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev:server
-
-# Run tests
-npm test
-```
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/xyz`).
-3. Commit changes (`git commit -m "Add xyz feature"`).
-4. Push to the branch (`git push origin feature/xyz`).
-5. Open a pull request.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-## License
-
-[ISC License](LICENSE)
+*Made with ❤️ for teams who want to bring AI into their project management workflow.*
