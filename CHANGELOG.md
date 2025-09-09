@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v2.1.0...v2.1.1) (2025-09-09)
+
+
+### Bug Fixes
+
+* prevent dotenv from outputting to STDIO in MCP mode ([#91](https://github.com/aashari/mcp-server-atlassian-jira/issues/91)) ([956e36e](https://github.com/aashari/mcp-server-atlassian-jira/commit/956e36eeab1a4237e1b48fca87c36f498877a942))
+
 # [2.1.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v2.0.1...v2.1.0) (2025-09-09)
 
 
