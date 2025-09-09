@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/aashari/mcp-server-atlassian-jira/compare/v2.0.1...v2.1.0) (2025-09-09)
+
+
+### Features
+
+* modernize dependencies and ensure Zod v3.25.76 MCP SDK compatibility ([#89](https://github.com/aashari/mcp-server-atlassian-jira/issues/89)) ([4384780](https://github.com/aashari/mcp-server-atlassian-jira/commit/4384780f74d22d56d75eb5ade197bfd7c1549d3e))
+
 ## [2.0.1](https://github.com/aashari/mcp-server-atlassian-jira/compare/v2.0.0...v2.0.1) (2025-08-07)
 
 
