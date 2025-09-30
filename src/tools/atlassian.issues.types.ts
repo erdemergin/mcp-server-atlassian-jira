@@ -88,6 +88,26 @@ const GetIssueToolArgs = z.object({
 		.describe(
 			'The ID or key of the Jira issue to retrieve (e.g., "10001" or "PROJ-123"). This is required and must be a valid issue ID or key from your Jira instance.',
 		),
+
+	/**
+	 * Specific fields to retrieve from the issue
+	 */
+	fields: z
+		.array(z.string())
+		.optional()
+		.describe(
+			'Specific fields to retrieve from the issue. Can include standard fields (e.g., "summary", "description", "status", "assignee") and custom fields (e.g., "customfield_10001"). If omitted, returns a default set of common fields. Use "*all" to retrieve all available fields including custom fields.',
+		),
+
+	/**
+	 * Fields to expand in the response
+	 */
+	expand: z
+		.array(z.string())
+		.optional()
+		.describe(
+			'Fields to expand in the response for additional details (e.g., ["changelog", "renderedFields", "names"]). Useful for retrieving change history or rendered field values.',
+		),
 });
 
 type GetIssueToolArgsType = z.infer<typeof GetIssueToolArgs>;

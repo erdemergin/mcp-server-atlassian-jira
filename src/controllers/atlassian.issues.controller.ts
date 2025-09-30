@@ -225,13 +225,13 @@ async function list(
 
 /**
  * Get a single Jira issue by ID or key
- * @param identifier Issue identifier (ID or key)
+ * @param identifier Issue identifier (ID or key) and optional fields to retrieve
  * @returns Detailed issue information formatted as Markdown
  */
 async function get(
 	identifier: GetIssueToolArgsType,
 ): Promise<ControllerResponse> {
-	const { issueIdOrKey } = identifier;
+	const { issueIdOrKey, fields: requestedFields, expand } = identifier;
 	const methodLogger = Logger.forContext(
 		'controllers/atlassian.issues.controller.ts',
 		'get',
@@ -245,8 +245,8 @@ async function get(
 	}
 
 	try {
-		// Always include all fields
-		const fields = [
+		// Use requested fields or default set
+		const fields = requestedFields || [
 			'summary',
 			'description',
 			'status',
@@ -265,15 +265,16 @@ async function get(
 			'issuelinks',
 		];
 
-		// Get issue details
+		// Get issue details with requested fields and expand options
 		const issueData = await atlassianIssuesService.get(issueIdOrKey, {
 			fields,
+			expand,
 		});
 
 		methodLogger.debug(`Retrieved issue: ${issueIdOrKey}`);
 
-		// Format the issue data for display using the formatter
-		const formattedIssue = formatIssueDetails(issueData);
+		// Format the issue data for display using the formatter, passing requested fields
+		const formattedIssue = formatIssueDetails(issueData, requestedFields);
 
 		// Get development information if available
 		let devInfoSummary: DevInfoSummaryResponse | null = null;

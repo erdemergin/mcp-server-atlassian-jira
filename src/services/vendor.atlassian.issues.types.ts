@@ -272,7 +272,7 @@ const IssueFieldsSchema = z
 					self: z.string(),
 				})
 				.optional(),
-		}),
+		}).optional(),
 		// Accept either an array of comments or a comment container object
 		comment: z
 			.union([z.array(IssueCommentSchema), IssueCommentContainerSchema])
@@ -286,7 +286,7 @@ const IssueFieldsSchema = z
 		timetracking: IssueTimeTrackingSchema.optional(),
 		summary: z.string().optional(),
 		status: IssueStatusSchema.optional(),
-		// Make assignee accept null values
+		// Make assignee accept null values and optional (when specific fields are requested)
 		assignee: z
 			.object({
 				accountId: z.string(),
@@ -295,7 +295,8 @@ const IssueFieldsSchema = z
 				self: z.string(),
 				avatarUrls: z.record(z.string(), z.string()).optional(),
 			})
-			.nullable(),
+			.nullable()
+			.optional(),
 		priority: z
 			.object({
 				id: z.string(),
@@ -333,7 +334,8 @@ const IssueFieldsSchema = z
 				self: z.string(),
 				avatarUrls: z.record(z.string(), z.string()).optional(),
 			})
-			.nullable(),
+			.nullable()
+			.optional(),
 		created: z.string().optional(),
 		labels: z.array(z.string()).optional(),
 		components: z

@@ -163,7 +163,20 @@ function registerTools(server: McpServer) {
 	// Register the get issue details tool
 	server.tool(
 		'jira_get_issue',
-		`Retrieves comprehensive details about a specific Jira issue using its ID or key (\`issueIdOrKey\`). Returns formatted issue information including summary, description, status, reporter, assignee, comments summary, and related development information (commits, branches, pull requests) if available. Requires Jira credentials to be configured.`,
+		`Retrieves comprehensive details about a specific Jira issue using its ID or key (\`issueIdOrKey\`). 
+
+**Field Selection**: Use \`fields\` to specify which fields to retrieve. Supports:
+- Standard fields: "summary", "description", "status", "assignee", "reporter", "priority", "issuetype", "project", "created", "updated", "labels", "components", etc.
+- Custom fields: "customfield_10001", "customfield_10002", etc. (use exact field ID)
+- Use "*all" to retrieve all available fields including all custom fields
+- If omitted, returns a default set of common fields
+
+**Expand Options**: Use \`expand\` for additional details:
+- "changelog" - Include issue change history
+- "renderedFields" - Get HTML-rendered versions of text fields
+- "names" - Include field names in response
+
+Returns formatted issue information including summary, description, status, reporter, assignee, comments summary, and related development information (commits, branches, pull requests) if available. Requires Jira credentials to be configured.`,
 		GetIssueToolArgs.shape,
 		getIssue,
 	);

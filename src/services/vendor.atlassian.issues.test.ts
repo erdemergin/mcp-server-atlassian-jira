@@ -92,30 +92,34 @@ describe('Vendor Atlassian Issues Service', () => {
 				maxResults: 1,
 			});
 
-			if (initialSearch.issues.length === 0) {
-				console.warn('Skipping project JQL test: No issues found');
-				return;
-			}
+		if (initialSearch.issues.length === 0) {
+			console.warn('Skipping project JQL test: No issues found');
+			return;
+		}
 
-			// Extract project key from the first issue
-			const projectKey = initialSearch.issues[0].fields.project.key;
+		// Extract project key from the first issue
+		const projectKey = initialSearch.issues[0].fields.project?.key;
+		if (!projectKey) {
+			console.warn('Skipping project JQL test: Project field not available');
+			return;
+		}
 
-			// Now search using that project key
-			const result = await atlassianIssuesService.search({
-				jql: `project = ${projectKey}`,
-				maxResults: 5,
+		// Now search using that project key
+		const result = await atlassianIssuesService.search({
+			jql: `project = ${projectKey}`,
+			maxResults: 5,
+		});
+
+		// Verify results
+		expect(result).toHaveProperty('issues');
+		expect(Array.isArray(result.issues)).toBe(true);
+
+		// Check that all returned issues belong to the specified project
+		if (result.issues.length > 0) {
+			result.issues.forEach((issue) => {
+				expect(issue.fields.project?.key).toBe(projectKey);
 			});
-
-			// Verify results
-			expect(result).toHaveProperty('issues');
-			expect(Array.isArray(result.issues)).toBe(true);
-
-			// Check that all returned issues belong to the specified project
-			if (result.issues.length > 0) {
-				result.issues.forEach((issue) => {
-					expect(issue.fields.project.key).toBe(projectKey);
-				});
-			}
+		}
 		}, 30000);
 
 		it('should support complex JQL with multiple conditions', async () => {
